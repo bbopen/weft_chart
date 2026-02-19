@@ -1,0 +1,543 @@
+{
+  "_meta": {
+    "generator": "scripts/generate-test-vectors.mjs",
+    "recharts_scale_version": "0.4.5",
+    "generated_at": "2026-02-17T18:39:54.151Z"
+  },
+  "tick_vectors": [
+    {
+      "label": "basic",
+      "input": {
+        "domain": [
+          0,
+          7
+        ],
+        "count": 5,
+        "allowDecimals": true
+      },
+      "expected": [
+        0,
+        2,
+        4,
+        6,
+        8
+      ]
+    },
+    {
+      "label": "round_numbers",
+      "input": {
+        "domain": [
+          0,
+          100
+        ],
+        "count": 5,
+        "allowDecimals": true
+      },
+      "expected": [
+        0,
+        25,
+        50,
+        75,
+        100
+      ]
+    },
+    {
+      "label": "zero_crossing",
+      "input": {
+        "domain": [
+          -10,
+          10
+        ],
+        "count": 5,
+        "allowDecimals": true
+      },
+      "expected": [
+        -10,
+        -5,
+        0,
+        5,
+        10
+      ]
+    },
+    {
+      "label": "single_value",
+      "input": {
+        "domain": [
+          5,
+          5
+        ],
+        "count": 5,
+        "allowDecimals": true
+      },
+      "expected": [
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    {
+      "label": "small_decimals",
+      "input": {
+        "domain": [
+          0,
+          0.7
+        ],
+        "count": 5,
+        "allowDecimals": true
+      },
+      "expected": [
+        0,
+        0.2,
+        0.4,
+        0.6,
+        0.8
+      ]
+    },
+    {
+      "label": "integer_only",
+      "input": {
+        "domain": [
+          0,
+          7
+        ],
+        "count": 5,
+        "allowDecimals": false
+      },
+      "expected": [
+        0,
+        2,
+        4,
+        6,
+        8
+      ]
+    },
+    {
+      "label": "large_range",
+      "input": {
+        "domain": [
+          100,
+          10000
+        ],
+        "count": 5,
+        "allowDecimals": true
+      },
+      "expected": [
+        0,
+        2500,
+        5000,
+        7500,
+        10000
+      ]
+    },
+    {
+      "label": "few_ticks",
+      "input": {
+        "domain": [
+          0,
+          1
+        ],
+        "count": 3,
+        "allowDecimals": true
+      },
+      "expected": [
+        0,
+        0.5,
+        1
+      ]
+    },
+    {
+      "label": "zero_domain",
+      "input": {
+        "domain": [
+          0,
+          0
+        ],
+        "count": 5,
+        "allowDecimals": true
+      },
+      "expected": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "label": "all_negative",
+      "input": {
+        "domain": [
+          -100,
+          -10
+        ],
+        "count": 5,
+        "allowDecimals": true
+      },
+      "expected": [
+        -100,
+        -75,
+        -50,
+        -25,
+        0
+      ]
+    },
+    {
+      "label": "non_round",
+      "input": {
+        "domain": [
+          3,
+          97
+        ],
+        "count": 5,
+        "allowDecimals": true
+      },
+      "expected": [
+        0,
+        25,
+        50,
+        75,
+        100
+      ]
+    }
+  ],
+  "fixed_domain_tick_vectors": [
+    {
+      "label": "fixed_basic",
+      "input": {
+        "domain": [
+          0,
+          100
+        ],
+        "count": 5,
+        "allowDecimals": true
+      },
+      "expected": [
+        0,
+        25,
+        50,
+        75,
+        100
+      ]
+    },
+    {
+      "label": "fixed_zero_crossing",
+      "input": {
+        "domain": [
+          -50,
+          50
+        ],
+        "count": 5,
+        "allowDecimals": true
+      },
+      "expected": [
+        -50,
+        -25,
+        0,
+        25,
+        50
+      ]
+    },
+    {
+      "label": "fixed_integer_only",
+      "input": {
+        "domain": [
+          0,
+          7
+        ],
+        "count": 5,
+        "allowDecimals": false
+      },
+      "expected": [
+        0,
+        2,
+        4,
+        7
+      ]
+    },
+    {
+      "label": "fixed_mid_range",
+      "input": {
+        "domain": [
+          10,
+          90
+        ],
+        "count": 5,
+        "allowDecimals": true
+      },
+      "expected": [
+        10,
+        30,
+        50,
+        70,
+        90
+      ]
+    }
+  ],
+  "bar_vectors": [
+    {
+      "label": "single_bar_defaults",
+      "input": {
+        "bandSize": 100,
+        "barGap": 4,
+        "barCategoryGap": "10%",
+        "sizeList": [
+          {
+            "barSize": null
+          }
+        ],
+        "maxBarSize": null
+      },
+      "expected": [
+        {
+          "offset": 10,
+          "size": 80
+        }
+      ]
+    },
+    {
+      "label": "two_bars_defaults",
+      "input": {
+        "bandSize": 100,
+        "barGap": 4,
+        "barCategoryGap": "10%",
+        "sizeList": [
+          {
+            "barSize": null
+          },
+          {
+            "barSize": null
+          }
+        ],
+        "maxBarSize": null
+      },
+      "expected": [
+        {
+          "offset": 10,
+          "size": 38
+        },
+        {
+          "offset": 52,
+          "size": 38
+        }
+      ]
+    },
+    {
+      "label": "three_bars_maxBarSize_20",
+      "input": {
+        "bandSize": 100,
+        "barGap": 4,
+        "barCategoryGap": "10%",
+        "sizeList": [
+          {
+            "barSize": null
+          },
+          {
+            "barSize": null
+          },
+          {
+            "barSize": null
+          }
+        ],
+        "maxBarSize": 20
+      },
+      "expected": [
+        {
+          "offset": 12,
+          "size": 20
+        },
+        {
+          "offset": 40,
+          "size": 20
+        },
+        {
+          "offset": 68,
+          "size": 20
+        }
+      ]
+    },
+    {
+      "label": "custom_gaps",
+      "input": {
+        "bandSize": 100,
+        "barGap": "20%",
+        "barCategoryGap": "15%",
+        "sizeList": [
+          {
+            "barSize": null
+          },
+          {
+            "barSize": null
+          }
+        ],
+        "maxBarSize": null
+      },
+      "expected": [
+        {
+          "offset": 15,
+          "size": 25
+        },
+        {
+          "offset": 60,
+          "size": 25
+        }
+      ]
+    },
+    {
+      "label": "explicit_barSize_30",
+      "input": {
+        "bandSize": 100,
+        "barGap": 4,
+        "barCategoryGap": "10%",
+        "sizeList": [
+          {
+            "barSize": 30
+          },
+          {
+            "barSize": 30
+          }
+        ],
+        "maxBarSize": null
+      },
+      "expected": [
+        {
+          "offset": 18,
+          "size": 30
+        },
+        {
+          "offset": 52,
+          "size": 30
+        }
+      ]
+    }
+  ],
+  "domain_vectors": [
+    {
+      "label": "auto_auto",
+      "input": {
+        "specifiedDomain": [
+          "auto",
+          "auto"
+        ],
+        "dataDomain": [
+          20,
+          100
+        ],
+        "allowDataOverflow": false
+      },
+      "expected": [
+        20,
+        100
+      ]
+    },
+    {
+      "label": "numeric_fixed",
+      "input": {
+        "specifiedDomain": [
+          -1,
+          120
+        ],
+        "dataDomain": [
+          20,
+          100
+        ],
+        "allowDataOverflow": false
+      },
+      "expected": [
+        -1,
+        120
+      ]
+    },
+    {
+      "label": "dataMin_minus_dataMax_plus",
+      "input": {
+        "specifiedDomain": [
+          "dataMin - 10",
+          "dataMax + 10"
+        ],
+        "dataDomain": [
+          20,
+          100
+        ],
+        "allowDataOverflow": false
+      },
+      "expected": [
+        10,
+        110
+      ]
+    },
+    {
+      "label": "mixed_zero_dataMax_plus",
+      "input": {
+        "specifiedDomain": [
+          0,
+          "dataMax + 5"
+        ],
+        "dataDomain": [
+          20,
+          100
+        ],
+        "allowDataOverflow": false
+      },
+      "expected": [
+        0,
+        105
+      ]
+    },
+    {
+      "label": "allow_data_overflow",
+      "input": {
+        "specifiedDomain": [
+          50,
+          80
+        ],
+        "dataDomain": [
+          20,
+          100
+        ],
+        "allowDataOverflow": true
+      },
+      "expected": [
+        50,
+        80
+      ]
+    },
+    {
+      "label": "numeric_min_clamp",
+      "input": {
+        "specifiedDomain": [
+          30,
+          120
+        ],
+        "dataDomain": [
+          20,
+          100
+        ],
+        "allowDataOverflow": false
+      },
+      "expected": [
+        20,
+        120
+      ]
+    },
+    {
+      "label": "numeric_max_clamp",
+      "input": {
+        "specifiedDomain": [
+          -10,
+          80
+        ],
+        "dataDomain": [
+          20,
+          100
+        ],
+        "allowDataOverflow": false
+      },
+      "expected": [
+        -10,
+        100
+      ]
+    }
+  ]
+}

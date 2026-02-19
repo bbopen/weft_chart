@@ -1,0 +1,622 @@
+//// Tests for chart event integration.
+////
+//// Covers event types, chart-level event handlers, tooltip state-driven
+//// rendering, tooltip event attributes, backwards compatibility with
+//// CSS hover, and throttle hint attribute.
+
+import gleam/dict
+import gleam/option.{None, Some}
+import gleam/string
+import lustre/element
+import startest.{describe, it}
+import startest/expect
+import weft_chart/chart
+import weft_chart/event
+import weft_chart/series/line
+import weft_chart/tooltip
+
+// ---------------------------------------------------------------------------
+// Test message type
+// ---------------------------------------------------------------------------
+
+type Msg {
+  Clicked(event.ChartEventData)
+  MouseEntered(event.ChartEventData)
+  MouseLeft
+  MouseMoved(event.ChartEventData)
+  TooltipEnter(Int)
+  TooltipLeave
+}
+
+// ---------------------------------------------------------------------------
+// Test data
+// ---------------------------------------------------------------------------
+
+fn sample_data() -> List(chart.DataPoint) {
+  [
+    chart.DataPoint(category: "A", values: dict.from_list([#("val", 10.0)])),
+    chart.DataPoint(category: "B", values: dict.from_list([#("val", 20.0)])),
+    chart.DataPoint(category: "C", values: dict.from_list([#("val", 30.0)])),
+  ]
+}
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+pub fn event_tests() {
+  describe("event", [
+    // ----- ChartEventData construction -----
+    describe("ChartEventData", [
+      it("constructs with named fields", fn() {
+        let data =
+          event.chart_event_data(
+            active_index: 2,
+            active_data_key: "revenue",
+            chart_x: 100.5,
+            chart_y: 200.0,
+          )
+        data.active_index |> expect.to_equal(expected: 2)
+        data.active_data_key |> expect.to_equal(expected: "revenue")
+        data.chart_x |> expect.to_equal(expected: 100.5)
+        data.chart_y |> expect.to_equal(expected: 200.0)
+      }),
+      it("constructs with zero values", fn() {
+        let data =
+          event.chart_event_data(
+            active_index: 0,
+            active_data_key: "",
+            chart_x: 0.0,
+            chart_y: 0.0,
+          )
+        data.active_index |> expect.to_equal(expected: 0)
+        data.active_data_key |> expect.to_equal(expected: "")
+      }),
+    ]),
+    // ----- ChartEvent variants -----
+    describe("ChartEvent variants", [
+      it("creates OnClick variant", fn() {
+        let evt = event.on_click(handler: Clicked)
+        case evt {
+          event.OnClick(..) -> True
+          _ -> False
+        }
+        |> expect.to_be_true
+      }),
+      it("creates OnMouseEnter variant", fn() {
+        let evt = event.on_mouse_enter(handler: MouseEntered)
+        case evt {
+          event.OnMouseEnter(..) -> True
+          _ -> False
+        }
+        |> expect.to_be_true
+      }),
+      it("creates OnMouseLeave variant", fn() {
+        let evt = event.on_mouse_leave(handler: fn() { MouseLeft })
+        case evt {
+          event.OnMouseLeave(..) -> True
+          _ -> False
+        }
+        |> expect.to_be_true
+      }),
+      it("creates OnMouseMove variant", fn() {
+        let evt = event.on_mouse_move(handler: MouseMoved)
+        case evt {
+          event.OnMouseMove(..) -> True
+          _ -> False
+        }
+        |> expect.to_be_true
+      }),
+    ]),
+    // ----- Event builders on chart produce correct ChartChild -----
+    describe("chart_event builder", [
+      it("produces EventChild for on_click", fn() {
+        let child = chart.chart_event(handler: event.on_click(handler: Clicked))
+        case child {
+          chart.EventChild(..) -> True
+          _ -> False
+        }
+        |> expect.to_be_true
+      }),
+      it("produces EventChild for on_mouse_leave", fn() {
+        let child =
+          chart.chart_event(
+            handler: event.on_mouse_leave(handler: fn() { MouseLeft }),
+          )
+        case child {
+          chart.EventChild(..) -> True
+          _ -> False
+        }
+        |> expect.to_be_true
+      }),
+    ]),
+    // ----- Chart with events renders SVG with event attributes -----
+    describe("chart event rendering", [
+      it("renders click handler on SVG", fn() {
+        let html =
+          chart.line_chart(
+            data: sample_data(),
+            width: 400,
+            height: 300,
+            children: [
+              chart.line(line.line_config(data_key: "val")),
+              chart.chart_event(handler: event.on_click(handler: Clicked)),
+            ],
+          )
+          |> element.to_string
+        // The SVG should contain event binding data
+        html |> string.contains("<svg") |> expect.to_be_true
+      }),
+      it("renders multiple event handlers", fn() {
+        let html =
+          chart.line_chart(
+            data: sample_data(),
+            width: 400,
+            height: 300,
+            children: [
+              chart.line(line.line_config(data_key: "val")),
+              chart.chart_event(handler: event.on_click(handler: Clicked)),
+              chart.chart_event(handler: event.on_mouse_enter(
+                handler: MouseEntered,
+              )),
+              chart.chart_event(
+                handler: event.on_mouse_leave(handler: fn() { MouseLeft }),
+              ),
+            ],
+          )
+          |> element.to_string
+        html |> string.contains("<svg") |> expect.to_be_true
+      }),
+    ]),
+    // ----- Throttle -----
+    describe("throttle", [
+      it("produces ThrottleChild", fn() {
+        let child = chart.throttle(delay_ms: 100)
+        case child {
+          chart.ThrottleChild(delay_ms: 100) -> True
+          _ -> False
+        }
+        |> expect.to_be_true
+      }),
+      it("renders data-throttle-ms attribute on SVG", fn() {
+        let html =
+          chart.line_chart(
+            data: sample_data(),
+            width: 400,
+            height: 300,
+            children: [
+              chart.line(line.line_config(data_key: "val")),
+              chart.throttle(delay_ms: 150),
+            ],
+          )
+          |> element.to_string
+        html
+        |> string.contains("data-throttle-ms=\"150\"")
+        |> expect.to_be_true
+      }),
+      it("omits data-throttle-ms when no throttle child", fn() {
+        let html =
+          chart.line_chart(
+            data: sample_data(),
+            width: 400,
+            height: 300,
+            children: [chart.line(line.line_config(data_key: "val"))],
+          )
+          |> element.to_string
+        html
+        |> string.contains("data-throttle-ms")
+        |> expect.to_be_false
+      }),
+    ]),
+    // ----- Tooltip active_index -----
+    describe("tooltip active_index", [
+      it("defaults to None", fn() {
+        let config = tooltip.tooltip_config()
+        config.active_index |> expect.to_equal(expected: None)
+      }),
+      it("sets active_index via builder", fn() {
+        let config =
+          tooltip.tooltip_config()
+          |> tooltip.tooltip_active_index(index: Some(2))
+        config.active_index |> expect.to_equal(expected: Some(2))
+      }),
+      it("clears active_index to None", fn() {
+        let config =
+          tooltip.tooltip_config()
+          |> tooltip.tooltip_active_index(index: Some(1))
+          |> tooltip.tooltip_active_index(index: None)
+        config.active_index |> expect.to_equal(expected: None)
+      }),
+    ]),
+    // ----- Tooltip on_tooltip_enter / on_tooltip_leave -----
+    describe("tooltip event handlers", [
+      it("defaults on_tooltip_enter to None", fn() {
+        let config = tooltip.tooltip_config()
+        config.on_tooltip_enter |> expect.to_equal(expected: None)
+      }),
+      it("defaults on_tooltip_leave to None", fn() {
+        let config = tooltip.tooltip_config()
+        config.on_tooltip_leave |> expect.to_equal(expected: None)
+      }),
+      it("sets on_tooltip_enter via builder", fn() {
+        let config =
+          tooltip.tooltip_config()
+          |> tooltip.tooltip_on_enter(handler: Some(TooltipEnter))
+        case config.on_tooltip_enter {
+          Some(_) -> True
+          None -> False
+        }
+        |> expect.to_be_true
+      }),
+      it("sets on_tooltip_leave via builder", fn() {
+        let config =
+          tooltip.tooltip_config()
+          |> tooltip.tooltip_on_leave(handler: Some(fn() { TooltipLeave }))
+        case config.on_tooltip_leave {
+          Some(_) -> True
+          None -> False
+        }
+        |> expect.to_be_true
+      }),
+    ]),
+    // ----- Tooltip rendering with state-driven active index -----
+    describe("tooltip state-driven rendering", [
+      it("renders popup for active index", fn() {
+        let config =
+          tooltip.tooltip_config()
+          |> tooltip.tooltip_active_index(index: Some(0))
+          |> tooltip.tooltip_on_enter(handler: Some(TooltipEnter))
+          |> tooltip.tooltip_on_leave(handler: Some(fn() { TooltipLeave }))
+        let payloads = [
+          tooltip.TooltipPayload(
+            label: "A",
+            entries: [
+              tooltip.TooltipEntry(
+                name: "val",
+                value: 10.0,
+                color: "#ff0000",
+                unit: "",
+                hidden: False,
+                entry_type: tooltip.VisibleEntry,
+              ),
+            ],
+            x: 50.0,
+            y: 100.0,
+            active_dots: [],
+            zone_width: 0.0,
+            zone_height: 0.0,
+          ),
+          tooltip.TooltipPayload(
+            label: "B",
+            entries: [
+              tooltip.TooltipEntry(
+                name: "val",
+                value: 20.0,
+                color: "#00ff00",
+                unit: "",
+                hidden: False,
+                entry_type: tooltip.VisibleEntry,
+              ),
+            ],
+            x: 150.0,
+            y: 80.0,
+            active_dots: [],
+            zone_width: 0.0,
+            zone_height: 0.0,
+          ),
+        ]
+        let html =
+          tooltip.render_tooltips(
+            config: config,
+            payloads: payloads,
+            plot_x: 0.0,
+            plot_y: 0.0,
+            plot_width: 400.0,
+            plot_height: 200.0,
+            zone_width: 50.0,
+            zone_mode: tooltip.ColumnZone,
+            zone_extra_attrs: [],
+          )
+          |> element.to_string
+        // Active tooltip (index 0) should have popup content
+        html |> string.contains("chart-tooltip-popup") |> expect.to_be_true
+        // Hit zones should have event attrs (mouseenter)
+        html |> string.contains("chart-tooltip-zone") |> expect.to_be_true
+      }),
+      it("hides non-active tooltip popup when state-driven", fn() {
+        let config =
+          tooltip.tooltip_config()
+          |> tooltip.tooltip_active_index(index: Some(0))
+          |> tooltip.tooltip_on_enter(handler: Some(TooltipEnter))
+          |> tooltip.tooltip_on_leave(handler: Some(fn() { TooltipLeave }))
+        let payloads = [
+          tooltip.TooltipPayload(
+            label: "A",
+            entries: [
+              tooltip.TooltipEntry(
+                name: "val",
+                value: 10.0,
+                color: "#ff0000",
+                unit: "",
+                hidden: False,
+                entry_type: tooltip.VisibleEntry,
+              ),
+            ],
+            x: 50.0,
+            y: 100.0,
+            active_dots: [],
+            zone_width: 0.0,
+            zone_height: 0.0,
+          ),
+          tooltip.TooltipPayload(
+            label: "B",
+            entries: [
+              tooltip.TooltipEntry(
+                name: "val",
+                value: 20.0,
+                color: "#00ff00",
+                unit: "",
+                hidden: False,
+                entry_type: tooltip.VisibleEntry,
+              ),
+            ],
+            x: 150.0,
+            y: 80.0,
+            active_dots: [],
+            zone_width: 0.0,
+            zone_height: 0.0,
+          ),
+        ]
+        let html =
+          tooltip.render_tooltips(
+            config: config,
+            payloads: payloads,
+            plot_x: 0.0,
+            plot_y: 0.0,
+            plot_width: 400.0,
+            plot_height: 200.0,
+            zone_width: 50.0,
+            zone_mode: tooltip.ColumnZone,
+            zone_extra_attrs: [],
+          )
+          |> element.to_string
+        // The active tooltip (A) shows its label, inactive (B) does not show popup
+        // Both hit zones are rendered
+        html |> string.contains("chart-hotspot") |> expect.to_be_true
+      }),
+    ]),
+    // ----- Backwards compatibility: no handlers = CSS hover -----
+    describe("tooltip backwards compatibility", [
+      it("renders all popups when no event handlers set", fn() {
+        let config = tooltip.tooltip_config()
+        let payloads = [
+          tooltip.TooltipPayload(
+            label: "A",
+            entries: [
+              tooltip.TooltipEntry(
+                name: "val",
+                value: 10.0,
+                color: "#ff0000",
+                unit: "",
+                hidden: False,
+                entry_type: tooltip.VisibleEntry,
+              ),
+            ],
+            x: 50.0,
+            y: 100.0,
+            active_dots: [],
+            zone_width: 0.0,
+            zone_height: 0.0,
+          ),
+          tooltip.TooltipPayload(
+            label: "B",
+            entries: [
+              tooltip.TooltipEntry(
+                name: "val",
+                value: 20.0,
+                color: "#00ff00",
+                unit: "",
+                hidden: False,
+                entry_type: tooltip.VisibleEntry,
+              ),
+            ],
+            x: 150.0,
+            y: 80.0,
+            active_dots: [],
+            zone_width: 0.0,
+            zone_height: 0.0,
+          ),
+        ]
+        let html =
+          tooltip.render_tooltips(
+            config: config,
+            payloads: payloads,
+            plot_x: 0.0,
+            plot_y: 0.0,
+            plot_width: 400.0,
+            plot_height: 200.0,
+            zone_width: 50.0,
+            zone_mode: tooltip.ColumnZone,
+            zone_extra_attrs: [],
+          )
+          |> element.to_string
+        // Both tooltips should have popup elements (CSS hover controls visibility)
+        // Count occurrences of chart-tooltip-popup
+        let popup_count =
+          string.split(html, "chart-tooltip-popup")
+          |> list_length_minus_one
+        popup_count |> expect.to_equal(expected: 2)
+      }),
+      it("renders cursor for all tooltips without event handlers", fn() {
+        let config = tooltip.tooltip_config()
+        let payloads = [
+          tooltip.TooltipPayload(
+            label: "A",
+            entries: [
+              tooltip.TooltipEntry(
+                name: "val",
+                value: 10.0,
+                color: "#ff0000",
+                unit: "",
+                hidden: False,
+                entry_type: tooltip.VisibleEntry,
+              ),
+            ],
+            x: 50.0,
+            y: 100.0,
+            active_dots: [],
+            zone_width: 0.0,
+            zone_height: 0.0,
+          ),
+        ]
+        let html =
+          tooltip.render_tooltips(
+            config: config,
+            payloads: payloads,
+            plot_x: 0.0,
+            plot_y: 0.0,
+            plot_width: 400.0,
+            plot_height: 200.0,
+            zone_width: 50.0,
+            zone_mode: tooltip.ColumnZone,
+            zone_extra_attrs: [],
+          )
+          |> element.to_string
+        html
+        |> string.contains("chart-tooltip-cursor")
+        |> expect.to_be_true
+      }),
+      it(
+        "does not render dot elements by default (show_active_dot=False)",
+        fn() {
+          let config = tooltip.tooltip_config()
+          let payloads = [
+            tooltip.TooltipPayload(
+              label: "A",
+              entries: [
+                tooltip.TooltipEntry(
+                  name: "val",
+                  value: 10.0,
+                  color: "#ff0000",
+                  unit: "",
+                  hidden: False,
+                  entry_type: tooltip.VisibleEntry,
+                ),
+              ],
+              x: 50.0,
+              y: 100.0,
+              active_dots: [],
+              zone_width: 0.0,
+              zone_height: 0.0,
+            ),
+          ]
+          let html =
+            tooltip.render_tooltips(
+              config: config,
+              payloads: payloads,
+              plot_x: 0.0,
+              plot_y: 0.0,
+              plot_width: 400.0,
+              plot_height: 200.0,
+              zone_width: 50.0,
+              zone_mode: tooltip.ColumnZone,
+              zone_extra_attrs: [],
+            )
+            |> element.to_string
+          html |> string.contains("chart-tooltip-dot") |> expect.to_be_false
+        },
+      ),
+      it("renders dot elements when show_active_dot is enabled", fn() {
+        let config =
+          tooltip.tooltip_config()
+          |> tooltip.tooltip_show_active_dot(show: True)
+        let payloads = [
+          tooltip.TooltipPayload(
+            label: "A",
+            entries: [
+              tooltip.TooltipEntry(
+                name: "val",
+                value: 10.0,
+                color: "#ff0000",
+                unit: "",
+                hidden: False,
+                entry_type: tooltip.VisibleEntry,
+              ),
+            ],
+            x: 50.0,
+            y: 100.0,
+            active_dots: [100.0],
+            zone_width: 0.0,
+            zone_height: 0.0,
+          ),
+        ]
+        let html =
+          tooltip.render_tooltips(
+            config: config,
+            payloads: payloads,
+            plot_x: 0.0,
+            plot_y: 0.0,
+            plot_width: 400.0,
+            plot_height: 200.0,
+            zone_width: 50.0,
+            zone_mode: tooltip.ColumnZone,
+            zone_extra_attrs: [],
+          )
+          |> element.to_string
+        html |> string.contains("chart-tooltip-dot") |> expect.to_be_true
+      }),
+    ]),
+    // ----- Full chart integration -----
+    describe("chart integration", [
+      it("renders chart with tooltip and event handlers", fn() {
+        let tooltip_config =
+          tooltip.tooltip_config()
+          |> tooltip.tooltip_active_index(index: Some(0))
+          |> tooltip.tooltip_on_enter(handler: Some(TooltipEnter))
+          |> tooltip.tooltip_on_leave(handler: Some(fn() { TooltipLeave }))
+        let html =
+          chart.line_chart(
+            data: sample_data(),
+            width: 400,
+            height: 300,
+            children: [
+              chart.line(line.line_config(data_key: "val")),
+              chart.chart_tooltip(config: tooltip_config),
+              chart.chart_event(handler: event.on_click(handler: Clicked)),
+              chart.throttle(delay_ms: 200),
+            ],
+          )
+          |> element.to_string
+        html |> string.contains("<svg") |> expect.to_be_true
+        html
+        |> string.contains("data-throttle-ms=\"200\"")
+        |> expect.to_be_true
+        html
+        |> string.contains("recharts-tooltip-wrapper")
+        |> expect.to_be_true
+      }),
+      it("renders chart without event children normally", fn() {
+        let html =
+          chart.line_chart(
+            data: sample_data(),
+            width: 400,
+            height: 300,
+            children: [chart.line(line.line_config(data_key: "val"))],
+          )
+          |> element.to_string
+        html |> string.contains("<svg") |> expect.to_be_true
+        html
+        |> string.contains("data-throttle-ms")
+        |> expect.to_be_false
+      }),
+    ]),
+  ])
+}
+
+fn list_length_minus_one(parts: List(String)) -> Int {
+  case parts {
+    [] -> 0
+    [_] -> 0
+    [_, ..rest] -> 1 + list_length_minus_one(rest)
+  }
+}
