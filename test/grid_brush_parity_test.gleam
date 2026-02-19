@@ -138,7 +138,7 @@ pub fn polar_grid_parity_tests() {
         let html =
           chart.radar_chart(data: data, width: 400, height: 400, children: [
             chart.polar_grid(grid.polar_grid_config()),
-            chart.radar_series(radar.radar_config(data_key: "v")),
+            chart.radar(radar.radar_config(data_key: "v")),
           ])
           |> element.to_string
 
@@ -167,7 +167,7 @@ pub fn polar_grid_parity_tests() {
       let html =
         chart.radar_chart(data: data, width: 400, height: 400, children: [
           chart.polar_grid(grid.polar_grid_config()),
-          chart.radar_series(radar.radar_config(data_key: "v")),
+          chart.radar(radar.radar_config(data_key: "v")),
         ])
         |> element.to_string
 

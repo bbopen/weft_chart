@@ -8,6 +8,7 @@ import startest/expect
 import weft_chart/chart
 import weft_chart/series/area
 import weft_chart/series/bar
+import weft_chart/series/common
 import weft_chart/series/funnel
 import weft_chart/series/line
 import weft_chart/series/pie
@@ -23,7 +24,7 @@ pub fn custom_dot_tests() {
   describe("custom_dot", [
     it("line_custom_dot builder sets renderer", fn() {
       let _config =
-        line.line_config(data_key: "v")
+        line.line_config(data_key: "v", meta: common.series_meta())
         |> line.line_custom_dot(renderer: fn(_props) { element.none() })
       True |> expect.to_be_true
     }),
@@ -46,19 +47,19 @@ pub fn custom_label_tests() {
   describe("custom_label", [
     it("line_custom_label builder sets renderer", fn() {
       let _config =
-        line.line_config(data_key: "v")
+        line.line_config(data_key: "v", meta: common.series_meta())
         |> line.line_custom_label(renderer: fn(_props) { element.none() })
       True |> expect.to_be_true
     }),
     it("area_custom_label builder sets renderer", fn() {
       let _config =
-        area.area_config(data_key: "v")
+        area.area_config(data_key: "v", meta: common.series_meta())
         |> area.area_custom_label(renderer: fn(_props) { element.none() })
       True |> expect.to_be_true
     }),
     it("bar_custom_label builder sets renderer", fn() {
       let _config =
-        bar.bar_config(data_key: "v")
+        bar.bar_config(data_key: "v", meta: common.series_meta())
         |> bar.bar_custom_label(renderer: fn(_props) { element.none() })
       True |> expect.to_be_true
     }),
@@ -95,7 +96,7 @@ pub fn custom_shape_tests() {
   describe("custom_shape", [
     it("bar_custom_shape builder sets renderer", fn() {
       let _config =
-        bar.bar_config(data_key: "v")
+        bar.bar_config(data_key: "v", meta: common.series_meta())
         |> bar.bar_custom_shape(renderer: fn(_props) { element.none() })
       True |> expect.to_be_true
     }),
@@ -134,7 +135,7 @@ pub fn scatter_line_type_render_tests() {
           width: 400,
           height: 300,
           children: [
-            chart.scatter_series(
+            chart.scatter(
               scatter.scatter_config(x_data_key: "x", y_data_key: "y")
               |> scatter.scatter_show_line(show: True)
               |> scatter.scatter_line_type(type_: scatter.JointLine),
@@ -149,7 +150,7 @@ pub fn scatter_line_type_render_tests() {
           width: 400,
           height: 300,
           children: [
-            chart.scatter_series(
+            chart.scatter(
               scatter.scatter_config(x_data_key: "x", y_data_key: "y")
               |> scatter.scatter_show_line(show: True)
               |> scatter.scatter_line_type(type_: scatter.FittingLine),

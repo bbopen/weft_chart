@@ -11,6 +11,7 @@ import startest.{describe, it}
 import startest/expect
 import weft_chart/chart
 import weft_chart/series/bar
+import weft_chart/series/common
 
 pub fn main() {
   startest.run(startest.default_config())
@@ -26,7 +27,7 @@ pub fn single_bar_sizing_tests() {
       ]
       let html =
         chart.bar_chart(data: data, width: 400, height: 300, children: [
-          chart.bar(bar.bar_config(data_key: "v")),
+          chart.bar(bar.bar_config(data_key: "v", meta: common.series_meta())),
         ])
         |> element.to_string
       // Single bar should NOT use the old 60% fallback
@@ -34,7 +35,7 @@ pub fn single_bar_sizing_tests() {
       html |> string.contains("recharts-bar") |> expect.to_be_true
     }),
     it("bar_config defaults to bar_size=0 and max_bar_size=0", fn() {
-      let config = bar.bar_config(data_key: "v")
+      let config = bar.bar_config(data_key: "v", meta: common.series_meta())
       config.bar_size |> expect.to_equal(expected: 0)
       config.max_bar_size |> expect.to_equal(expected: 0)
     }),
@@ -52,8 +53,8 @@ pub fn multi_bar_positioning_tests() {
       ]
       let html =
         chart.bar_chart(data: data, width: 400, height: 300, children: [
-          chart.bar(bar.bar_config(data_key: "v1")),
-          chart.bar(bar.bar_config(data_key: "v2")),
+          chart.bar(bar.bar_config(data_key: "v1", meta: common.series_meta())),
+          chart.bar(bar.bar_config(data_key: "v2", meta: common.series_meta())),
         ])
         |> element.to_string
       // Both bars should be rendered
@@ -72,9 +73,9 @@ pub fn multi_bar_positioning_tests() {
       ]
       let html =
         chart.bar_chart(data: data, width: 400, height: 300, children: [
-          chart.bar(bar.bar_config(data_key: "v1")),
-          chart.bar(bar.bar_config(data_key: "v2")),
-          chart.bar(bar.bar_config(data_key: "v3")),
+          chart.bar(bar.bar_config(data_key: "v1", meta: common.series_meta())),
+          chart.bar(bar.bar_config(data_key: "v2", meta: common.series_meta())),
+          chart.bar(bar.bar_config(data_key: "v3", meta: common.series_meta())),
         ])
         |> element.to_string
       html |> string.contains("recharts-bar") |> expect.to_be_true
@@ -93,8 +94,8 @@ pub fn multi_bar_positioning_tests() {
             bar_gap: 20.0,
             chart_bar_size: chart.FixedBarSize(size: 0),
           ),
-          chart.bar(bar.bar_config(data_key: "v1")),
-          chart.bar(bar.bar_config(data_key: "v2")),
+          chart.bar(bar.bar_config(data_key: "v1", meta: common.series_meta())),
+          chart.bar(bar.bar_config(data_key: "v2", meta: common.series_meta())),
         ])
         |> element.to_string
       html |> string.contains("recharts-bar") |> expect.to_be_true
@@ -113,8 +114,8 @@ pub fn multi_bar_positioning_tests() {
             bar_gap: 4.0,
             chart_bar_size: chart.FixedBarSize(size: 30),
           ),
-          chart.bar(bar.bar_config(data_key: "v1")),
-          chart.bar(bar.bar_config(data_key: "v2")),
+          chart.bar(bar.bar_config(data_key: "v1", meta: common.series_meta())),
+          chart.bar(bar.bar_config(data_key: "v2", meta: common.series_meta())),
         ])
         |> element.to_string
       // Width attribute should contain "30" for the bar size
@@ -130,7 +131,7 @@ pub fn bar_fallback_tests() {
       // should use 10% gap on each side = 80% of bandwidth.
       // This is tested by ensuring bar_config defaults lead to
       // reasonable rendering without a BarPosition.
-      let config = bar.bar_config(data_key: "v")
+      let config = bar.bar_config(data_key: "v", meta: common.series_meta())
       // bar_size defaults to 0, meaning the fallback path is used
       config.bar_size |> expect.to_equal(expected: 0)
     }),
@@ -140,13 +141,13 @@ pub fn bar_fallback_tests() {
 pub fn bar_data_override_tests() {
   describe("bar data_override", [
     it("defaults to None", fn() {
-      let config = bar.bar_config(data_key: "v")
+      let config = bar.bar_config(data_key: "v", meta: common.series_meta())
       config.data_override |> expect.to_equal(expected: None)
     }),
     it("bar_data_override sets Some(data)", fn() {
       let override_data = [dict.from_list([#("v", 99.0)])]
       let config =
-        bar.bar_config(data_key: "v")
+        bar.bar_config(data_key: "v", meta: common.series_meta())
         |> bar.bar_data_override(data: override_data)
       config.data_override |> expect.to_equal(expected: Some(override_data))
     }),
@@ -158,7 +159,7 @@ pub fn bar_data_override_tests() {
       let html =
         chart.bar_chart(data: chart_data, width: 400, height: 300, children: [
           chart.bar(
-            bar.bar_config(data_key: "v")
+            bar.bar_config(data_key: "v", meta: common.series_meta())
             |> bar.bar_data_override(data: override_data),
           ),
         ])
@@ -171,13 +172,13 @@ pub fn bar_data_override_tests() {
 pub fn bar_min_point_size_type_tests() {
   describe("bar MinPointSize", [
     it("defaults to FixedMinPointSize(0.0)", fn() {
-      let config = bar.bar_config(data_key: "v")
+      let config = bar.bar_config(data_key: "v", meta: common.series_meta())
       config.min_point_size
       |> expect.to_equal(expected: bar.FixedMinPointSize(0.0))
     }),
     it("bar_min_point_size sets FixedMinPointSize", fn() {
       let config =
-        bar.bar_config(data_key: "v")
+        bar.bar_config(data_key: "v", meta: common.series_meta())
         |> bar.bar_min_point_size(size: 5.0)
       config.min_point_size
       |> expect.to_equal(expected: bar.FixedMinPointSize(5.0))
@@ -185,7 +186,7 @@ pub fn bar_min_point_size_type_tests() {
     it("bar_min_point_size_fn sets DynamicMinPointSize", fn() {
       let f = fn(_value, _index) { 10.0 }
       let config =
-        bar.bar_config(data_key: "v")
+        bar.bar_config(data_key: "v", meta: common.series_meta())
         |> bar.bar_min_point_size_fn(f: f)
       case config.min_point_size {
         bar.DynamicMinPointSize(func) -> {

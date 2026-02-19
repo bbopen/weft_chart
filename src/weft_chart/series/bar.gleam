@@ -93,12 +93,7 @@ pub type BarPosition {
 
 /// Create a bar configuration with default settings.
 /// Matches recharts Bar defaults.
-pub fn bar_config(data_key data_key: String) -> BarConfig(msg) {
-  bar_config_v2(data_key: data_key, meta: common.series_meta())
-}
-
-/// Create a bar configuration using shared series metadata.
-pub fn bar_config_v2(
+pub fn bar_config(
   data_key data_key: String,
   meta meta: common.SeriesMeta,
 ) -> BarConfig(msg) {
@@ -282,12 +277,6 @@ pub fn bar_label(config: BarConfig(msg), show: Bool) -> BarConfig(msg) {
   BarConfig(..config, show_label: show)
 }
 
-/// Hide the bars from rendering while keeping them in domain/legend calculation.
-/// Matches recharts Bar `hide` prop.
-pub fn bar_hide(config config: BarConfig(msg)) -> BarConfig(msg) {
-  BarConfig(..config, hide: True)
-}
-
 /// Set the legend icon type for this series.
 /// Matches recharts Bar `legendType` prop (default: rect).
 pub fn bar_legend_type(
@@ -295,12 +284,6 @@ pub fn bar_legend_type(
   icon_type: shape.LegendIconType,
 ) -> BarConfig(msg) {
   BarConfig(..config, legend_type: icon_type)
-}
-
-/// Set the display name for tooltip and legend.
-/// Matches recharts Bar `name` prop.  When empty, `data_key` is used.
-pub fn bar_name(config: BarConfig(msg), name: String) -> BarConfig(msg) {
-  BarConfig(..config, name: name)
 }
 
 /// Set the bar border stroke color.
@@ -315,15 +298,6 @@ pub fn bar_stroke_width(config: BarConfig(msg), width: Float) -> BarConfig(msg) 
   BarConfig(..config, stroke_width: width)
 }
 
-/// Set the tooltip type to control whether this series appears in tooltips.
-/// Matches recharts Bar `tooltipType` prop (default: DefaultTooltip).
-pub fn bar_tooltip_type(
-  config config: BarConfig(msg),
-  type_ type_: shape.TooltipType,
-) -> BarConfig(msg) {
-  BarConfig(..config, tooltip_type: type_)
-}
-
 /// Set per-item cell configurations for individual bar customization.
 /// When non-empty, each bar uses the corresponding cell's fill/stroke.
 /// Bars beyond the cell list length fall back to the config fill/stroke.
@@ -333,33 +307,6 @@ pub fn bar_cells(
   cells cells: List(CellConfig),
 ) -> BarConfig(msg) {
   BarConfig(..config, cells: cells)
-}
-
-/// Set the unit string for tooltip display.
-/// Matches recharts Bar `unit` prop (default: "").
-pub fn bar_unit(
-  config config: BarConfig(msg),
-  unit unit: String,
-) -> BarConfig(msg) {
-  BarConfig(..config, unit: unit)
-}
-
-/// Set the x-axis ID this bar series binds to.
-/// Matches recharts Bar `xAxisId` prop (default: "0").
-pub fn bar_x_axis_id(
-  config config: BarConfig(msg),
-  id id: String,
-) -> BarConfig(msg) {
-  BarConfig(..config, x_axis_id: id)
-}
-
-/// Set the y-axis ID this bar series binds to.
-/// Matches recharts Bar `yAxisId` prop (default: "0").
-pub fn bar_y_axis_id(
-  config config: BarConfig(msg),
-  id id: String,
-) -> BarConfig(msg) {
-  BarConfig(..config, y_axis_id: id)
 }
 
 /// Set a custom label render function for bar value labels.
@@ -402,16 +349,6 @@ pub fn bar_active_index(
   index index: Int,
 ) -> BarConfig(msg) {
   BarConfig(..config, active_index: Some(index))
-}
-
-/// Set the CSS class attribute on the bar series group element.
-/// Maps to the SVG `class` attribute.
-/// Matches recharts Bar `className` prop.
-pub fn bar_css_class(
-  config config: BarConfig(msg),
-  class class: String,
-) -> BarConfig(msg) {
-  BarConfig(..config, css_class: class)
 }
 
 /// Set the animation configuration for bar entry effects.

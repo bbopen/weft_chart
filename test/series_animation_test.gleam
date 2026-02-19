@@ -12,6 +12,7 @@ import weft_chart/internal/layout
 import weft_chart/scale
 import weft_chart/series/area
 import weft_chart/series/bar
+import weft_chart/series/common
 import weft_chart/series/line
 import weft_chart/series/scatter
 
@@ -36,7 +37,7 @@ pub fn series_animation_tests() {
 fn bar_config_tests() {
   describe("bar animation config", [
     it("bar_config has animation with bar_default values", fn() {
-      let config = bar.bar_config(data_key: "value")
+      let config = bar.bar_config(data_key: "value", meta: common.series_meta())
       config.animation.active |> expect.to_be_true
       config.animation.duration |> expect.to_equal(expected: 400)
       config.animation.easing |> expect.to_equal(expected: easing.Ease)
@@ -47,7 +48,7 @@ fn bar_config_tests() {
         |> animation.with_duration(duration: 800)
         |> animation.with_active(active: False)
       let config =
-        bar.bar_config(data_key: "value")
+        bar.bar_config(data_key: "value", meta: common.series_meta())
         |> bar.bar_animation(anim: custom)
       config.animation.active |> expect.to_be_false
       config.animation.duration |> expect.to_equal(expected: 800)
@@ -58,7 +59,8 @@ fn bar_config_tests() {
 fn line_config_tests() {
   describe("line animation config", [
     it("line_config has animation with line_default values", fn() {
-      let config = line.line_config(data_key: "value")
+      let config =
+        line.line_config(data_key: "value", meta: common.series_meta())
       config.animation.active |> expect.to_be_true
       config.animation.duration |> expect.to_equal(expected: 1500)
     }),
@@ -67,7 +69,7 @@ fn line_config_tests() {
         animation.line_default()
         |> animation.with_duration(duration: 2000)
       let config =
-        line.line_config(data_key: "value")
+        line.line_config(data_key: "value", meta: common.series_meta())
         |> line.line_animation(anim: custom)
       config.animation.duration |> expect.to_equal(expected: 2000)
     }),
@@ -77,7 +79,8 @@ fn line_config_tests() {
 fn area_config_tests() {
   describe("area animation config", [
     it("area_config has animation with line_default values", fn() {
-      let config = area.area_config(data_key: "value")
+      let config =
+        area.area_config(data_key: "value", meta: common.series_meta())
       config.animation.active |> expect.to_be_true
       config.animation.duration |> expect.to_equal(expected: 1500)
     }),
@@ -86,7 +89,7 @@ fn area_config_tests() {
         animation.line_default()
         |> animation.with_active(active: False)
       let config =
-        area.area_config(data_key: "value")
+        area.area_config(data_key: "value", meta: common.series_meta())
         |> area.area_animation(anim: custom)
       config.animation.active |> expect.to_be_false
     }),
@@ -166,7 +169,7 @@ fn bar_render_tests() {
           range_start: 300.0,
           range_end: 0.0,
         )
-      let config = bar.bar_config(data_key: "value")
+      let config = bar.bar_config(data_key: "value", meta: common.series_meta())
       let html =
         bar.render_bars(
           config: config,
@@ -202,7 +205,7 @@ fn bar_render_tests() {
         animation.bar_default()
         |> animation.with_active(active: False)
       let config =
-        bar.bar_config(data_key: "value")
+        bar.bar_config(data_key: "value", meta: common.series_meta())
         |> bar.bar_animation(anim: inactive_anim)
       let html =
         bar.render_bars(
@@ -242,7 +245,8 @@ fn line_render_tests() {
           range_start: 300.0,
           range_end: 0.0,
         )
-      let config = line.line_config(data_key: "value")
+      let config =
+        line.line_config(data_key: "value", meta: common.series_meta())
       let html =
         line.render_line(
           config: config,
@@ -280,7 +284,7 @@ fn line_render_tests() {
         animation.line_default()
         |> animation.with_active(active: False)
       let config =
-        line.line_config(data_key: "value")
+        line.line_config(data_key: "value", meta: common.series_meta())
         |> line.line_animation(anim: inactive_anim)
       let html =
         line.render_line(
@@ -319,7 +323,8 @@ fn area_render_tests() {
           range_start: 300.0,
           range_end: 0.0,
         )
-      let config = area.area_config(data_key: "value")
+      let config =
+        area.area_config(data_key: "value", meta: common.series_meta())
       let html =
         area.render_area(
           config: config,
@@ -358,7 +363,7 @@ fn area_render_tests() {
         animation.line_default()
         |> animation.with_active(active: False)
       let config =
-        area.area_config(data_key: "value")
+        area.area_config(data_key: "value", meta: common.series_meta())
         |> area.area_animation(anim: inactive_anim)
       let html =
         area.render_area(

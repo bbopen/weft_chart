@@ -105,7 +105,7 @@ pub type AxisOrientation {
   Right
 }
 
-/// Axis role used by the additive axis v2 API.
+/// Axis role used by the shared axis API.
 pub type AxisRole {
   /// Horizontal axis role (x-axis semantics).
   XAxisRole
@@ -113,7 +113,7 @@ pub type AxisRole {
   YAxisRole
 }
 
-/// Shared axis configuration for the additive axis v2 API.
+/// Shared axis configuration.
 ///
 /// Convert to concrete `XAxisConfig`/`YAxisConfig` using `axis_to_x` or
 /// `axis_to_y`.
@@ -271,7 +271,7 @@ pub type ZAxisConfig {
 // Constructors
 // ---------------------------------------------------------------------------
 
-/// Create a shared axis v2 configuration for the requested role.
+/// Create a shared axis configuration for the requested role.
 pub fn axis_base_config(role role: AxisRole) -> AxisBaseConfig(msg) {
   case role {
     XAxisRole ->
@@ -369,17 +369,7 @@ pub fn axis_base_config(role role: AxisRole) -> AxisBaseConfig(msg) {
   }
 }
 
-/// Create a shared axis v2 configuration for x-axis semantics.
-pub fn x_axis_base_config() -> AxisBaseConfig(msg) {
-  axis_base_config(role: XAxisRole)
-}
-
-/// Create a shared axis v2 configuration for y-axis semantics.
-pub fn y_axis_base_config() -> AxisBaseConfig(msg) {
-  axis_base_config(role: YAxisRole)
-}
-
-/// Convert a shared v2 axis config into an `XAxisConfig`.
+/// Convert a shared axis config into an `XAxisConfig`.
 pub fn axis_to_x(config config: AxisBaseConfig(msg)) -> XAxisConfig(msg) {
   XAxisConfig(
     data_key: config.data_key,
@@ -424,7 +414,7 @@ pub fn axis_to_x(config config: AxisBaseConfig(msg)) -> XAxisConfig(msg) {
   )
 }
 
-/// Convert a shared v2 axis config into a `YAxisConfig`.
+/// Convert a shared axis config into a `YAxisConfig`.
 pub fn axis_to_y(config config: AxisBaseConfig(msg)) -> YAxisConfig(msg) {
   YAxisConfig(
     data_key: config.data_key,
@@ -480,21 +470,21 @@ pub fn z_axis_config(data_key data_key: String) -> ZAxisConfig {
   )
 }
 
-/// Create default x-axis configuration.
-pub fn x_axis_config() -> XAxisConfig(msg) {
-  axis_to_x(config: x_axis_base_config())
+/// Create default shared x-axis configuration.
+pub fn x_axis_config() -> AxisBaseConfig(msg) {
+  axis_base_config(role: XAxisRole)
 }
 
-/// Create default y-axis configuration.
-pub fn y_axis_config() -> YAxisConfig(msg) {
-  axis_to_y(config: y_axis_base_config())
+/// Create default shared y-axis configuration.
+pub fn y_axis_config() -> AxisBaseConfig(msg) {
+  axis_base_config(role: YAxisRole)
 }
 
 // ---------------------------------------------------------------------------
-// Axis v2 shared builders
+// Shared builders
 // ---------------------------------------------------------------------------
 
-/// Set the data key on a shared v2 axis config.
+/// Set the data key on a shared axis config.
 pub fn axis_data_key(
   config config: AxisBaseConfig(msg),
   key key: String,
@@ -502,7 +492,7 @@ pub fn axis_data_key(
   AxisBaseConfig(..config, data_key: key)
 }
 
-/// Set the axis type on a shared v2 axis config.
+/// Set the axis type on a shared axis config.
 pub fn axis_type(
   config config: AxisBaseConfig(msg),
   type_ type_: AxisType,
@@ -510,7 +500,7 @@ pub fn axis_type(
   AxisBaseConfig(..config, type_: type_)
 }
 
-/// Set orientation on a shared v2 axis config.
+/// Set orientation on a shared axis config.
 pub fn axis_orientation(
   config config: AxisBaseConfig(msg),
   orientation orientation: AxisOrientation,
@@ -518,7 +508,7 @@ pub fn axis_orientation(
   AxisBaseConfig(..config, orientation: orientation)
 }
 
-/// Show or hide tick lines on a shared v2 axis config.
+/// Show or hide tick lines on a shared axis config.
 pub fn axis_tick_line(
   config config: AxisBaseConfig(msg),
   show show: Bool,
@@ -526,7 +516,7 @@ pub fn axis_tick_line(
   AxisBaseConfig(..config, show_tick_line: show)
 }
 
-/// Show or hide the main axis line on a shared v2 axis config.
+/// Show or hide the main axis line on a shared axis config.
 pub fn axis_axis_line(
   config config: AxisBaseConfig(msg),
   show show: Bool,
@@ -534,7 +524,7 @@ pub fn axis_axis_line(
   AxisBaseConfig(..config, show_axis_line: show)
 }
 
-/// Set tick margin on a shared v2 axis config.
+/// Set tick margin on a shared axis config.
 pub fn axis_tick_margin(
   config config: AxisBaseConfig(msg),
   margin margin: Int,
@@ -542,7 +532,7 @@ pub fn axis_tick_margin(
   AxisBaseConfig(..config, tick_margin: margin)
 }
 
-/// Set tick count hint on a shared v2 axis config.
+/// Set tick count hint on a shared axis config.
 pub fn axis_tick_count(
   config config: AxisBaseConfig(msg),
   count count: Int,
@@ -550,7 +540,7 @@ pub fn axis_tick_count(
   AxisBaseConfig(..config, tick_count: count)
 }
 
-/// Set tick formatter on a shared v2 axis config.
+/// Set tick formatter on a shared axis config.
 pub fn axis_tick_formatter(
   config config: AxisBaseConfig(msg),
   formatter formatter: fn(String, Int) -> String,
@@ -558,7 +548,7 @@ pub fn axis_tick_formatter(
   AxisBaseConfig(..config, tick_formatter: formatter)
 }
 
-/// Set padding mode on a shared v2 axis config.
+/// Set padding mode on a shared axis config.
 ///
 /// For x-axis role this updates left/right padding. For y-axis role this
 /// keeps mode metadata while y-axis padding remains top/bottom based.
@@ -578,7 +568,7 @@ pub fn axis_padding_mode(
   }
 }
 
-/// Set directional padding on a shared v2 axis config.
+/// Set directional padding on a shared axis config.
 ///
 /// For x-axis role sets left/right. For y-axis role sets top/bottom.
 pub fn axis_padding(
@@ -599,31 +589,86 @@ pub fn axis_padding(
   }
 }
 
-/// Hide or show a shared v2 axis config.
-pub fn axis_hide(
+/// Set top padding on a shared axis config.
+pub fn axis_padding_top(
   config config: AxisBaseConfig(msg),
-  hide hide: Bool,
+  padding padding: Int,
 ) -> AxisBaseConfig(msg) {
-  AxisBaseConfig(..config, hidden: hide)
+  AxisBaseConfig(..config, padding_top: padding)
 }
 
-/// Set reversed direction on a shared v2 axis config.
-pub fn axis_reversed(
+/// Set bottom padding on a shared axis config.
+pub fn axis_padding_bottom(
   config config: AxisBaseConfig(msg),
-  reversed reversed: Bool,
+  padding padding: Int,
 ) -> AxisBaseConfig(msg) {
-  AxisBaseConfig(..config, reversed: reversed)
+  AxisBaseConfig(..config, padding_bottom: padding)
 }
 
-/// Set whether mirrored ticks are used on a shared v2 axis config.
-pub fn axis_mirror(
-  config config: AxisBaseConfig(msg),
-  mirror mirror: Bool,
-) -> AxisBaseConfig(msg) {
-  AxisBaseConfig(..config, mirror: mirror)
+/// Hide the axis entirely.
+pub fn axis_hide(config config: AxisBaseConfig(msg)) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, hidden: True)
 }
 
-/// Set custom domain on a shared v2 axis config.
+/// Reverse axis direction.
+pub fn axis_reversed(config config: AxisBaseConfig(msg)) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, reversed: True)
+}
+
+/// Mirror axis ticks to the opposite side.
+pub fn axis_mirror(config config: AxisBaseConfig(msg)) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, mirror: True)
+}
+
+/// Set tick line size in pixels.
+pub fn axis_tick_size(
+  config config: AxisBaseConfig(msg),
+  size size: Int,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, tick_size: size)
+}
+
+/// Set whether decimal ticks are allowed.
+pub fn axis_allow_decimals(
+  config config: AxisBaseConfig(msg),
+  allow allow: Bool,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, allow_decimals: allow)
+}
+
+/// Set tick label angle in degrees.
+pub fn axis_angle(
+  config config: AxisBaseConfig(msg),
+  angle angle: Float,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, angle: angle)
+}
+
+/// Set minimum gap between tick labels.
+pub fn axis_min_tick_gap(
+  config config: AxisBaseConfig(msg),
+  gap gap: Int,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, min_tick_gap: gap)
+}
+
+/// Set explicit numeric ticks.
+pub fn axis_numeric_ticks(
+  config config: AxisBaseConfig(msg),
+  ticks ticks: List(Float),
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, ticks_override: Some(NumericTicks(ticks: ticks)))
+}
+
+/// Set explicit category ticks.
+pub fn axis_category_ticks(
+  config config: AxisBaseConfig(msg),
+  ticks ticks: List(String),
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, ticks_override: Some(CategoryTicks(ticks: ticks)))
+}
+
+/// Set custom domain on a shared axis config.
 pub fn axis_domain(
   config config: AxisBaseConfig(msg),
   min min: Float,
@@ -637,15 +682,7 @@ pub fn axis_domain(
   )
 }
 
-/// Set unit text on a shared v2 axis config.
-pub fn axis_unit(
-  config config: AxisBaseConfig(msg),
-  unit unit: String,
-) -> AxisBaseConfig(msg) {
-  AxisBaseConfig(..config, unit: unit)
-}
-
-/// Set label text on a shared v2 axis config.
+/// Set label text on a shared axis config.
 pub fn axis_label(
   config config: AxisBaseConfig(msg),
   text text: String,
@@ -653,31 +690,39 @@ pub fn axis_label(
   AxisBaseConfig(..config, label: text)
 }
 
-/// Set display name on a shared v2 axis config.
-pub fn axis_name(
+/// Set tick interval strategy.
+pub fn axis_interval(
   config config: AxisBaseConfig(msg),
-  name name: String,
+  interval interval: AxisInterval,
 ) -> AxisBaseConfig(msg) {
-  AxisBaseConfig(..config, name: name)
+  AxisBaseConfig(..config, interval: interval)
 }
 
-/// Set axis id on a shared v2 axis config.
-pub fn axis_id(
+/// Allow data to overflow the configured domain.
+pub fn axis_allow_data_overflow(
   config config: AxisBaseConfig(msg),
-  id id: String,
+  allow allow: Bool,
 ) -> AxisBaseConfig(msg) {
-  AxisBaseConfig(..config, axis_id: id)
+  AxisBaseConfig(..config, allow_data_overflow: allow)
 }
 
-/// Set include-hidden behavior on a shared v2 axis config.
-pub fn axis_include_hidden(
+/// Set unit text on a shared axis config.
+pub fn axis_unit(
   config config: AxisBaseConfig(msg),
-  include include: Bool,
+  unit unit: String,
 ) -> AxisBaseConfig(msg) {
-  AxisBaseConfig(..config, include_hidden: include)
+  AxisBaseConfig(..config, unit: unit)
 }
 
-/// Set role-aware axis size on a shared v2 axis config.
+/// Set numeric scale type.
+pub fn axis_scale_type(
+  config config: AxisBaseConfig(msg),
+  type_ type_: ScaleType,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, scale_type: type_)
+}
+
+/// Set role-aware axis size on a shared axis config.
 ///
 /// For x-axis role this sets `height`. For y-axis role this sets `width`.
 pub fn axis_size(
@@ -690,7 +735,79 @@ pub fn axis_size(
   }
 }
 
-/// Set custom tick renderer on a shared v2 axis config.
+/// Set display name on a shared axis config.
+pub fn axis_name(
+  config config: AxisBaseConfig(msg),
+  name name: String,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, name: name)
+}
+
+/// Set whether duplicate categories are allowed.
+pub fn axis_allow_duplicated_category(
+  config config: AxisBaseConfig(msg),
+  allow allow: Bool,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, allow_duplicated_category: allow)
+}
+
+/// Set custom axis line stroke color.
+pub fn axis_axis_line_stroke(
+  config config: AxisBaseConfig(msg),
+  stroke stroke: String,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, axis_line_stroke: stroke)
+}
+
+/// Set custom axis line stroke width.
+pub fn axis_axis_line_stroke_width(
+  config config: AxisBaseConfig(msg),
+  width width: Float,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, axis_line_stroke_width: width)
+}
+
+/// Set custom tick line stroke color.
+pub fn axis_tick_line_stroke(
+  config config: AxisBaseConfig(msg),
+  stroke stroke: String,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, tick_line_stroke: stroke)
+}
+
+/// Set custom tick line stroke width.
+pub fn axis_tick_line_stroke_width(
+  config config: AxisBaseConfig(msg),
+  width width: Float,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, tick_line_stroke_width: width)
+}
+
+/// Set axis line dash pattern.
+pub fn axis_axis_line_stroke_dasharray(
+  config config: AxisBaseConfig(msg),
+  pattern pattern: String,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, axis_line_stroke_dasharray: pattern)
+}
+
+/// Set tick line dash pattern.
+pub fn axis_tick_line_stroke_dasharray(
+  config config: AxisBaseConfig(msg),
+  pattern pattern: String,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, tick_line_stroke_dasharray: pattern)
+}
+
+/// Set axis id on a shared axis config.
+pub fn axis_id(
+  config config: AxisBaseConfig(msg),
+  id id: String,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, axis_id: id)
+}
+
+/// Set custom tick renderer on a shared axis config.
 pub fn axis_custom_tick(
   config config: AxisBaseConfig(msg),
   renderer renderer: fn(render.TickProps) -> Element(msg),
@@ -698,593 +815,12 @@ pub fn axis_custom_tick(
   AxisBaseConfig(..config, custom_tick: Some(renderer))
 }
 
-// ---------------------------------------------------------------------------
-// XAxis builders
-// ---------------------------------------------------------------------------
-
-/// Set the data key for the x-axis.
-pub fn x_data_key(config: XAxisConfig(msg), key: String) -> XAxisConfig(msg) {
-  XAxisConfig(..config, data_key: key)
-}
-
-/// Set the axis type.
-pub fn x_type(config: XAxisConfig(msg), type_: AxisType) -> XAxisConfig(msg) {
-  XAxisConfig(..config, type_: type_)
-}
-
-/// Set the axis orientation.
-pub fn x_orientation(
-  config: XAxisConfig(msg),
-  orientation: AxisOrientation,
-) -> XAxisConfig(msg) {
-  XAxisConfig(..config, orientation: orientation)
-}
-
-/// Show or hide tick lines.
-pub fn x_tick_line(config: XAxisConfig(msg), show: Bool) -> XAxisConfig(msg) {
-  XAxisConfig(..config, show_tick_line: show)
-}
-
-/// Show or hide the axis line.
-pub fn x_axis_line(config: XAxisConfig(msg), show: Bool) -> XAxisConfig(msg) {
-  XAxisConfig(..config, show_axis_line: show)
-}
-
-/// Set the tick margin (distance from axis to label).
-pub fn x_tick_margin(config: XAxisConfig(msg), margin: Int) -> XAxisConfig(msg) {
-  XAxisConfig(..config, tick_margin: margin)
-}
-
-/// Set the tick count hint.
-pub fn x_tick_count(config: XAxisConfig(msg), count: Int) -> XAxisConfig(msg) {
-  XAxisConfig(..config, tick_count: count)
-}
-
-/// Set a tick label formatter function.
-/// The formatter receives the tick value and its zero-based index.
-pub fn x_tick_formatter(
-  config: XAxisConfig(msg),
-  formatter: fn(String, Int) -> String,
-) -> XAxisConfig(msg) {
-  XAxisConfig(..config, tick_formatter: formatter)
-}
-
-/// Set horizontal padding with explicit pixel values.
-/// Backward-compatible builder; sets both the legacy `padding_left`/`padding_right`
-/// fields and the `padding` mode to `ExplicitPadding`.
-pub fn x_padding(
-  config: XAxisConfig(msg),
-  left: Int,
-  right: Int,
-) -> XAxisConfig(msg) {
-  XAxisConfig(
-    ..config,
-    padding_left: left,
-    padding_right: right,
-    padding: ExplicitPadding(left: left, right: right),
-  )
-}
-
-/// Set the padding mode for the x-axis.
-/// Accepts `ExplicitPadding(left, right)`, `GapPadding`, or `NoGapPadding`.
-/// `GapPadding` resolves to half the category bandwidth on each side.
-/// `NoGapPadding` resolves to zero padding.
-/// Matches recharts XAxis `padding` prop string modes ("gap" / "no-gap").
-pub fn x_padding_mode(
-  config: XAxisConfig(msg),
-  mode: PaddingMode,
-) -> XAxisConfig(msg) {
-  case mode {
-    ExplicitPadding(left:, right:) ->
-      XAxisConfig(
-        ..config,
-        padding: mode,
-        padding_left: left,
-        padding_right: right,
-      )
-    GapPadding | NoGapPadding -> XAxisConfig(..config, padding: mode)
-  }
-}
-
-/// Hide the axis entirely.
-pub fn x_hide(config: XAxisConfig(msg)) -> XAxisConfig(msg) {
-  XAxisConfig(..config, hidden: True)
-}
-
-/// Reverse the x-axis direction.
-pub fn x_reversed(config: XAxisConfig(msg)) -> XAxisConfig(msg) {
-  XAxisConfig(..config, reversed: True)
-}
-
-/// Mirror x-axis ticks to the opposite side.
-pub fn x_mirror(config: XAxisConfig(msg)) -> XAxisConfig(msg) {
-  XAxisConfig(..config, mirror: True)
-}
-
-/// Set the tick line size in pixels.
-pub fn x_tick_size(config: XAxisConfig(msg), size: Int) -> XAxisConfig(msg) {
-  XAxisConfig(..config, tick_size: size)
-}
-
-/// Set whether to allow decimal values in axis ticks.
-pub fn x_allow_decimals(
-  config: XAxisConfig(msg),
-  allow: Bool,
-) -> XAxisConfig(msg) {
-  XAxisConfig(..config, allow_decimals: allow)
-}
-
-/// Set the rotation angle for tick labels in degrees.
-pub fn x_angle(config: XAxisConfig(msg), angle: Float) -> XAxisConfig(msg) {
-  XAxisConfig(..config, angle: angle)
-}
-
-/// Set the minimum gap between ticks in pixels.
-pub fn x_min_tick_gap(config: XAxisConfig(msg), gap: Int) -> XAxisConfig(msg) {
-  XAxisConfig(..config, min_tick_gap: gap)
-}
-
-/// Set explicit numeric tick values, overriding auto-generation.
-/// Matches recharts XAxis `ticks` prop with numeric values.
-pub fn x_numeric_ticks(
-  config: XAxisConfig(msg),
-  ticks ts: List(Float),
-) -> XAxisConfig(msg) {
-  XAxisConfig(..config, ticks_override: Some(NumericTicks(ticks: ts)))
-}
-
-/// Set explicit category tick values, overriding auto-generation.
-/// Matches recharts XAxis `ticks` prop with string values.
-pub fn x_category_ticks(
-  config: XAxisConfig(msg),
-  ticks ts: List(String),
-) -> XAxisConfig(msg) {
-  XAxisConfig(..config, ticks_override: Some(CategoryTicks(ticks: ts)))
-}
-
-/// Set the axis label text.
-/// Matches recharts XAxis `label` prop (string form).
-pub fn x_label(config: XAxisConfig(msg), text: String) -> XAxisConfig(msg) {
-  XAxisConfig(..config, label: text)
-}
-
-/// Set the tick interval strategy.
-/// Matches recharts XAxis `interval` prop (default: preserveEnd).
-pub fn x_interval(
-  config: XAxisConfig(msg),
-  interval: AxisInterval,
-) -> XAxisConfig(msg) {
-  XAxisConfig(..config, interval: interval)
-}
-
-/// Allow data to overflow the axis domain without extending it.
-/// Matches recharts XAxis `allowDataOverflow` prop (default: false).
-pub fn x_allow_data_overflow(
-  config: XAxisConfig(msg),
-  allow: Bool,
-) -> XAxisConfig(msg) {
-  XAxisConfig(..config, allow_data_overflow: allow)
-}
-
-/// Set a custom domain for the x-axis (numeric axes only).
-/// Matches recharts XAxis `domain` prop.
-pub fn x_domain(
-  config: XAxisConfig(msg),
-  min: Float,
-  max: Float,
-) -> XAxisConfig(msg) {
-  XAxisConfig(
-    ..config,
-    domain_min: min,
-    domain_max: max,
-    has_custom_domain: True,
-  )
-}
-
-/// Set the unit string appended to tick labels.
-/// Matches recharts XAxis `unit` prop (default: "").
-pub fn x_unit(config: XAxisConfig(msg), unit: String) -> XAxisConfig(msg) {
-  XAxisConfig(..config, unit: unit)
-}
-
-/// Set the scale type for the x-axis.
-/// Matches recharts XAxis `scale` prop (default: linear).
-pub fn x_scale_type(
-  config: XAxisConfig(msg),
-  type_: ScaleType,
-) -> XAxisConfig(msg) {
-  XAxisConfig(..config, scale_type: type_)
-}
-
-/// Set the height of the x-axis area in pixels.
-/// Matches recharts XAxis `height` prop (default: 30).
-/// Controls how much vertical space is reserved for the axis.
-pub fn x_height(config: XAxisConfig(msg), height: Int) -> XAxisConfig(msg) {
-  XAxisConfig(..config, height: height)
-}
-
-/// Set the name for tooltip display.
-/// Matches recharts XAxis `name` prop.  Used when the tooltip
-/// references this axis.  When empty (default), the data key is used.
-pub fn x_name(config: XAxisConfig(msg), name: String) -> XAxisConfig(msg) {
-  XAxisConfig(..config, name: name)
-}
-
-/// Set whether duplicate categories are allowed on the x-axis.
-/// Matches recharts XAxis `allowDuplicatedCategory` prop (default: true).
-pub fn x_allow_duplicated_category(
-  config: XAxisConfig(msg),
-  allow: Bool,
-) -> XAxisConfig(msg) {
-  XAxisConfig(..config, allow_duplicated_category: allow)
-}
-
-/// Set a custom stroke color for the x-axis line.
-/// When non-empty, overrides the default CSS variable.
-pub fn x_axis_line_stroke(
-  config: XAxisConfig(msg),
-  stroke: String,
-) -> XAxisConfig(msg) {
-  XAxisConfig(..config, axis_line_stroke: stroke)
-}
-
-/// Set a custom stroke width for the x-axis line.
-/// When > 0, overrides the default width.
-pub fn x_axis_line_stroke_width(
-  config: XAxisConfig(msg),
-  width: Float,
-) -> XAxisConfig(msg) {
-  XAxisConfig(..config, axis_line_stroke_width: width)
-}
-
-/// Set a custom stroke color for x-axis tick lines.
-/// When non-empty, overrides the default CSS variable.
-pub fn x_tick_line_stroke(
-  config: XAxisConfig(msg),
-  stroke: String,
-) -> XAxisConfig(msg) {
-  XAxisConfig(..config, tick_line_stroke: stroke)
-}
-
-/// Set a custom stroke width for x-axis tick lines.
-/// When > 0, overrides the default width.
-pub fn x_tick_line_stroke_width(
-  config: XAxisConfig(msg),
-  width: Float,
-) -> XAxisConfig(msg) {
-  XAxisConfig(..config, tick_line_stroke_width: width)
-}
-
-/// Set the stroke dash pattern for the x-axis line.
-/// Matches recharts XAxis `axisLine.strokeDasharray` prop.
-/// When non-empty, applies `stroke-dasharray` to the axis line SVG element.
-pub fn x_axis_line_stroke_dasharray(
-  config: XAxisConfig(msg),
-  pattern: String,
-) -> XAxisConfig(msg) {
-  XAxisConfig(..config, axis_line_stroke_dasharray: pattern)
-}
-
-/// Set the stroke dash pattern for x-axis tick lines.
-/// Matches recharts XAxis `tickLine.strokeDasharray` prop.
-/// When non-empty, applies `stroke-dasharray` to each tick line SVG element.
-pub fn x_tick_line_stroke_dasharray(
-  config: XAxisConfig(msg),
-  pattern: String,
-) -> XAxisConfig(msg) {
-  XAxisConfig(..config, tick_line_stroke_dasharray: pattern)
-}
-
-/// Set the axis ID for the x-axis.
-/// Matches recharts XAxis `xAxisId` prop (default: "0").
-/// Used for multi-axis support: series and reference elements
-/// bind to a specific axis via matching IDs.
-pub fn x_axis_id(config: XAxisConfig(msg), id: String) -> XAxisConfig(msg) {
-  XAxisConfig(..config, axis_id: id)
-}
-
-/// Set a custom tick render function for the x-axis.
-/// When provided, replaces the default text label for each tick.
-/// Matches recharts XAxis `tick` prop (element/function form).
-pub fn x_custom_tick(
-  config config: XAxisConfig(msg),
-  renderer renderer: fn(render.TickProps) -> Element(msg),
-) -> XAxisConfig(msg) {
-  XAxisConfig(..config, custom_tick: Some(renderer))
-}
-
-/// Set whether hidden series data is included in axis domain computation.
-/// When True, hidden series still contribute to the axis range.
-/// Matches recharts XAxis `includeHidden` prop (default: false).
-pub fn x_include_hidden(
-  config config: XAxisConfig(msg),
+/// Set include-hidden behavior on a shared axis config.
+pub fn axis_include_hidden(
+  config config: AxisBaseConfig(msg),
   include include: Bool,
-) -> XAxisConfig(msg) {
-  XAxisConfig(..config, include_hidden: include)
-}
-
-// ---------------------------------------------------------------------------
-// YAxis builders
-// ---------------------------------------------------------------------------
-
-/// Set the data key for the y-axis.
-pub fn y_data_key(config: YAxisConfig(msg), key: String) -> YAxisConfig(msg) {
-  YAxisConfig(..config, data_key: key)
-}
-
-/// Set the axis type.
-pub fn y_type(config: YAxisConfig(msg), type_: AxisType) -> YAxisConfig(msg) {
-  YAxisConfig(..config, type_: type_)
-}
-
-/// Set the axis orientation.
-pub fn y_orientation(
-  config: YAxisConfig(msg),
-  orientation: AxisOrientation,
-) -> YAxisConfig(msg) {
-  YAxisConfig(..config, orientation: orientation)
-}
-
-/// Show or hide tick lines.
-pub fn y_tick_line(config: YAxisConfig(msg), show: Bool) -> YAxisConfig(msg) {
-  YAxisConfig(..config, show_tick_line: show)
-}
-
-/// Show or hide the axis line.
-pub fn y_axis_line(config: YAxisConfig(msg), show: Bool) -> YAxisConfig(msg) {
-  YAxisConfig(..config, show_axis_line: show)
-}
-
-/// Set the tick count hint.
-pub fn y_tick_count(config: YAxisConfig(msg), count: Int) -> YAxisConfig(msg) {
-  YAxisConfig(..config, tick_count: count)
-}
-
-/// Set a tick label formatter function.
-/// The formatter receives the tick value and its zero-based index.
-pub fn y_tick_formatter(
-  config: YAxisConfig(msg),
-  formatter: fn(String, Int) -> String,
-) -> YAxisConfig(msg) {
-  YAxisConfig(..config, tick_formatter: formatter)
-}
-
-/// Set a custom domain for the y-axis.
-pub fn y_domain(
-  config: YAxisConfig(msg),
-  min: Float,
-  max: Float,
-) -> YAxisConfig(msg) {
-  YAxisConfig(
-    ..config,
-    domain_min: min,
-    domain_max: max,
-    has_custom_domain: True,
-  )
-}
-
-/// Hide the axis entirely.
-pub fn y_hide(config: YAxisConfig(msg)) -> YAxisConfig(msg) {
-  YAxisConfig(..config, hidden: True)
-}
-
-/// Reverse the y-axis direction.
-pub fn y_reversed(config: YAxisConfig(msg)) -> YAxisConfig(msg) {
-  YAxisConfig(..config, reversed: True)
-}
-
-/// Mirror y-axis ticks to the opposite side.
-pub fn y_mirror(config: YAxisConfig(msg)) -> YAxisConfig(msg) {
-  YAxisConfig(..config, mirror: True)
-}
-
-/// Set the tick line size in pixels.
-pub fn y_tick_size(config: YAxisConfig(msg), size: Int) -> YAxisConfig(msg) {
-  YAxisConfig(..config, tick_size: size)
-}
-
-/// Set whether to allow decimal values in axis ticks.
-pub fn y_allow_decimals(
-  config: YAxisConfig(msg),
-  allow: Bool,
-) -> YAxisConfig(msg) {
-  YAxisConfig(..config, allow_decimals: allow)
-}
-
-/// Set the tick margin (distance from axis to label).
-pub fn y_tick_margin(config: YAxisConfig(msg), margin: Int) -> YAxisConfig(msg) {
-  YAxisConfig(..config, tick_margin: margin)
-}
-
-/// Set explicit numeric tick values, overriding auto-generation.
-/// Matches recharts YAxis `ticks` prop with numeric values.
-pub fn y_numeric_ticks(
-  config: YAxisConfig(msg),
-  ticks ts: List(Float),
-) -> YAxisConfig(msg) {
-  YAxisConfig(..config, ticks_override: Some(NumericTicks(ticks: ts)))
-}
-
-/// Set explicit category tick values, overriding auto-generation.
-/// Matches recharts YAxis `ticks` prop with string values.
-pub fn y_category_ticks(
-  config: YAxisConfig(msg),
-  ticks ts: List(String),
-) -> YAxisConfig(msg) {
-  YAxisConfig(..config, ticks_override: Some(CategoryTicks(ticks: ts)))
-}
-
-/// Set top padding for the y-axis in pixels.
-/// Matches recharts YAxis `padding.top` prop (default: 0).
-pub fn y_padding_top(config: YAxisConfig(msg), padding: Int) -> YAxisConfig(msg) {
-  YAxisConfig(..config, padding_top: padding)
-}
-
-/// Set bottom padding for the y-axis in pixels.
-/// Matches recharts YAxis `padding.bottom` prop (default: 0).
-pub fn y_padding_bottom(
-  config: YAxisConfig(msg),
-  padding: Int,
-) -> YAxisConfig(msg) {
-  YAxisConfig(..config, padding_bottom: padding)
-}
-
-/// Set the minimum gap between ticks in pixels.
-/// Matches recharts CartesianAxis `minTickGap` (default: 5).
-pub fn y_min_tick_gap(config: YAxisConfig(msg), gap: Int) -> YAxisConfig(msg) {
-  YAxisConfig(..config, min_tick_gap: gap)
-}
-
-/// Set the rotation angle for tick labels in degrees.
-/// Matches recharts YAxis `angle` prop (default: 0.0).
-pub fn y_angle(config: YAxisConfig(msg), angle: Float) -> YAxisConfig(msg) {
-  YAxisConfig(..config, angle: angle)
-}
-
-/// Set the axis label text.
-/// Matches recharts YAxis `label` prop (string form).
-pub fn y_label(config: YAxisConfig(msg), text: String) -> YAxisConfig(msg) {
-  YAxisConfig(..config, label: text)
-}
-
-/// Set the tick interval strategy.
-/// Matches recharts YAxis `interval` prop (default: preserveEnd).
-pub fn y_interval(
-  config: YAxisConfig(msg),
-  interval: AxisInterval,
-) -> YAxisConfig(msg) {
-  YAxisConfig(..config, interval: interval)
-}
-
-/// Allow data to overflow the axis domain without extending it.
-/// Matches recharts YAxis `allowDataOverflow` prop (default: false).
-pub fn y_allow_data_overflow(
-  config: YAxisConfig(msg),
-  allow: Bool,
-) -> YAxisConfig(msg) {
-  YAxisConfig(..config, allow_data_overflow: allow)
-}
-
-/// Set the unit string appended to tick labels.
-/// Matches recharts YAxis `unit` prop (default: "").
-pub fn y_unit(config: YAxisConfig(msg), unit: String) -> YAxisConfig(msg) {
-  YAxisConfig(..config, unit: unit)
-}
-
-/// Set the scale type for the y-axis.
-/// Matches recharts YAxis `scale` prop (default: linear).
-pub fn y_scale_type(
-  config: YAxisConfig(msg),
-  type_: ScaleType,
-) -> YAxisConfig(msg) {
-  YAxisConfig(..config, scale_type: type_)
-}
-
-/// Set the width of the y-axis area in pixels.
-/// Matches recharts YAxis `width` prop (default: 60).
-/// Controls how much horizontal space is reserved for the axis.
-pub fn y_width(config: YAxisConfig(msg), width: Int) -> YAxisConfig(msg) {
-  YAxisConfig(..config, width: width)
-}
-
-/// Set the name for tooltip display.
-/// Matches recharts YAxis `name` prop.  Used when the tooltip
-/// references this axis.  When empty (default), the data key is used.
-pub fn y_name(config: YAxisConfig(msg), name: String) -> YAxisConfig(msg) {
-  YAxisConfig(..config, name: name)
-}
-
-/// Set whether duplicate categories are allowed on the y-axis.
-/// Matches recharts YAxis `allowDuplicatedCategory` prop (default: true).
-pub fn y_allow_duplicated_category(
-  config: YAxisConfig(msg),
-  allow: Bool,
-) -> YAxisConfig(msg) {
-  YAxisConfig(..config, allow_duplicated_category: allow)
-}
-
-/// Set a custom stroke color for the y-axis line.
-/// When non-empty, overrides the default CSS variable.
-pub fn y_axis_line_stroke(
-  config: YAxisConfig(msg),
-  stroke: String,
-) -> YAxisConfig(msg) {
-  YAxisConfig(..config, axis_line_stroke: stroke)
-}
-
-/// Set a custom stroke width for the y-axis line.
-/// When > 0, overrides the default width.
-pub fn y_axis_line_stroke_width(
-  config: YAxisConfig(msg),
-  width: Float,
-) -> YAxisConfig(msg) {
-  YAxisConfig(..config, axis_line_stroke_width: width)
-}
-
-/// Set a custom stroke color for y-axis tick lines.
-/// When non-empty, overrides the default CSS variable.
-pub fn y_tick_line_stroke(
-  config: YAxisConfig(msg),
-  stroke: String,
-) -> YAxisConfig(msg) {
-  YAxisConfig(..config, tick_line_stroke: stroke)
-}
-
-/// Set a custom stroke width for y-axis tick lines.
-/// When > 0, overrides the default width.
-pub fn y_tick_line_stroke_width(
-  config: YAxisConfig(msg),
-  width: Float,
-) -> YAxisConfig(msg) {
-  YAxisConfig(..config, tick_line_stroke_width: width)
-}
-
-/// Set the stroke dash pattern for the y-axis line.
-/// Matches recharts YAxis `axisLine.strokeDasharray` prop.
-/// When non-empty, applies `stroke-dasharray` to the axis line SVG element.
-pub fn y_axis_line_stroke_dasharray(
-  config: YAxisConfig(msg),
-  pattern: String,
-) -> YAxisConfig(msg) {
-  YAxisConfig(..config, axis_line_stroke_dasharray: pattern)
-}
-
-/// Set the stroke dash pattern for y-axis tick lines.
-/// Matches recharts YAxis `tickLine.strokeDasharray` prop.
-/// When non-empty, applies `stroke-dasharray` to each tick line SVG element.
-pub fn y_tick_line_stroke_dasharray(
-  config: YAxisConfig(msg),
-  pattern: String,
-) -> YAxisConfig(msg) {
-  YAxisConfig(..config, tick_line_stroke_dasharray: pattern)
-}
-
-/// Set the axis ID for the y-axis.
-/// Matches recharts YAxis `yAxisId` prop (default: "0").
-/// Used for multi-axis support: series and reference elements
-/// bind to a specific axis via matching IDs.
-pub fn y_axis_id(config: YAxisConfig(msg), id: String) -> YAxisConfig(msg) {
-  YAxisConfig(..config, axis_id: id)
-}
-
-/// Set a custom tick render function for the y-axis.
-/// When provided, replaces the default text label for each tick.
-/// Matches recharts YAxis `tick` prop (element/function form).
-pub fn y_custom_tick(
-  config config: YAxisConfig(msg),
-  renderer renderer: fn(render.TickProps) -> Element(msg),
-) -> YAxisConfig(msg) {
-  YAxisConfig(..config, custom_tick: Some(renderer))
-}
-
-/// Set whether hidden series data is included in axis domain computation.
-/// When True, hidden series still contribute to the axis range.
-/// Matches recharts YAxis `includeHidden` prop (default: false).
-pub fn y_include_hidden(
-  config config: YAxisConfig(msg),
-  include include: Bool,
-) -> YAxisConfig(msg) {
-  YAxisConfig(..config, include_hidden: include)
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, include_hidden: include)
 }
 
 // ---------------------------------------------------------------------------

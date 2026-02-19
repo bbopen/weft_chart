@@ -11,6 +11,7 @@ import startest.{describe, it}
 import startest/expect
 import weft_chart/chart
 import weft_chart/series/area
+import weft_chart/series/common
 import weft_chart/series/line
 
 // ---------------------------------------------------------------------------
@@ -36,20 +37,20 @@ pub fn main() {
 pub fn area_clip_dot_config_tests() {
   describe("area_clip_dot config", [
     it("defaults to True", fn() {
-      let config = area.area_config(data_key: "v")
+      let config = area.area_config(data_key: "v", meta: common.series_meta())
       config.clip_dot
       |> expect.to_equal(True)
     }),
     it("sets to True via builder", fn() {
       let config =
-        area.area_config(data_key: "v")
+        area.area_config(data_key: "v", meta: common.series_meta())
         |> area.area_clip_dot(clip: True)
       config.clip_dot
       |> expect.to_equal(True)
     }),
     it("sets to False via builder", fn() {
       let config =
-        area.area_config(data_key: "v")
+        area.area_config(data_key: "v", meta: common.series_meta())
         |> area.area_clip_dot(clip: True)
         |> area.area_clip_dot(clip: False)
       config.clip_dot
@@ -65,13 +66,13 @@ pub fn area_clip_dot_config_tests() {
 pub fn line_clip_dot_config_tests() {
   describe("line_clip_dot config", [
     it("defaults to True", fn() {
-      let config = line.line_config(data_key: "v")
+      let config = line.line_config(data_key: "v", meta: common.series_meta())
       config.clip_dot
       |> expect.to_equal(True)
     }),
     it("sets to True via builder", fn() {
       let config =
-        line.line_config(data_key: "v")
+        line.line_config(data_key: "v", meta: common.series_meta())
         |> line.line_clip_dot(clip: True)
       config.clip_dot
       |> expect.to_equal(True)
@@ -93,8 +94,8 @@ pub fn area_dot_clip_rendering_tests() {
           height: 300,
           children: [
             chart.area(
-              area.area_config(data_key: "v")
-              |> area.dot(True),
+              area.area_config(data_key: "v", meta: common.series_meta())
+              |> area.area_dot(True),
             ),
           ],
         )
@@ -113,8 +114,8 @@ pub fn area_dot_clip_rendering_tests() {
           height: 300,
           children: [
             chart.area(
-              area.area_config(data_key: "v")
-              |> area.dot(True),
+              area.area_config(data_key: "v", meta: common.series_meta())
+              |> area.area_dot(True),
             ),
           ],
         )
@@ -138,8 +139,8 @@ pub fn area_dot_clip_rendering_tests() {
           height: 300,
           children: [
             chart.area(
-              area.area_config(data_key: "v")
-              |> area.dot(True)
+              area.area_config(data_key: "v", meta: common.series_meta())
+              |> area.area_dot(True)
               |> area.area_clip_dot(clip: True),
             ),
           ],
@@ -167,7 +168,10 @@ pub fn line_dot_clip_rendering_tests() {
           width: 400,
           height: 300,
           children: [
-            chart.line(line.line_config(data_key: "v")),
+            chart.line(line.line_config(
+              data_key: "v",
+              meta: common.series_meta(),
+            )),
           ],
         )
         |> element.to_string
@@ -183,7 +187,10 @@ pub fn line_dot_clip_rendering_tests() {
           width: 400,
           height: 300,
           children: [
-            chart.line(line.line_config(data_key: "v")),
+            chart.line(line.line_config(
+              data_key: "v",
+              meta: common.series_meta(),
+            )),
           ],
         )
         |> element.to_string
@@ -203,7 +210,7 @@ pub fn line_dot_clip_rendering_tests() {
           height: 300,
           children: [
             chart.line(
-              line.line_config(data_key: "v")
+              line.line_config(data_key: "v", meta: common.series_meta())
               |> line.line_clip_dot(clip: True),
             ),
           ],

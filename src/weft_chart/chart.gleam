@@ -229,22 +229,12 @@ pub fn polar_radius_axis(
 }
 
 /// Create an x-axis child.
-pub fn x_axis(config: axis.XAxisConfig(msg)) -> ChartChild(msg) {
-  XAxisChild(config: config)
-}
-
-/// Create an x-axis child from shared axis v2 configuration.
-pub fn x_axis_v2(config config: axis.AxisBaseConfig(msg)) -> ChartChild(msg) {
+pub fn x_axis(config config: axis.AxisBaseConfig(msg)) -> ChartChild(msg) {
   XAxisChild(config: axis.axis_to_x(config: config))
 }
 
 /// Create a y-axis child.
-pub fn y_axis(config: axis.YAxisConfig(msg)) -> ChartChild(msg) {
-  YAxisChild(config: config)
-}
-
-/// Create a y-axis child from shared axis v2 configuration.
-pub fn y_axis_v2(config config: axis.AxisBaseConfig(msg)) -> ChartChild(msg) {
+pub fn y_axis(config config: axis.AxisBaseConfig(msg)) -> ChartChild(msg) {
   YAxisChild(config: axis.axis_to_y(config: config))
 }
 
@@ -270,67 +260,59 @@ pub fn line(config: line.LineConfig(msg)) -> ChartChild(msg) {
 }
 
 /// Create a pie series child.
-pub fn pie_series(config: pie.PieConfig(msg)) -> ChartChild(msg) {
+pub fn pie(config: pie.PieConfig(msg)) -> ChartChild(msg) {
   PieChild(config: config)
 }
 
 /// Create a radar series child.
-pub fn radar_series(config: radar.RadarConfig(msg)) -> ChartChild(msg) {
+pub fn radar(config: radar.RadarConfig(msg)) -> ChartChild(msg) {
   RadarChild(config: config)
 }
 
 /// Create a radial bar series child.
-pub fn radial_bar_series(
-  config: radial_bar.RadialBarConfig(msg),
-) -> ChartChild(msg) {
+pub fn radial_bar(config: radial_bar.RadialBarConfig(msg)) -> ChartChild(msg) {
   RadialBarChild(config: config)
 }
 
 /// Create a scatter series child.
 /// Matches recharts Scatter component.
-pub fn scatter_series(config: scatter.ScatterConfig(msg)) -> ChartChild(msg) {
+pub fn scatter(config: scatter.ScatterConfig(msg)) -> ChartChild(msg) {
   ScatterChild(config: config)
 }
 
 /// Create a funnel series child.
 /// Matches recharts Funnel component.
-pub fn funnel_series(config: funnel.FunnelConfig(msg)) -> ChartChild(msg) {
+pub fn funnel(config: funnel.FunnelConfig(msg)) -> ChartChild(msg) {
   FunnelChild(config: config)
 }
 
 /// Create a treemap chart child from a treemap configuration.
-pub fn treemap_series(
-  config config: treemap.TreemapConfig(msg),
-) -> ChartChild(msg) {
+pub fn treemap(config config: treemap.TreemapConfig(msg)) -> ChartChild(msg) {
   TreemapChild(config: config)
 }
 
 /// Create a sunburst chart child from a sunburst configuration.
-pub fn sunburst_series(
-  config config: sunburst.SunburstConfig,
-) -> ChartChild(msg) {
+pub fn sunburst(config config: sunburst.SunburstConfig) -> ChartChild(msg) {
   SunburstChild(config: config)
 }
 
 /// Create a sankey chart child from a sankey configuration.
-pub fn sankey_series(config config: sankey.SankeyConfig(msg)) -> ChartChild(msg) {
+pub fn sankey(config config: sankey.SankeyConfig(msg)) -> ChartChild(msg) {
   SankeyChild(config: config)
 }
 
 /// Create a tooltip child.
-pub fn chart_tooltip(
-  config config: tooltip.TooltipConfig(msg),
-) -> ChartChild(msg) {
+pub fn tooltip(config config: tooltip.TooltipConfig(msg)) -> ChartChild(msg) {
   TooltipChild(config: config)
 }
 
 /// Create a legend child.
-pub fn chart_legend(config config: legend.LegendConfig(msg)) -> ChartChild(msg) {
+pub fn legend(config config: legend.LegendConfig(msg)) -> ChartChild(msg) {
   LegendChild(config: config)
 }
 
 /// Add a brush (range-selector) to a composed or bar chart.
-pub fn chart_brush(config config: brush.BrushConfig(msg)) -> ChartChild(msg) {
+pub fn brush(config config: brush.BrushConfig(msg)) -> ChartChild(msg) {
   BrushChild(config:)
 }
 
@@ -352,7 +334,7 @@ pub fn reference_area(
 
 /// Create a reference dot child.
 /// Matches recharts ReferenceDot component.
-pub fn chart_reference_dot(
+pub fn reference_dot(
   config: reference.ReferenceDotConfig(msg),
 ) -> ChartChild(msg) {
   ReferenceDotChild(config: config)
@@ -361,7 +343,7 @@ pub fn chart_reference_dot(
 /// Create an error bar child for a series.
 /// Matches recharts ErrorBar component.
 /// The `series_data_key` identifies which series the error bars belong to.
-pub fn chart_error_bar(
+pub fn error_bar(
   config config: error_bar.ErrorBarConfig,
   series_data_key series_data_key: String,
 ) -> ChartChild(msg) {
@@ -409,19 +391,19 @@ pub fn max_bar_size(size size: Int) -> ChartChild(msg) {
 /// Set the chart layout direction.
 /// Horizontal (default): categories on X, values on Y.
 /// Vertical: categories on Y, values on X (horizontal bar charts).
-pub fn chart_layout(layout layout: layout.LayoutDirection) -> ChartChild(msg) {
+pub fn layout(layout layout: layout.LayoutDirection) -> ChartChild(msg) {
   LayoutChild(layout: layout)
 }
 
 /// Set an accessible title for the chart SVG.
 /// Renders as `<title>` element inside the SVG for screen readers.
-pub fn chart_title(text text: String) -> ChartChild(msg) {
+pub fn title(text text: String) -> ChartChild(msg) {
   TitleChild(text: text)
 }
 
 /// Set an accessible description for the chart SVG.
 /// Renders as `<desc>` element inside the SVG for screen readers.
-pub fn chart_desc(text text: String) -> ChartChild(msg) {
+pub fn desc(text text: String) -> ChartChild(msg) {
   DescChild(text: text)
 }
 
@@ -472,7 +454,7 @@ pub fn compact() -> ChartChild(msg) {
 /// Attach a chart-level event handler.
 /// Matches recharts onClick/onMouseEnter/onMouseLeave/onMouseMove props
 /// on chart container components.
-pub fn chart_event(handler handler: ChartEvent(msg)) -> ChartChild(msg) {
+pub fn event(handler handler: ChartEvent(msg)) -> ChartChild(msg) {
   EventChild(handler: handler)
 }
 
@@ -4268,7 +4250,8 @@ fn collect_y_axis_configs(
       }
     })
   case dict.size(configs) == 0 {
-    True -> dict.from_list([#("0", axis.y_axis_config())])
+    True ->
+      dict.from_list([#("0", axis.axis_to_y(config: axis.y_axis_config()))])
     False -> configs
   }
 }

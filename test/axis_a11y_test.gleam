@@ -7,6 +7,7 @@ import startest.{describe, it}
 import startest/expect
 import weft_chart/axis
 import weft_chart/chart
+import weft_chart/series/common
 import weft_chart/series/line
 
 pub fn main() {
@@ -19,14 +20,14 @@ pub fn custom_tick_tests() {
     it("x_custom_tick sets the custom tick renderer", fn() {
       let _config =
         axis.x_axis_config()
-        |> axis.x_custom_tick(renderer: fn(_props) { element.none() })
+        |> axis.axis_custom_tick(renderer: fn(_props) { element.none() })
       // Config builds without error
       True |> expect.to_be_true
     }),
     it("y_custom_tick sets the custom tick renderer", fn() {
       let _config =
         axis.y_axis_config()
-        |> axis.y_custom_tick(renderer: fn(_props) { element.none() })
+        |> axis.axis_custom_tick(renderer: fn(_props) { element.none() })
       True |> expect.to_be_true
     }),
   ])
@@ -42,7 +43,7 @@ pub fn include_hidden_tests() {
     it("x_include_hidden sets to True", fn() {
       let config =
         axis.x_axis_config()
-        |> axis.x_include_hidden(include: True)
+        |> axis.axis_include_hidden(include: True)
       config.include_hidden |> expect.to_equal(expected: True)
     }),
     it("y_include_hidden defaults to False", fn() {
@@ -52,7 +53,7 @@ pub fn include_hidden_tests() {
     it("y_include_hidden sets to True", fn() {
       let config =
         axis.y_axis_config()
-        |> axis.y_include_hidden(include: True)
+        |> axis.axis_include_hidden(include: True)
       config.include_hidden |> expect.to_equal(expected: True)
     }),
   ])
@@ -70,8 +71,8 @@ pub fn svg_a11y_tests() {
       ]
       let html =
         chart.line_chart(data: data, width: 400, height: 300, children: [
-          chart.line(line.line_config(data_key: "v")),
-          chart.chart_title(text: "My Chart"),
+          chart.line(line.line_config(data_key: "v", meta: common.series_meta())),
+          chart.title(text: "My Chart"),
         ])
         |> element.to_string
       html |> string.contains("<title>My Chart</title>") |> expect.to_be_true
@@ -85,8 +86,8 @@ pub fn svg_a11y_tests() {
       ]
       let html =
         chart.line_chart(data: data, width: 400, height: 300, children: [
-          chart.line(line.line_config(data_key: "v")),
-          chart.chart_desc(text: "Revenue over time"),
+          chart.line(line.line_config(data_key: "v", meta: common.series_meta())),
+          chart.desc(text: "Revenue over time"),
         ])
         |> element.to_string
       html

@@ -69,12 +69,7 @@ type MaybePoint {
 
 /// Create a line configuration with default settings.
 /// When `name` is empty, `data_key` is used for tooltip/legend display.
-pub fn line_config(data_key data_key: String) -> LineConfig(msg) {
-  line_config_v2(data_key: data_key, meta: common.series_meta())
-}
-
-/// Create a line configuration using shared series metadata.
-pub fn line_config_v2(
+pub fn line_config(
   data_key data_key: String,
   meta meta: common.SeriesMeta,
 ) -> LineConfig(msg) {
@@ -198,18 +193,6 @@ pub fn line_dot_radius(
   LineConfig(..config, dot_radius: radius)
 }
 
-/// Hide the line from rendering while keeping it in domain/legend calculation.
-/// Matches recharts Line `hide` prop.
-pub fn line_hide(config config: LineConfig(msg)) -> LineConfig(msg) {
-  LineConfig(..config, hide: True)
-}
-
-/// Set the display name for tooltip and legend.
-/// Matches recharts Line `name` prop.  When empty, `data_key` is used.
-pub fn line_name(config: LineConfig(msg), name: String) -> LineConfig(msg) {
-  LineConfig(..config, name: name)
-}
-
 /// Set the legend icon type for this series.
 /// Matches recharts Line `legendType` prop (default: line).
 pub fn line_legend_type(
@@ -228,15 +211,6 @@ pub fn line_fill(
   LineConfig(..config, fill: fill)
 }
 
-/// Set the tooltip type to control whether this series appears in tooltips.
-/// Matches recharts Line `tooltipType` prop (default: DefaultTooltip).
-pub fn line_tooltip_type(
-  config config: LineConfig(msg),
-  type_ type_: shape.TooltipType,
-) -> LineConfig(msg) {
-  LineConfig(..config, tooltip_type: type_)
-}
-
 /// Show or hide value labels at each data point.
 /// When True, the numeric value is rendered above each point.
 pub fn line_label(
@@ -244,33 +218,6 @@ pub fn line_label(
   show show: Bool,
 ) -> LineConfig(msg) {
   LineConfig(..config, show_label: show)
-}
-
-/// Set the unit string for tooltip display.
-/// Matches recharts Line `unit` prop (default: "").
-pub fn line_unit(
-  config config: LineConfig(msg),
-  unit unit: String,
-) -> LineConfig(msg) {
-  LineConfig(..config, unit: unit)
-}
-
-/// Set the x-axis ID this line series binds to.
-/// Matches recharts Line `xAxisId` prop (default: "0").
-pub fn line_x_axis_id(
-  config config: LineConfig(msg),
-  id id: String,
-) -> LineConfig(msg) {
-  LineConfig(..config, x_axis_id: id)
-}
-
-/// Set the y-axis ID this line series binds to.
-/// Matches recharts Line `yAxisId` prop (default: "0").
-pub fn line_y_axis_id(
-  config config: LineConfig(msg),
-  id id: String,
-) -> LineConfig(msg) {
-  LineConfig(..config, y_axis_id: id)
 }
 
 /// Set a custom dot render function for line data points.
@@ -313,16 +260,6 @@ pub fn line_active_index(
   index index: Int,
 ) -> LineConfig(msg) {
   LineConfig(..config, active_index: Some(index))
-}
-
-/// Set the CSS class attribute on the line series group element.
-/// Maps to the SVG `class` attribute.
-/// Matches recharts Line `className` prop.
-pub fn line_css_class(
-  config config: LineConfig(msg),
-  class class: String,
-) -> LineConfig(msg) {
-  LineConfig(..config, css_class: class)
 }
 
 /// Set whether to animate new data values when data updates.

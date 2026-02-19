@@ -11,6 +11,7 @@ import startest.{describe, it}
 import startest/expect
 import weft_chart/brush
 import weft_chart/chart
+import weft_chart/series/common
 import weft_chart/series/line as line_series
 
 // ---------------------------------------------------------------------------
@@ -53,8 +54,11 @@ pub fn brush_integration_tests() {
           width: 500,
           height: 300,
           children: [
-            chart.line(line_series.line_config(data_key: "val")),
-            chart.chart_brush(config: brush_config),
+            chart.line(line_series.line_config(
+              data_key: "val",
+              meta: common.series_meta(),
+            )),
+            chart.brush(config: brush_config),
           ],
         )
       let html = element.to_string(svg)
@@ -71,7 +75,10 @@ pub fn brush_integration_tests() {
           width: 500,
           height: 300,
           children: [
-            chart.line(line_series.line_config(data_key: "val")),
+            chart.line(line_series.line_config(
+              data_key: "val",
+              meta: common.series_meta(),
+            )),
           ],
         )
       // Render chart with brush (default height 40.0)
@@ -88,8 +95,11 @@ pub fn brush_integration_tests() {
           width: 500,
           height: 300,
           children: [
-            chart.line(line_series.line_config(data_key: "val")),
-            chart.chart_brush(config: brush_config),
+            chart.line(line_series.line_config(
+              data_key: "val",
+              meta: common.series_meta(),
+            )),
+            chart.brush(config: brush_config),
           ],
         )
       let html_no = element.to_string(svg_no_brush)
@@ -111,7 +121,7 @@ pub fn brush_integration_tests() {
           data_key: "val",
           data: brush_data(),
         )
-      let child = chart.chart_brush(config: brush_config)
+      let child = chart.brush(config: brush_config)
       // Verify it is the BrushChild variant by pattern matching
       case child {
         chart.BrushChild(config:) -> {

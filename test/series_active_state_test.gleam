@@ -12,6 +12,7 @@ import weft_chart/render
 import weft_chart/scale
 import weft_chart/series/area
 import weft_chart/series/bar
+import weft_chart/series/common
 import weft_chart/series/line
 import weft_chart/series/scatter
 
@@ -26,40 +27,46 @@ pub fn main() {
 pub fn bar_active_state_tests() {
   describe("bar active state", [
     it("defaults active_bar to None", fn() {
-      let config = bar.bar_config(data_key: "v")
+      let config = bar.bar_config(data_key: "v", meta: common.series_meta())
       config.active_bar |> expect.to_equal(expected: None)
     }),
     it("defaults active_index to None", fn() {
-      let config = bar.bar_config(data_key: "v")
+      let config = bar.bar_config(data_key: "v", meta: common.series_meta())
       config.active_index |> expect.to_equal(expected: None)
     }),
     it("defaults css_class to empty string", fn() {
-      let config = bar.bar_config(data_key: "v")
+      let config = bar.bar_config(data_key: "v", meta: common.series_meta())
       config.css_class |> expect.to_equal(expected: "")
     }),
     it("bar_active_index sets the active index", fn() {
       let config =
-        bar.bar_config(data_key: "v")
+        bar.bar_config(data_key: "v", meta: common.series_meta())
         |> bar.bar_active_index(index: 2)
       config.active_index |> expect.to_equal(expected: Some(2))
     }),
     it("bar_active_bar sets the active bar renderer", fn() {
       let renderer = fn(_props: render.BarShapeProps) { element.none() }
       let config =
-        bar.bar_config(data_key: "v")
+        bar.bar_config(data_key: "v", meta: common.series_meta())
         |> bar.bar_active_bar(renderer: renderer)
       { config.active_bar != None } |> expect.to_be_true
     }),
     it("bar_css_class sets the CSS class", fn() {
       let config =
-        bar.bar_config(data_key: "v")
-        |> bar.bar_css_class(class: "my-bars")
+        bar.bar_config(data_key: "v", meta: common.series_meta())
+        |> bar.bar_meta(
+          meta: common.series_meta()
+          |> common.series_css_class(class: "my-bars"),
+        )
       config.css_class |> expect.to_equal(expected: "my-bars")
     }),
     it("css_class appears in SVG output", fn() {
       let config =
-        bar.bar_config(data_key: "v")
-        |> bar.bar_css_class(class: "custom-bar")
+        bar.bar_config(data_key: "v", meta: common.series_meta())
+        |> bar.bar_meta(
+          meta: common.series_meta()
+          |> common.series_css_class(class: "custom-bar"),
+        )
       let data = [dict.from_list([#("v", 10.0)])]
       let x_scale =
         scale.band(
@@ -96,7 +103,7 @@ pub fn bar_active_state_tests() {
         element.text("ACTIVE_BAR_MARKER")
       }
       let config =
-        bar.bar_config(data_key: "v")
+        bar.bar_config(data_key: "v", meta: common.series_meta())
         |> bar.bar_active_index(index: 0)
         |> bar.bar_active_bar(renderer: renderer)
       let data = [dict.from_list([#("v", 10.0)])]
@@ -140,50 +147,56 @@ pub fn bar_active_state_tests() {
 pub fn line_active_state_tests() {
   describe("line active state", [
     it("defaults active_dot to None", fn() {
-      let config = line.line_config(data_key: "v")
+      let config = line.line_config(data_key: "v", meta: common.series_meta())
       config.active_dot |> expect.to_equal(expected: None)
     }),
     it("defaults active_index to None", fn() {
-      let config = line.line_config(data_key: "v")
+      let config = line.line_config(data_key: "v", meta: common.series_meta())
       config.active_index |> expect.to_equal(expected: None)
     }),
     it("defaults css_class to empty string", fn() {
-      let config = line.line_config(data_key: "v")
+      let config = line.line_config(data_key: "v", meta: common.series_meta())
       config.css_class |> expect.to_equal(expected: "")
     }),
     it("defaults animate_new_values to True", fn() {
-      let config = line.line_config(data_key: "v")
+      let config = line.line_config(data_key: "v", meta: common.series_meta())
       config.animate_new_values |> expect.to_be_true
     }),
     it("line_active_index sets the active index", fn() {
       let config =
-        line.line_config(data_key: "v")
+        line.line_config(data_key: "v", meta: common.series_meta())
         |> line.line_active_index(index: 3)
       config.active_index |> expect.to_equal(expected: Some(3))
     }),
     it("line_active_dot sets the active dot renderer", fn() {
       let renderer = fn(_props: render.DotProps) { element.none() }
       let config =
-        line.line_config(data_key: "v")
+        line.line_config(data_key: "v", meta: common.series_meta())
         |> line.line_active_dot(renderer: renderer)
       { config.active_dot != None } |> expect.to_be_true
     }),
     it("line_css_class sets the CSS class", fn() {
       let config =
-        line.line_config(data_key: "v")
-        |> line.line_css_class(class: "my-line")
+        line.line_config(data_key: "v", meta: common.series_meta())
+        |> line.line_meta(
+          meta: common.series_meta()
+          |> common.series_css_class(class: "my-line"),
+        )
       config.css_class |> expect.to_equal(expected: "my-line")
     }),
     it("line_animate_new_values sets the flag", fn() {
       let config =
-        line.line_config(data_key: "v")
+        line.line_config(data_key: "v", meta: common.series_meta())
         |> line.line_animate_new_values(animate: True)
       config.animate_new_values |> expect.to_be_true
     }),
     it("css_class appears in SVG output", fn() {
       let config =
-        line.line_config(data_key: "v")
-        |> line.line_css_class(class: "custom-line")
+        line.line_config(data_key: "v", meta: common.series_meta())
+        |> line.line_meta(
+          meta: common.series_meta()
+          |> common.series_css_class(class: "custom-line"),
+        )
       let data = [
         dict.from_list([#("v", 10.0)]),
         dict.from_list([#("v", 20.0)]),
@@ -221,7 +234,7 @@ pub fn line_active_state_tests() {
         element.text("ACTIVE_DOT_MARKER")
       }
       let config =
-        line.line_config(data_key: "v")
+        line.line_config(data_key: "v", meta: common.series_meta())
         |> line.line_active_index(index: 0)
         |> line.line_active_dot(renderer: renderer)
       let data = [
@@ -266,51 +279,57 @@ pub fn line_active_state_tests() {
 pub fn area_active_state_tests() {
   describe("area active state", [
     it("defaults active_dot to None", fn() {
-      let config = area.area_config(data_key: "v")
+      let config = area.area_config(data_key: "v", meta: common.series_meta())
       config.active_dot |> expect.to_equal(expected: None)
     }),
     it("defaults active_index to None", fn() {
-      let config = area.area_config(data_key: "v")
+      let config = area.area_config(data_key: "v", meta: common.series_meta())
       config.active_index |> expect.to_equal(expected: None)
     }),
     it("defaults css_class to empty string", fn() {
-      let config = area.area_config(data_key: "v")
+      let config = area.area_config(data_key: "v", meta: common.series_meta())
       config.css_class |> expect.to_equal(expected: "")
     }),
     it("defaults animate_new_values to True", fn() {
-      let config = area.area_config(data_key: "v")
+      let config = area.area_config(data_key: "v", meta: common.series_meta())
       config.animate_new_values |> expect.to_be_true
     }),
     it("area_active_index sets the active index", fn() {
       let config =
-        area.area_config(data_key: "v")
+        area.area_config(data_key: "v", meta: common.series_meta())
         |> area.area_active_index(index: 1)
       config.active_index |> expect.to_equal(expected: Some(1))
     }),
     it("area_active_dot sets the active dot renderer", fn() {
       let renderer = fn(_props: render.DotProps) { element.none() }
       let config =
-        area.area_config(data_key: "v")
+        area.area_config(data_key: "v", meta: common.series_meta())
         |> area.area_active_dot(renderer: renderer)
       { config.active_dot != None } |> expect.to_be_true
     }),
     it("area_css_class sets the CSS class", fn() {
       let config =
-        area.area_config(data_key: "v")
-        |> area.area_css_class(class: "my-area")
+        area.area_config(data_key: "v", meta: common.series_meta())
+        |> area.area_meta(
+          meta: common.series_meta()
+          |> common.series_css_class(class: "my-area"),
+        )
       config.css_class |> expect.to_equal(expected: "my-area")
     }),
     it("area_animate_new_values sets the flag", fn() {
       let config =
-        area.area_config(data_key: "v")
+        area.area_config(data_key: "v", meta: common.series_meta())
         |> area.area_animate_new_values(animate: True)
       config.animate_new_values |> expect.to_be_true
     }),
     it("css_class appears in SVG output", fn() {
       let config =
-        area.area_config(data_key: "v")
-        |> area.area_css_class(class: "custom-area")
-        |> area.dot(True)
+        area.area_config(data_key: "v", meta: common.series_meta())
+        |> area.area_meta(
+          meta: common.series_meta()
+          |> common.series_css_class(class: "custom-area"),
+        )
+        |> area.area_dot(True)
       let data = [
         dict.from_list([#("v", 10.0)]),
         dict.from_list([#("v", 20.0)]),
@@ -349,10 +368,10 @@ pub fn area_active_state_tests() {
         element.text("ACTIVE_AREA_DOT")
       }
       let config =
-        area.area_config(data_key: "v")
+        area.area_config(data_key: "v", meta: common.series_meta())
         |> area.area_active_index(index: 1)
         |> area.area_active_dot(renderer: renderer)
-        |> area.dot(True)
+        |> area.area_dot(True)
       let data = [
         dict.from_list([#("v", 10.0)]),
         dict.from_list([#("v", 20.0)]),

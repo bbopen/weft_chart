@@ -93,12 +93,7 @@ type MaybePoint {
 
 /// Create an area configuration with default settings.
 /// When `name` is empty, `data_key` is used for tooltip/legend display.
-pub fn area_config(data_key data_key: String) -> AreaConfig(msg) {
-  area_config_v2(data_key: data_key, meta: common.series_meta())
-}
-
-/// Create an area configuration using shared series metadata.
-pub fn area_config_v2(
+pub fn area_config(
   data_key data_key: String,
   meta meta: common.SeriesMeta,
 ) -> AreaConfig(msg) {
@@ -185,7 +180,7 @@ pub fn area_meta(
 // ---------------------------------------------------------------------------
 
 /// Set the curve interpolation type.
-pub fn curve_type(
+pub fn area_curve_type(
   config: AreaConfig(msg),
   type_: curve.CurveType,
 ) -> AreaConfig(msg) {
@@ -193,68 +188,68 @@ pub fn curve_type(
 }
 
 /// Set the fill color or gradient reference.
-pub fn fill(config: AreaConfig(msg), fill_value: String) -> AreaConfig(msg) {
+pub fn area_fill(config: AreaConfig(msg), fill_value: String) -> AreaConfig(msg) {
   AreaConfig(..config, fill: fill_value)
 }
 
 /// Set the fill opacity.
-pub fn fill_opacity(config: AreaConfig(msg), opacity: Float) -> AreaConfig(msg) {
+pub fn area_fill_opacity(
+  config: AreaConfig(msg),
+  opacity: Float,
+) -> AreaConfig(msg) {
   AreaConfig(..config, fill_opacity: opacity)
 }
 
 /// Set the stroke color.
-pub fn stroke(config: AreaConfig(msg), stroke_value: String) -> AreaConfig(msg) {
+pub fn area_stroke(
+  config: AreaConfig(msg),
+  stroke_value: String,
+) -> AreaConfig(msg) {
   AreaConfig(..config, stroke: stroke_value)
 }
 
 /// Set the stroke width.
-pub fn stroke_width(config: AreaConfig(msg), width: Float) -> AreaConfig(msg) {
+pub fn area_stroke_width(
+  config: AreaConfig(msg),
+  width: Float,
+) -> AreaConfig(msg) {
   AreaConfig(..config, stroke_width: width)
 }
 
 /// Set the stack ID for stacking multiple areas.
-pub fn stack_id(config: AreaConfig(msg), id: String) -> AreaConfig(msg) {
+pub fn area_stack_id(config: AreaConfig(msg), id: String) -> AreaConfig(msg) {
   AreaConfig(..config, stack_id: id)
 }
 
 /// Connect null/missing data points instead of breaking the line.
-pub fn connect_nulls(config: AreaConfig(msg)) -> AreaConfig(msg) {
+pub fn area_connect_nulls(config: AreaConfig(msg)) -> AreaConfig(msg) {
   AreaConfig(..config, connect_nulls: True)
 }
 
 /// Show or hide dots at data points.
-pub fn dot(config: AreaConfig(msg), show: Bool) -> AreaConfig(msg) {
+pub fn area_dot(config: AreaConfig(msg), show: Bool) -> AreaConfig(msg) {
   AreaConfig(..config, show_dot: show)
 }
 
 /// Set the dot radius.
-pub fn dot_radius(config: AreaConfig(msg), radius: Float) -> AreaConfig(msg) {
+pub fn area_dot_radius(
+  config: AreaConfig(msg),
+  radius: Float,
+) -> AreaConfig(msg) {
   AreaConfig(..config, dot_radius: radius)
 }
 
 /// Set the base value for the area fill.
 /// Matches recharts Area baseValue prop.
-pub fn base_value(
+pub fn area_base_value(
   config: AreaConfig(msg),
   base: AreaBaseValue,
 ) -> AreaConfig(msg) {
   AreaConfig(..config, base_value: base)
 }
 
-/// Hide the area from rendering while keeping it in domain/legend calculation.
-/// Matches recharts Area `hide` prop.
-pub fn hide(config config: AreaConfig(msg)) -> AreaConfig(msg) {
-  AreaConfig(..config, hide: True)
-}
-
-/// Set the display name for tooltip and legend.
-/// Matches recharts Area `name` prop.  When empty, `data_key` is used.
-pub fn area_name(config: AreaConfig(msg), name: String) -> AreaConfig(msg) {
-  AreaConfig(..config, name: name)
-}
-
 /// Add a gradient fill definition.
-pub fn gradient_fill(
+pub fn area_gradient_fill(
   config: AreaConfig(msg),
   id: String,
   stops: List(GradientStop),
@@ -264,7 +259,7 @@ pub fn gradient_fill(
 
 /// Set the legend icon type for this series.
 /// Matches recharts Area `legendType` prop (default: line).
-pub fn legend_type(
+pub fn area_legend_type(
   config: AreaConfig(msg),
   icon_type: shape.LegendIconType,
 ) -> AreaConfig(msg) {
@@ -280,15 +275,6 @@ pub fn area_range(config: AreaConfig(msg), base_key: String) -> AreaConfig(msg) 
   AreaConfig(..config, is_range: True, base_data_key: base_key)
 }
 
-/// Set the tooltip type to control whether this series appears in tooltips.
-/// Matches recharts Area `tooltipType` prop (default: DefaultTooltip).
-pub fn area_tooltip_type(
-  config config: AreaConfig(msg),
-  type_ type_: shape.TooltipType,
-) -> AreaConfig(msg) {
-  AreaConfig(..config, tooltip_type: type_)
-}
-
 /// Show or hide value labels at each data point.
 /// When True, the numeric value is rendered above each point.
 pub fn area_label(
@@ -296,33 +282,6 @@ pub fn area_label(
   show show: Bool,
 ) -> AreaConfig(msg) {
   AreaConfig(..config, show_label: show)
-}
-
-/// Set the unit string for tooltip display.
-/// Matches recharts Area `unit` prop (default: "").
-pub fn area_unit(
-  config config: AreaConfig(msg),
-  unit unit: String,
-) -> AreaConfig(msg) {
-  AreaConfig(..config, unit: unit)
-}
-
-/// Set the x-axis ID this area series binds to.
-/// Matches recharts Area `xAxisId` prop (default: "0").
-pub fn area_x_axis_id(
-  config config: AreaConfig(msg),
-  id id: String,
-) -> AreaConfig(msg) {
-  AreaConfig(..config, x_axis_id: id)
-}
-
-/// Set the y-axis ID this area series binds to.
-/// Matches recharts Area `yAxisId` prop (default: "0").
-pub fn area_y_axis_id(
-  config config: AreaConfig(msg),
-  id id: String,
-) -> AreaConfig(msg) {
-  AreaConfig(..config, y_axis_id: id)
 }
 
 /// Set a custom dot render function for area data points.
@@ -365,16 +324,6 @@ pub fn area_active_index(
   index index: Int,
 ) -> AreaConfig(msg) {
   AreaConfig(..config, active_index: Some(index))
-}
-
-/// Set the CSS class attribute on the area series group element.
-/// Maps to the SVG `class` attribute.
-/// Matches recharts Area `className` prop.
-pub fn area_css_class(
-  config config: AreaConfig(msg),
-  class class: String,
-) -> AreaConfig(msg) {
-  AreaConfig(..config, css_class: class)
 }
 
 /// Set whether to animate new data values when data updates.

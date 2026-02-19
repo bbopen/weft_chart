@@ -9,6 +9,7 @@ import lustre/element
 import startest.{describe, it}
 import startest/expect
 import weft_chart/chart
+import weft_chart/series/common
 import weft_chart/series/line
 
 pub fn main() {
@@ -39,7 +40,10 @@ pub fn clip_path_id_tests() {
           height: 300,
           children: [
             chart.id(id: "chart-a"),
-            chart.line(line.line_config(data_key: "v")),
+            chart.line(line.line_config(
+              data_key: "v",
+              meta: common.series_meta(),
+            )),
           ],
         )
         |> element.to_string
@@ -51,7 +55,10 @@ pub fn clip_path_id_tests() {
           height: 300,
           children: [
             chart.id(id: "chart-b"),
-            chart.line(line.line_config(data_key: "v")),
+            chart.line(line.line_config(
+              data_key: "v",
+              meta: common.series_meta(),
+            )),
           ],
         )
         |> element.to_string
@@ -70,7 +77,10 @@ pub fn clip_path_id_tests() {
           width: 400,
           height: 300,
           children: [
-            chart.line(line.line_config(data_key: "v")),
+            chart.line(line.line_config(
+              data_key: "v",
+              meta: common.series_meta(),
+            )),
           ],
         )
         |> element.to_string
@@ -81,7 +91,10 @@ pub fn clip_path_id_tests() {
           width: 400,
           height: 300,
           children: [
-            chart.line(line.line_config(data_key: "v")),
+            chart.line(line.line_config(
+              data_key: "v",
+              meta: common.series_meta(),
+            )),
           ],
         )
         |> element.to_string

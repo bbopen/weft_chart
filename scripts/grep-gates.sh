@@ -54,6 +54,28 @@ search_print_matches_regex() {
   fi
 }
 
+search_has_match_fixed_any() {
+  local pattern="$1"
+  shift
+
+  if have_rg; then
+    rg -n -F -- "$pattern" "$@" >/dev/null 2>&1
+  else
+    grep -RIn -F -- "$pattern" "$@" >/dev/null 2>&1
+  fi
+}
+
+search_print_matches_fixed_any() {
+  local pattern="$1"
+  shift
+
+  if have_rg; then
+    rg -n -F -- "$pattern" "$@" || true
+  else
+    grep -RIn -F -- "$pattern" "$@" || true
+  fi
+}
+
 list_files_with_match() {
   local pattern="$1"
   shift
@@ -91,6 +113,19 @@ check_no_match_regex() {
   fi
 }
 
+check_no_match_any() {
+  local description="$1"
+  local pattern="$2" # fixed string
+  shift 2
+
+  if search_has_match_fixed_any "$pattern" "$@"; then
+    say ""
+    say "Found forbidden pattern: $description"
+    search_print_matches_fixed_any "$pattern" "$@"
+    fail "$description"
+  fi
+}
+
 check_toml_no_target() {
   local toml="$ROOT_DIR/gleam.toml"
   [[ -f "$toml" ]] || return 0
@@ -118,11 +153,156 @@ if [[ -d "$test_dir" ]]; then
   search_dirs+=("$test_dir")
 fi
 
+docs_files=()
+[[ -f "$ROOT_DIR/README.md" ]] && docs_files+=("$ROOT_DIR/README.md")
+[[ -f "$ROOT_DIR/SPEC.md" ]] && docs_files+=("$ROOT_DIR/SPEC.md")
+
 check_no_match_regex "todo keyword in src/ (ship no todo)" '(^|[^[:alnum:]_])todo([^[:alnum:]_]|$)' "$src_dir"
 check_no_match_regex "panic keyword in src/ (ship no panic)" '(^|[^[:alnum:]_])panic([^[:alnum:]_]|$)' "$src_dir"
 
 check_no_match "dynamic.unsafe_coerce (breaks type safety)" "dynamic.unsafe_coerce" "${search_dirs[@]}"
 check_no_match "@deprecated (avoid in initial releases)" "@deprecated" "$src_dir"
+
+removed_api_symbols=(
+  "chart.x_axis_v2("
+  "chart.y_axis_v2("
+  "axis.x_axis_base_config("
+  "axis.y_axis_base_config("
+  "line.line_config_v2("
+  "area.area_config_v2("
+  "bar.bar_config_v2("
+  "chart.pie_series("
+  "chart.radar_series("
+  "chart.radial_bar_series("
+  "chart.scatter_series("
+  "chart.funnel_series("
+  "chart.treemap_series("
+  "chart.sunburst_series("
+  "chart.sankey_series("
+  "chart.chart_tooltip("
+  "chart.chart_legend("
+  "chart.chart_brush("
+  "chart.chart_reference_dot("
+  "chart.chart_error_bar("
+  "chart.chart_title("
+  "chart.chart_desc("
+  "chart.chart_event("
+  "chart.chart_layout("
+  "axis.x_data_key("
+  "axis.x_type("
+  "axis.x_orientation("
+  "axis.x_tick_line("
+  "axis.x_axis_line("
+  "axis.x_tick_margin("
+  "axis.x_tick_count("
+  "axis.x_tick_formatter("
+  "axis.x_padding("
+  "axis.x_padding_mode("
+  "axis.x_hide("
+  "axis.x_reversed("
+  "axis.x_mirror("
+  "axis.x_tick_size("
+  "axis.x_allow_decimals("
+  "axis.x_angle("
+  "axis.x_min_tick_gap("
+  "axis.x_numeric_ticks("
+  "axis.x_category_ticks("
+  "axis.x_label("
+  "axis.x_interval("
+  "axis.x_allow_data_overflow("
+  "axis.x_domain("
+  "axis.x_unit("
+  "axis.x_scale_type("
+  "axis.x_height("
+  "axis.x_name("
+  "axis.x_allow_duplicated_category("
+  "axis.x_axis_line_stroke("
+  "axis.x_axis_line_stroke_width("
+  "axis.x_tick_line_stroke("
+  "axis.x_tick_line_stroke_width("
+  "axis.x_axis_line_stroke_dasharray("
+  "axis.x_tick_line_stroke_dasharray("
+  "axis.x_axis_id("
+  "axis.x_custom_tick("
+  "axis.x_include_hidden("
+  "axis.y_data_key("
+  "axis.y_type("
+  "axis.y_orientation("
+  "axis.y_tick_line("
+  "axis.y_axis_line("
+  "axis.y_tick_count("
+  "axis.y_tick_formatter("
+  "axis.y_domain("
+  "axis.y_hide("
+  "axis.y_reversed("
+  "axis.y_mirror("
+  "axis.y_tick_size("
+  "axis.y_allow_decimals("
+  "axis.y_tick_margin("
+  "axis.y_numeric_ticks("
+  "axis.y_category_ticks("
+  "axis.y_padding_top("
+  "axis.y_padding_bottom("
+  "axis.y_min_tick_gap("
+  "axis.y_angle("
+  "axis.y_label("
+  "axis.y_interval("
+  "axis.y_allow_data_overflow("
+  "axis.y_unit("
+  "axis.y_scale_type("
+  "axis.y_width("
+  "axis.y_name("
+  "axis.y_allow_duplicated_category("
+  "axis.y_axis_line_stroke("
+  "axis.y_axis_line_stroke_width("
+  "axis.y_tick_line_stroke("
+  "axis.y_tick_line_stroke_width("
+  "axis.y_axis_line_stroke_dasharray("
+  "axis.y_tick_line_stroke_dasharray("
+  "axis.y_axis_id("
+  "axis.y_custom_tick("
+  "axis.y_include_hidden("
+  "area.curve_type("
+  "area.fill("
+  "area.fill_opacity("
+  "area.stroke("
+  "area.stroke_width("
+  "area.stack_id("
+  "area.connect_nulls("
+  "area.dot("
+  "area.dot_radius("
+  "area.base_value("
+  "area.legend_type("
+  "area.gradient_fill("
+  "line.line_name("
+  "line.line_hide("
+  "line.line_tooltip_type("
+  "line.line_unit("
+  "line.line_x_axis_id("
+  "line.line_y_axis_id("
+  "line.line_css_class("
+  "area.area_name("
+  "area.hide("
+  "area.area_tooltip_type("
+  "area.area_unit("
+  "area.area_x_axis_id("
+  "area.area_y_axis_id("
+  "area.area_css_class("
+  "bar.bar_name("
+  "bar.bar_hide("
+  "bar.bar_tooltip_type("
+  "bar.bar_unit("
+  "bar.bar_x_axis_id("
+  "bar.bar_y_axis_id("
+  "bar.bar_css_class("
+)
+
+for symbol in "${removed_api_symbols[@]}"; do
+  check_no_match "removed API symbol in Gleam sources: $symbol" "$symbol" "${search_dirs[@]}"
+  if [[ ${#docs_files[@]} -gt 0 ]]; then
+    check_no_match_any "removed API symbol in docs: $symbol" "$symbol" "${docs_files[@]}"
+  fi
+done
 
 external_files="$(list_files_with_match "@external" "${search_dirs[@]}")"
 

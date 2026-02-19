@@ -14,6 +14,7 @@ import weft_chart/easing
 import weft_chart/internal/layout
 import weft_chart/scale
 import weft_chart/series/bar
+import weft_chart/series/common
 import weft_chart/series/line
 import weft_chart/series/pie
 
@@ -91,7 +92,7 @@ fn bar_chart_tests() {
     it("produces animate elements in rendered output", fn() {
       let data = sample_bar_data()
       let categories = sample_categories()
-      let config = bar.bar_config(data_key: "value")
+      let config = bar.bar_config(data_key: "value", meta: common.series_meta())
       let html =
         bar.render_bars(
           config: config,
@@ -112,7 +113,7 @@ fn bar_chart_tests() {
         animation.bar_default()
         |> animation.with_active(active: False)
       let config =
-        bar.bar_config(data_key: "value")
+        bar.bar_config(data_key: "value", meta: common.series_meta())
         |> bar.bar_animation(anim: inactive_anim)
       let html =
         bar.render_bars(
@@ -139,7 +140,8 @@ fn line_chart_tests() {
     it("produces stroke-dashoffset animation in rendered output", fn() {
       let data = sample_bar_data()
       let categories = sample_categories()
-      let config = line.line_config(data_key: "value")
+      let config =
+        line.line_config(data_key: "value", meta: common.series_meta())
       let html =
         line.render_line(
           config: config,
@@ -209,7 +211,7 @@ fn pie_chart_tests() {
 fn easing_mode_tests() {
   describe("easing modes in rendered output", [
     it("CSS-native Ease easing produces calcMode spline", fn() {
-      let config = bar.bar_config(data_key: "value")
+      let config = bar.bar_config(data_key: "value", meta: common.series_meta())
       let data = [dict.from_list([#("value", 100.0)])]
       let categories = ["A"]
       let html =
@@ -233,7 +235,7 @@ fn easing_mode_tests() {
           animation.bar_default()
           |> animation.with_easing(easing: easing.BounceOut)
         let config =
-          bar.bar_config(data_key: "value")
+          bar.bar_config(data_key: "value", meta: common.series_meta())
           |> bar.bar_animation(anim: bounce_anim)
         let data = [dict.from_list([#("value", 100.0)])]
         let categories = ["A"]
@@ -270,7 +272,7 @@ fn timing_attribute_tests() {
         animation.bar_default()
         |> animation.with_delay(delay: 500)
       let config =
-        bar.bar_config(data_key: "value")
+        bar.bar_config(data_key: "value", meta: common.series_meta())
         |> bar.bar_animation(anim: delayed_anim)
       let data = [dict.from_list([#("value", 100.0)])]
       let categories = ["A"]
@@ -293,7 +295,7 @@ fn timing_attribute_tests() {
         animation.bar_default()
         |> animation.with_duration(duration: 2000)
       let config =
-        bar.bar_config(data_key: "value")
+        bar.bar_config(data_key: "value", meta: common.series_meta())
         |> bar.bar_animation(anim: slow_anim)
       let data = [dict.from_list([#("value", 100.0)])]
       let categories = ["A"]
@@ -311,7 +313,7 @@ fn timing_attribute_tests() {
       html |> string.contains("2000ms") |> expect.to_be_true
     }),
     it("default fill mode produces fill=freeze in output", fn() {
-      let config = bar.bar_config(data_key: "value")
+      let config = bar.bar_config(data_key: "value", meta: common.series_meta())
       let data = [dict.from_list([#("value", 100.0)])]
       let categories = ["A"]
       let html =
@@ -363,7 +365,7 @@ fn mixed_series_tests() {
       // Render bar series
       let bar_html =
         bar.render_bars(
-          config: bar.bar_config(data_key: "value"),
+          config: bar.bar_config(data_key: "value", meta: common.series_meta()),
           data: data,
           categories: categories,
           x_scale: make_band_scale(categories),
@@ -375,7 +377,10 @@ fn mixed_series_tests() {
       // Render line series
       let line_html =
         line.render_line(
-          config: line.line_config(data_key: "value"),
+          config: line.line_config(
+            data_key: "value",
+            meta: common.series_meta(),
+          ),
           data: data,
           categories: categories,
           x_scale: make_point_scale(categories),

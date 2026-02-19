@@ -28,6 +28,7 @@ import weft_chart/reference.{
 import weft_chart/scale
 import weft_chart/series/area
 import weft_chart/series/bar
+import weft_chart/series/common
 import weft_chart/series/funnel
 import weft_chart/series/line
 import weft_chart/series/pie
@@ -402,8 +403,8 @@ pub fn tooltip_tests() {
         ]
         let html =
           chart.bar_chart(data: data, width: 400, height: 300, children: [
-            chart.bar(bar.bar_config(data_key: "v")),
-            chart.chart_tooltip(tooltip.tooltip_config()),
+            chart.bar(bar.bar_config(data_key: "v", meta: common.series_meta())),
+            chart.tooltip(tooltip.tooltip_config()),
           ])
           |> element.to_string
         // RectangleCursor renders a rect with opacity, not a line
@@ -418,8 +419,11 @@ pub fn tooltip_tests() {
         ]
         let html =
           chart.line_chart(data: data, width: 400, height: 300, children: [
-            chart.line(line.line_config(data_key: "v")),
-            chart.chart_tooltip(tooltip.tooltip_config()),
+            chart.line(line.line_config(
+              data_key: "v",
+              meta: common.series_meta(),
+            )),
+            chart.tooltip(tooltip.tooltip_config()),
           ])
           |> element.to_string
         // VerticalCursor renders a line element, no opacity attribute
@@ -435,7 +439,8 @@ pub fn bar_tests() {
   describe("bar", [
     describe("bar_config", [
       it("creates default configuration", fn() {
-        let config = bar.bar_config(data_key: "sales")
+        let config =
+          bar.bar_config(data_key: "sales", meta: common.series_meta())
         config.data_key |> expect.to_equal(expected: "sales")
         config.radius |> expect.to_equal(expected: 0.0)
         config.has_custom_corners |> expect.to_be_false
@@ -447,7 +452,7 @@ pub fn bar_tests() {
       }),
       it("applies corner radius builders", fn() {
         let config =
-          bar.bar_config(data_key: "sales")
+          bar.bar_config(data_key: "sales", meta: common.series_meta())
           |> bar.bar_radius_corners(tl: 4.0, tr: 4.0, br: 0.0, bl: 0.0)
         config.has_custom_corners |> expect.to_be_true
         let #(tl, tr, br, bl) = config.radius_corners
@@ -458,7 +463,7 @@ pub fn bar_tests() {
       }),
       it("applies background fill builder", fn() {
         let config =
-          bar.bar_config(data_key: "sales")
+          bar.bar_config(data_key: "sales", meta: common.series_meta())
           |> bar.bar_background(True)
           |> bar.bar_background_fill("#f0f0f0")
         config.show_background |> expect.to_be_true
@@ -480,11 +485,11 @@ pub fn bar_tests() {
         let el =
           chart.bar_chart(data: data, width: 500, height: 300, children: [
             chart.bar(
-              bar.bar_config(data_key: "sales")
+              bar.bar_config(data_key: "sales", meta: common.series_meta())
               |> bar.bar_fill("#8884d8"),
             ),
             chart.bar(
-              bar.bar_config(data_key: "profit")
+              bar.bar_config(data_key: "profit", meta: common.series_meta())
               |> bar.bar_fill("#82ca9d"),
             ),
           ])
@@ -556,7 +561,7 @@ pub fn pie_tests() {
         ]
         let el =
           chart.pie_chart(data: data, width: 400, height: 400, children: [
-            chart.pie_series(
+            chart.pie(
               pie.pie_config(data_key: "val")
               |> pie.pie_padding_angle(5.0)
               |> pie.pie_inner_radius(40.0)
@@ -650,8 +655,8 @@ pub fn chart_tests() {
         let el =
           chart.area_chart(data: data, width: 500, height: 300, children: [
             chart.area(
-              area.area_config(data_key: "revenue")
-              |> area.curve_type(curve.Natural),
+              area.area_config(data_key: "revenue", meta: common.series_meta())
+              |> area.area_curve_type(curve.Natural),
             ),
           ])
         el
@@ -679,7 +684,10 @@ pub fn chart_tests() {
         ]
         let el =
           chart.bar_chart(data: data, width: 500, height: 300, children: [
-            chart.bar(bar.bar_config(data_key: "sales")),
+            chart.bar(bar.bar_config(
+              data_key: "sales",
+              meta: common.series_meta(),
+            )),
           ])
         el
         |> expect.to_not_equal(
@@ -711,7 +719,7 @@ pub fn chart_tests() {
         let el =
           chart.line_chart(data: data, width: 500, height: 300, children: [
             chart.line(
-              line.line_config(data_key: "temp")
+              line.line_config(data_key: "temp", meta: common.series_meta())
               |> line.line_curve_type(curve.MonotoneX),
             ),
           ])
@@ -744,7 +752,7 @@ pub fn chart_tests() {
         ]
         let el =
           chart.pie_chart(data: data, width: 400, height: 400, children: [
-            chart.pie_series(
+            chart.pie(
               pie.pie_config(data_key: "share")
               |> pie.pie_outer_radius(120.0),
             ),
@@ -789,7 +797,7 @@ pub fn chart_tests() {
             chart.polar_grid(grid.polar_grid_config()),
             chart.polar_angle_axis(polar_axis.angle_axis_config()),
             chart.polar_radius_axis(polar_axis.radius_axis_config()),
-            chart.radar_series(
+            chart.radar(
               radar.radar_config(data_key: "score")
               |> radar.radar_fill("#8884d8")
               |> radar.radar_fill_opacity(0.6),
@@ -832,12 +840,12 @@ pub fn chart_tests() {
         let el =
           chart.radar_chart(data: data, width: 400, height: 400, children: [
             chart.polar_grid(grid.polar_grid_config()),
-            chart.radar_series(
+            chart.radar(
               radar.radar_config(data_key: "student_a")
               |> radar.radar_fill("#8884d8")
               |> radar.radar_fill_opacity(0.6),
             ),
-            chart.radar_series(
+            chart.radar(
               radar.radar_config(data_key: "student_b")
               |> radar.radar_fill("#82ca9d")
               |> radar.radar_fill_opacity(0.6),
@@ -870,11 +878,11 @@ pub fn chart_tests() {
           chart.bar_chart(data: data, width: 500, height: 300, children: [
             chart.stack_offset(chart.StackOffsetSign),
             chart.bar(
-              bar.bar_config(data_key: "a")
+              bar.bar_config(data_key: "a", meta: common.series_meta())
               |> bar.bar_stack_id("s"),
             ),
             chart.bar(
-              bar.bar_config(data_key: "b")
+              bar.bar_config(data_key: "b", meta: common.series_meta())
               |> bar.bar_stack_id("s"),
             ),
           ])
@@ -905,12 +913,12 @@ pub fn chart_tests() {
           chart.area_chart(data: data, width: 500, height: 300, children: [
             chart.stack_offset(chart.StackOffsetExpand),
             chart.area(
-              area.area_config(data_key: "a")
-              |> area.stack_id("s"),
+              area.area_config(data_key: "a", meta: common.series_meta())
+              |> area.area_stack_id("s"),
             ),
             chart.area(
-              area.area_config(data_key: "b")
-              |> area.stack_id("s"),
+              area.area_config(data_key: "b", meta: common.series_meta())
+              |> area.area_stack_id("s"),
             ),
           ])
         el
@@ -936,11 +944,11 @@ pub fn chart_tests() {
           chart.bar_chart(data: data, width: 500, height: 300, children: [
             chart.stack_offset(chart.StackOffsetPositive),
             chart.bar(
-              bar.bar_config(data_key: "a")
+              bar.bar_config(data_key: "a", meta: common.series_meta())
               |> bar.bar_stack_id("s"),
             ),
             chart.bar(
-              bar.bar_config(data_key: "b")
+              bar.bar_config(data_key: "b", meta: common.series_meta())
               |> bar.bar_stack_id("s"),
             ),
           ])
@@ -979,25 +987,25 @@ pub fn chart_tests() {
           chart.area_chart(data: data, width: 800, height: 400, children: [
             chart.margin(top: 10, right: 10, bottom: 30, left: 40),
             chart.area(
-              area.area_config(data_key: "desktop")
-              |> area.curve_type(curve.Natural)
-              |> area.fill("url(#fillDesktop)")
-              |> area.fill_opacity(0.4)
-              |> area.stroke("var(--color-desktop)")
-              |> area.stack_id("a")
-              |> area.gradient_fill("fillDesktop", [
+              area.area_config(data_key: "desktop", meta: common.series_meta())
+              |> area.area_curve_type(curve.Natural)
+              |> area.area_fill("url(#fillDesktop)")
+              |> area.area_fill_opacity(0.4)
+              |> area.area_stroke("var(--color-desktop)")
+              |> area.area_stack_id("a")
+              |> area.area_gradient_fill("fillDesktop", [
                 area.GradientStop("5%", "var(--color-desktop)", 0.8),
                 area.GradientStop("95%", "var(--color-desktop)", 0.1),
               ]),
             ),
             chart.area(
-              area.area_config(data_key: "mobile")
-              |> area.curve_type(curve.Natural)
-              |> area.fill("url(#fillMobile)")
-              |> area.fill_opacity(0.4)
-              |> area.stroke("var(--color-mobile)")
-              |> area.stack_id("a")
-              |> area.gradient_fill("fillMobile", [
+              area.area_config(data_key: "mobile", meta: common.series_meta())
+              |> area.area_curve_type(curve.Natural)
+              |> area.area_fill("url(#fillMobile)")
+              |> area.area_fill_opacity(0.4)
+              |> area.area_stroke("var(--color-mobile)")
+              |> area.area_stack_id("a")
+              |> area.area_gradient_fill("fillMobile", [
                 area.GradientStop("5%", "var(--color-mobile)", 0.8),
                 area.GradientStop("95%", "var(--color-mobile)", 0.1),
               ]),
@@ -1127,15 +1135,15 @@ pub fn axis_tests() {
         config.tick_margin |> expect.to_equal(expected: 2)
       }),
       it("applies reversed builder", fn() {
-        let config = axis.x_axis_config() |> axis.x_reversed
+        let config = axis.x_axis_config() |> axis.axis_reversed
         config.reversed |> expect.to_be_true
       }),
       it("applies mirror builder", fn() {
-        let config = axis.x_axis_config() |> axis.x_mirror
+        let config = axis.x_axis_config() |> axis.axis_mirror
         config.mirror |> expect.to_be_true
       }),
       it("applies angle builder", fn() {
-        let config = axis.x_axis_config() |> axis.x_angle(45.0)
+        let config = axis.x_axis_config() |> axis.axis_angle(45.0)
         config.angle |> expect.to_equal(expected: 45.0)
       }),
     ]),
@@ -1153,45 +1161,45 @@ pub fn axis_tests() {
         config.angle |> expect.to_equal(expected: 0.0)
       }),
       it("applies reversed builder", fn() {
-        let config = axis.y_axis_config() |> axis.y_reversed
+        let config = axis.y_axis_config() |> axis.axis_reversed
         config.reversed |> expect.to_be_true
       }),
       it("applies y_padding_top builder", fn() {
-        let config = axis.y_axis_config() |> axis.y_padding_top(10)
+        let config = axis.y_axis_config() |> axis.axis_padding_top(10)
         config.padding_top |> expect.to_equal(expected: 10)
       }),
       it("applies y_padding_bottom builder", fn() {
-        let config = axis.y_axis_config() |> axis.y_padding_bottom(15)
+        let config = axis.y_axis_config() |> axis.axis_padding_bottom(15)
         config.padding_bottom |> expect.to_equal(expected: 15)
       }),
       it("applies y_min_tick_gap builder", fn() {
-        let config = axis.y_axis_config() |> axis.y_min_tick_gap(10)
+        let config = axis.y_axis_config() |> axis.axis_min_tick_gap(10)
         config.min_tick_gap |> expect.to_equal(expected: 10)
       }),
       it("applies y_angle builder", fn() {
-        let config = axis.y_axis_config() |> axis.y_angle(45.0)
+        let config = axis.y_axis_config() |> axis.axis_angle(45.0)
         config.angle |> expect.to_equal(expected: 45.0)
       }),
     ]),
     describe("scale_type_variants", [
       it("AutoScaleType is a valid ScaleType", fn() {
         let config =
-          axis.x_axis_config() |> axis.x_scale_type(axis.AutoScaleType)
+          axis.x_axis_config() |> axis.axis_scale_type(axis.AutoScaleType)
         config.scale_type |> expect.to_equal(expected: axis.AutoScaleType)
       }),
       it("IdentityScaleType is a valid ScaleType", fn() {
         let config =
-          axis.x_axis_config() |> axis.x_scale_type(axis.IdentityScaleType)
+          axis.x_axis_config() |> axis.axis_scale_type(axis.IdentityScaleType)
         config.scale_type |> expect.to_equal(expected: axis.IdentityScaleType)
       }),
       it("BandScaleType is a valid ScaleType", fn() {
         let config =
-          axis.x_axis_config() |> axis.x_scale_type(axis.BandScaleType)
+          axis.x_axis_config() |> axis.axis_scale_type(axis.BandScaleType)
         config.scale_type |> expect.to_equal(expected: axis.BandScaleType)
       }),
       it("PointScaleType is a valid ScaleType", fn() {
         let config =
-          axis.x_axis_config() |> axis.x_scale_type(axis.PointScaleType)
+          axis.x_axis_config() |> axis.axis_scale_type(axis.PointScaleType)
         config.scale_type |> expect.to_equal(expected: axis.PointScaleType)
       }),
     ]),
@@ -1205,7 +1213,7 @@ pub fn axis_tests() {
       it("x_category_ticks sets CategoryTicks override", fn() {
         let config =
           axis.x_axis_config()
-          |> axis.x_category_ticks(ticks: ["Jan", "Feb", "Mar"])
+          |> axis.axis_category_ticks(ticks: ["Jan", "Feb", "Mar"])
         case config.ticks_override {
           Some(axis.CategoryTicks(ticks: ts)) ->
             list.length(ts) |> expect.to_equal(expected: 3)
@@ -1215,7 +1223,7 @@ pub fn axis_tests() {
       it("y_category_ticks sets CategoryTicks override", fn() {
         let config =
           axis.y_axis_config()
-          |> axis.y_category_ticks(ticks: ["Low", "Mid", "High"])
+          |> axis.axis_category_ticks(ticks: ["Low", "Mid", "High"])
         case config.ticks_override {
           Some(axis.CategoryTicks(ticks: ts)) ->
             list.length(ts) |> expect.to_equal(expected: 3)
@@ -1238,12 +1246,18 @@ pub fn axis_tests() {
         let normal =
           chart.bar_chart(data: data, width: 400, height: 200, children: [
             chart.x_axis(axis.x_axis_config()),
-            chart.bar(bar.bar_config(data_key: "val")),
+            chart.bar(bar.bar_config(
+              data_key: "val",
+              meta: common.series_meta(),
+            )),
           ])
         let reversed =
           chart.bar_chart(data: data, width: 400, height: 200, children: [
-            chart.x_axis(axis.x_axis_config() |> axis.x_reversed),
-            chart.bar(bar.bar_config(data_key: "val")),
+            chart.x_axis(axis.x_axis_config() |> axis.axis_reversed),
+            chart.bar(bar.bar_config(
+              data_key: "val",
+              meta: common.series_meta(),
+            )),
           ])
         // Reversed chart should produce different SVG than normal
         normal |> expect.to_not_equal(expected: reversed)
@@ -1260,12 +1274,18 @@ pub fn axis_tests() {
         let normal =
           chart.line_chart(data: data, width: 400, height: 200, children: [
             chart.y_axis(axis.y_axis_config()),
-            chart.line(line.line_config(data_key: "val")),
+            chart.line(line.line_config(
+              data_key: "val",
+              meta: common.series_meta(),
+            )),
           ])
         let reversed =
           chart.line_chart(data: data, width: 400, height: 200, children: [
-            chart.y_axis(axis.y_axis_config() |> axis.y_reversed),
-            chart.line(line.line_config(data_key: "val")),
+            chart.y_axis(axis.y_axis_config() |> axis.axis_reversed),
+            chart.line(line.line_config(
+              data_key: "val",
+              meta: common.series_meta(),
+            )),
           ])
         normal |> expect.to_not_equal(expected: reversed)
       }),
@@ -1308,10 +1328,13 @@ pub fn axis_tests() {
           chart.line_chart(data: data, width: 400, height: 200, children: [
             chart.x_axis(
               axis.x_axis_config()
-              |> axis.x_type(axis.NumberAxis)
-              |> axis.x_numeric_ticks(ticks: [0.0, 25.0, 50.0, 75.0, 100.0]),
+              |> axis.axis_type(axis.NumberAxis)
+              |> axis.axis_numeric_ticks(ticks: [0.0, 25.0, 50.0, 75.0, 100.0]),
             ),
-            chart.line(line.line_config(data_key: "v")),
+            chart.line(line.line_config(
+              data_key: "v",
+              meta: common.series_meta(),
+            )),
           ])
           |> element.to_string
         // User ticks should appear in output
@@ -1321,7 +1344,7 @@ pub fn axis_tests() {
       it("y_numeric_ticks overrides auto-generated ticks", fn() {
         let config =
           axis.y_axis_config()
-          |> axis.y_numeric_ticks(ticks: [0.0, 50.0, 100.0])
+          |> axis.axis_numeric_ticks(ticks: [0.0, 50.0, 100.0])
         case config.ticks_override {
           Some(axis.NumericTicks(ticks: ts)) ->
             list.length(ts) |> expect.to_equal(expected: 3)
@@ -1336,8 +1359,11 @@ pub fn axis_tests() {
         ]
         let html =
           chart.line_chart(data: data, width: 400, height: 200, children: [
-            chart.x_axis(axis.x_axis_config() |> axis.x_label("Months")),
-            chart.line(line.line_config(data_key: "v")),
+            chart.x_axis(axis.x_axis_config() |> axis.axis_label("Months")),
+            chart.line(line.line_config(
+              data_key: "v",
+              meta: common.series_meta(),
+            )),
           ])
           |> element.to_string
         html |> string.contains("Months") |> expect.to_be_true
@@ -1348,8 +1374,11 @@ pub fn axis_tests() {
         ]
         let html =
           chart.line_chart(data: data, width: 400, height: 200, children: [
-            chart.y_axis(axis.y_axis_config() |> axis.y_label("Revenue ($)")),
-            chart.line(line.line_config(data_key: "v")),
+            chart.y_axis(axis.y_axis_config() |> axis.axis_label("Revenue ($)")),
+            chart.line(line.line_config(
+              data_key: "v",
+              meta: common.series_meta(),
+            )),
           ])
           |> element.to_string
         html |> string.contains("Revenue ($)") |> expect.to_be_true
@@ -1396,7 +1425,10 @@ pub fn reference_tests() {
         ]
         let el =
           chart.bar_chart(data: data, width: 400, height: 200, children: [
-            chart.bar(bar.bar_config(data_key: "val")),
+            chart.bar(bar.bar_config(
+              data_key: "val",
+              meta: common.series_meta(),
+            )),
             chart.reference_line(
               reference.horizontal_line(value: 50.0)
               |> reference.line_stroke(stroke_value: "#ff0000")
@@ -1429,7 +1461,10 @@ pub fn reference_tests() {
         ]
         let el =
           chart.line_chart(data: data, width: 400, height: 200, children: [
-            chart.line(line.line_config(data_key: "val")),
+            chart.line(line.line_config(
+              data_key: "val",
+              meta: common.series_meta(),
+            )),
             chart.reference_area(
               reference.horizontal_area(value1: 40.0, value2: 60.0)
               |> reference.area_fill(fill_value: "#e0e0ff")
@@ -1456,13 +1491,13 @@ pub fn interval_tests() {
     it("x_interval builder sets interval", fn() {
       let config =
         axis.x_axis_config()
-        |> axis.x_interval(axis.EveryNth(2))
+        |> axis.axis_interval(axis.EveryNth(2))
       config.interval |> expect.to_equal(expected: axis.EveryNth(2))
     }),
     it("y_interval builder sets interval", fn() {
       let config =
         axis.y_axis_config()
-        |> axis.y_interval(axis.PreserveStartEnd)
+        |> axis.axis_interval(axis.PreserveStartEnd)
       config.interval |> expect.to_equal(expected: axis.PreserveStartEnd)
     }),
     it("EveryNth(1) skips every other tick", fn() {
@@ -1476,18 +1511,18 @@ pub fn interval_tests() {
         chart.line_chart(data: data, width: 400, height: 200, children: [
           chart.x_axis(
             axis.x_axis_config()
-            |> axis.x_interval(axis.EveryNth(1)),
+            |> axis.axis_interval(axis.EveryNth(1)),
           ),
-          chart.line(line.line_config(data_key: "v")),
+          chart.line(line.line_config(data_key: "v", meta: common.series_meta())),
         ])
         |> element.to_string
       let without_interval =
         chart.line_chart(data: data, width: 400, height: 200, children: [
           chart.x_axis(
             axis.x_axis_config()
-            |> axis.x_interval(axis.EveryNth(0)),
+            |> axis.axis_interval(axis.EveryNth(0)),
           ),
-          chart.line(line.line_config(data_key: "v")),
+          chart.line(line.line_config(data_key: "v", meta: common.series_meta())),
         ])
         |> element.to_string
       // With EveryNth(1) should have fewer ticks (A, C) than EveryNth(0) (A, B, C, D)
@@ -1515,13 +1550,13 @@ pub fn allow_data_overflow_tests() {
     it("x_allow_data_overflow builder sets flag", fn() {
       let config =
         axis.x_axis_config()
-        |> axis.x_allow_data_overflow(True)
+        |> axis.axis_allow_data_overflow(True)
       config.allow_data_overflow |> expect.to_be_true
     }),
     it("y_allow_data_overflow builder sets flag", fn() {
       let config =
         axis.y_axis_config()
-        |> axis.y_allow_data_overflow(True)
+        |> axis.axis_allow_data_overflow(True)
       config.allow_data_overflow |> expect.to_be_true
     }),
     it("y-axis domain extends when overflow=false (default)", fn() {
@@ -1534,9 +1569,9 @@ pub fn allow_data_overflow_tests() {
         chart.line_chart(data: data, width: 400, height: 200, children: [
           chart.y_axis(
             axis.y_axis_config()
-            |> axis.y_domain(0.0, 50.0),
+            |> axis.axis_domain(0.0, 50.0),
           ),
-          chart.line(line.line_config(data_key: "v")),
+          chart.line(line.line_config(data_key: "v", meta: common.series_meta())),
         ])
         |> element.to_string
       // Domain should be extended, so 100 should appear in tick labels
@@ -1551,19 +1586,19 @@ pub fn allow_data_overflow_tests() {
         chart.line_chart(data: data, width: 400, height: 200, children: [
           chart.y_axis(
             axis.y_axis_config()
-            |> axis.y_domain(0.0, 50.0)
-            |> axis.y_allow_data_overflow(True),
+            |> axis.axis_domain(0.0, 50.0)
+            |> axis.axis_allow_data_overflow(True),
           ),
-          chart.line(line.line_config(data_key: "v")),
+          chart.line(line.line_config(data_key: "v", meta: common.series_meta())),
         ])
         |> element.to_string
       let without_overflow =
         chart.line_chart(data: data, width: 400, height: 200, children: [
           chart.y_axis(
             axis.y_axis_config()
-            |> axis.y_domain(0.0, 50.0),
+            |> axis.axis_domain(0.0, 50.0),
           ),
-          chart.line(line.line_config(data_key: "v")),
+          chart.line(line.line_config(data_key: "v", meta: common.series_meta())),
         ])
         |> element.to_string
       // With overflow=true, domain clipped to [0,50]: ticks like 0,20,40,60
@@ -1585,7 +1620,7 @@ pub fn x_domain_tests() {
     it("x_domain builder sets domain", fn() {
       let config =
         axis.x_axis_config()
-        |> axis.x_domain(10.0, 90.0)
+        |> axis.axis_domain(10.0, 90.0)
       config.has_custom_domain |> expect.to_be_true
       config.domain_min |> expect.to_equal(expected: 10.0)
       config.domain_max |> expect.to_equal(expected: 90.0)
@@ -1630,9 +1665,9 @@ pub fn reference_dot_tests() {
       ]
       let html =
         chart.line_chart(data: data, width: 400, height: 200, children: [
-          chart.x_axis(axis.x_axis_config() |> axis.x_type(axis.NumberAxis)),
-          chart.line(line.line_config(data_key: "v")),
-          chart.chart_reference_dot(
+          chart.x_axis(axis.x_axis_config() |> axis.axis_type(axis.NumberAxis)),
+          chart.line(line.line_config(data_key: "v", meta: common.series_meta())),
+          chart.reference_dot(
             reference.reference_dot(x: 50.0, y: 50.0)
             |> reference.dot_fill(fill_value: "#ff0000")
             |> reference.dot_label(label_text: "Important")
@@ -1681,7 +1716,7 @@ pub fn if_overflow_tests() {
       ]
       let html =
         chart.line_chart(data: data, width: 400, height: 200, children: [
-          chart.line(line.line_config(data_key: "v")),
+          chart.line(line.line_config(data_key: "v", meta: common.series_meta())),
           chart.reference_line(
             reference.horizontal_line(value: 50.0)
             |> reference.line_if_overflow(overflow: Hidden),
@@ -1702,7 +1737,7 @@ pub fn clip_path_tests() {
       ]
       let html =
         chart.line_chart(data: data, width: 400, height: 200, children: [
-          chart.line(line.line_config(data_key: "v")),
+          chart.line(line.line_config(data_key: "v", meta: common.series_meta())),
         ])
         |> element.to_string
       html |> string.contains("clipPath") |> expect.to_be_true
@@ -1735,7 +1770,7 @@ pub fn grid_fill_opacity_tests() {
             |> grid.grid_horizontal_fill(colors: ["#eee", "#fff"])
             |> grid.grid_fill_opacity(opacity: 0.5),
           ),
-          chart.bar(bar.bar_config(data_key: "v")),
+          chart.bar(bar.bar_config(data_key: "v", meta: common.series_meta())),
         ])
         |> element.to_string
       html |> string.contains("fill-opacity") |> expect.to_be_true
@@ -1752,7 +1787,7 @@ pub fn grid_fill_opacity_tests() {
             grid.cartesian_grid_config()
             |> grid.grid_horizontal_fill(colors: ["#eee", "#fff"]),
           ),
-          chart.bar(bar.bar_config(data_key: "v")),
+          chart.bar(bar.bar_config(data_key: "v", meta: common.series_meta())),
         ])
         |> element.to_string
       // Should NOT have fill-opacity on stripe rects (omitted for default 1.0)
@@ -1767,26 +1802,26 @@ pub fn grid_fill_opacity_tests() {
 pub fn legend_type_tests() {
   describe("legend_type", [
     it("line defaults to LineIcon", fn() {
-      let config = line.line_config(data_key: "v")
+      let config = line.line_config(data_key: "v", meta: common.series_meta())
       config.legend_type |> expect.to_equal(expected: shape.LineIcon)
     }),
     it("area defaults to LineIcon", fn() {
-      let config = area.area_config(data_key: "v")
+      let config = area.area_config(data_key: "v", meta: common.series_meta())
       config.legend_type |> expect.to_equal(expected: shape.LineIcon)
     }),
     it("bar defaults to RectIcon", fn() {
-      let config = bar.bar_config(data_key: "v")
+      let config = bar.bar_config(data_key: "v", meta: common.series_meta())
       config.legend_type |> expect.to_equal(expected: shape.RectIcon)
     }),
     it("line legend_type builder overrides default", fn() {
       let config =
-        line.line_config(data_key: "v")
+        line.line_config(data_key: "v", meta: common.series_meta())
         |> line.line_legend_type(shape.CircleIcon)
       config.legend_type |> expect.to_equal(expected: shape.CircleIcon)
     }),
     it("bar legend_type builder overrides default", fn() {
       let config =
-        bar.bar_config(data_key: "v")
+        bar.bar_config(data_key: "v", meta: common.series_meta())
         |> bar.bar_legend_type(shape.SquareIcon)
       config.legend_type |> expect.to_equal(expected: shape.SquareIcon)
     }),
@@ -1808,7 +1843,7 @@ pub fn negative_bar_tests() {
     it("renders bar chart with negative values without crashing", fn() {
       let svg =
         chart.bar_chart(data: data, width: 400, height: 300, children: [
-          chart.bar(bar.bar_config(data_key: "v")),
+          chart.bar(bar.bar_config(data_key: "v", meta: common.series_meta())),
         ])
       let html = element.to_string(svg)
       // Should contain SVG elements
@@ -1843,7 +1878,7 @@ pub fn negative_bar_tests() {
       let svg =
         chart.bar_chart(data: data, width: 400, height: 300, children: [
           chart.bar(
-            bar.bar_config(data_key: "v")
+            bar.bar_config(data_key: "v", meta: common.series_meta())
             |> bar.bar_label(True),
           ),
         ])
@@ -1855,7 +1890,7 @@ pub fn negative_bar_tests() {
       let svg =
         chart.bar_chart(data: data, width: 400, height: 300, children: [
           chart.bar(
-            bar.bar_config(data_key: "v")
+            bar.bar_config(data_key: "v", meta: common.series_meta())
             |> bar.bar_radius(4.0),
           ),
         ])
@@ -1894,9 +1929,18 @@ pub fn composed_chart_tests() {
     it("renders mixed Line, Bar, and Area series", fn() {
       let svg =
         chart.composed_chart(data: data, width: 500, height: 300, children: [
-          chart.bar(bar.bar_config(data_key: "revenue")),
-          chart.line(line.line_config(data_key: "profit")),
-          chart.area(area.area_config(data_key: "visitors")),
+          chart.bar(bar.bar_config(
+            data_key: "revenue",
+            meta: common.series_meta(),
+          )),
+          chart.line(line.line_config(
+            data_key: "profit",
+            meta: common.series_meta(),
+          )),
+          chart.area(area.area_config(
+            data_key: "visitors",
+            meta: common.series_meta(),
+          )),
         ])
       let html = element.to_string(svg)
       html |> string.contains("recharts-bar") |> expect.to_be_true
@@ -1906,8 +1950,14 @@ pub fn composed_chart_tests() {
     it("uses band scale when bars are present", fn() {
       let svg =
         chart.composed_chart(data: data, width: 500, height: 300, children: [
-          chart.bar(bar.bar_config(data_key: "revenue")),
-          chart.line(line.line_config(data_key: "profit")),
+          chart.bar(bar.bar_config(
+            data_key: "revenue",
+            meta: common.series_meta(),
+          )),
+          chart.line(line.line_config(
+            data_key: "profit",
+            meta: common.series_meta(),
+          )),
         ])
       let html = element.to_string(svg)
       // Band scale produces bars — verify they render
@@ -1916,8 +1966,14 @@ pub fn composed_chart_tests() {
     it("uses point scale when no bars present", fn() {
       let svg =
         chart.composed_chart(data: data, width: 500, height: 300, children: [
-          chart.line(line.line_config(data_key: "profit")),
-          chart.area(area.area_config(data_key: "visitors")),
+          chart.line(line.line_config(
+            data_key: "profit",
+            meta: common.series_meta(),
+          )),
+          chart.area(area.area_config(
+            data_key: "visitors",
+            meta: common.series_meta(),
+          )),
         ])
       let html = element.to_string(svg)
       // Line and area render on point scale
@@ -1930,8 +1986,14 @@ pub fn composed_chart_tests() {
           chart.cartesian_grid(grid.cartesian_grid_config()),
           chart.x_axis(axis.x_axis_config()),
           chart.y_axis(axis.y_axis_config()),
-          chart.bar(bar.bar_config(data_key: "revenue")),
-          chart.line(line.line_config(data_key: "profit")),
+          chart.bar(bar.bar_config(
+            data_key: "revenue",
+            meta: common.series_meta(),
+          )),
+          chart.line(line.line_config(
+            data_key: "profit",
+            meta: common.series_meta(),
+          )),
         ])
       let html = element.to_string(svg)
       html |> string.contains("recharts-cartesian-grid") |> expect.to_be_true
@@ -1940,11 +2002,14 @@ pub fn composed_chart_tests() {
       let svg =
         chart.composed_chart(data: data, width: 500, height: 300, children: [
           chart.area(
-            area.area_config(data_key: "visitors")
-            |> area.fill("#10b981")
-            |> area.fill_opacity(0.15),
+            area.area_config(data_key: "visitors", meta: common.series_meta())
+            |> area.area_fill("#10b981")
+            |> area.area_fill_opacity(0.15),
           ),
-          chart.bar(bar.bar_config(data_key: "revenue")),
+          chart.bar(bar.bar_config(
+            data_key: "revenue",
+            meta: common.series_meta(),
+          )),
         ])
       let html = element.to_string(svg)
       // Area fill path must have spread-out x-coordinates, not all x=0
@@ -1966,11 +2031,14 @@ pub fn composed_chart_tests() {
       ]
       let svg =
         chart.composed_chart(data: data, width: 500, height: 300, children: [
-          chart.scatter_series(
+          chart.scatter(
             scatter.scatter_config(x_data_key: "x", y_data_key: "y")
             |> scatter.scatter_data(data: scatter_data),
           ),
-          chart.bar(bar.bar_config(data_key: "revenue")),
+          chart.bar(bar.bar_config(
+            data_key: "revenue",
+            meta: common.series_meta(),
+          )),
         ])
       let html = element.to_string(svg)
       // Should produce valid SVG output containing the bar series
@@ -1983,14 +2051,17 @@ pub fn composed_chart_tests() {
         let svg =
           chart.composed_chart(data: data, width: 500, height: 300, children: [
             chart.bar(
-              bar.bar_config(data_key: "revenue")
+              bar.bar_config(data_key: "revenue", meta: common.series_meta())
               |> bar.bar_stack_id("a"),
             ),
             chart.bar(
-              bar.bar_config(data_key: "visitors")
+              bar.bar_config(data_key: "visitors", meta: common.series_meta())
               |> bar.bar_stack_id("a"),
             ),
-            chart.line(line.line_config(data_key: "profit")),
+            chart.line(line.line_config(
+              data_key: "profit",
+              meta: common.series_meta(),
+            )),
           ])
         let html = element.to_string(svg)
         // Both bar rects and line path should render
@@ -2004,13 +2075,18 @@ pub fn composed_chart_tests() {
           chart.y_axis(axis.y_axis_config()),
           chart.y_axis(
             axis.y_axis_config()
-            |> axis.y_axis_id("1")
-            |> axis.y_orientation(axis.Right),
+            |> axis.axis_id("1")
+            |> axis.axis_orientation(axis.Right),
           ),
-          chart.bar(bar.bar_config(data_key: "revenue")),
+          chart.bar(bar.bar_config(
+            data_key: "revenue",
+            meta: common.series_meta(),
+          )),
           chart.line(
-            line.line_config(data_key: "profit")
-            |> line.line_y_axis_id("1"),
+            line.line_config(data_key: "profit", meta: common.series_meta())
+            |> line.line_meta(
+              meta: common.series_meta() |> common.series_y_axis_id(id: "1"),
+            ),
           ),
         ])
       let html = element.to_string(svg)
@@ -2025,8 +2101,11 @@ pub fn composed_chart_tests() {
       fn() {
         let svg =
           chart.composed_chart(data: data, width: 500, height: 300, children: [
-            chart.chart_layout(layout: layout.Vertical),
-            chart.bar(bar.bar_config(data_key: "revenue")),
+            chart.layout(layout: layout.Vertical),
+            chart.bar(bar.bar_config(
+              data_key: "revenue",
+              meta: common.series_meta(),
+            )),
           ])
         let html = element.to_string(svg)
         // Should still contain bar elements in vertical layout
@@ -2034,7 +2113,10 @@ pub fn composed_chart_tests() {
         // Vertical layout produces different geometry than default horizontal
         let svg_h =
           chart.composed_chart(data: data, width: 500, height: 300, children: [
-            chart.bar(bar.bar_config(data_key: "revenue")),
+            chart.bar(bar.bar_config(
+              data_key: "revenue",
+              meta: common.series_meta(),
+            )),
           ])
         let html_h = element.to_string(svg_h)
         // The two layouts should produce different SVG output
@@ -2044,8 +2126,11 @@ pub fn composed_chart_tests() {
     it("ComposedChart with BarChild uses RectangleCursor for tooltip", fn() {
       let svg =
         chart.composed_chart(data: data, width: 500, height: 300, children: [
-          chart.bar(bar.bar_config(data_key: "revenue")),
-          chart.chart_tooltip(config: tooltip.tooltip_config()),
+          chart.bar(bar.bar_config(
+            data_key: "revenue",
+            meta: common.series_meta(),
+          )),
+          chart.tooltip(config: tooltip.tooltip_config()),
         ])
       let html = element.to_string(svg)
       // When bars are present, ComposedChart auto-sets RectangleCursor:
@@ -2069,8 +2154,11 @@ pub fn composed_chart_tests() {
         |> scatter.scatter_data(scatter_own)
       let svg =
         chart.composed_chart(data: bar_data, width: 500, height: 300, children: [
-          chart.bar(bar.bar_config(data_key: "revenue")),
-          chart.scatter_series(sc),
+          chart.bar(bar.bar_config(
+            data_key: "revenue",
+            meta: common.series_meta(),
+          )),
+          chart.scatter(sc),
         ])
       let html = element.to_string(svg)
       // The SVG should render without crashing and contain series output
@@ -2089,8 +2177,8 @@ pub fn composed_chart_tests() {
           ])
         let html =
           chart.composed_chart(data: [], width: 400, height: 300, children: [
-            chart.scatter_series(sc),
-            chart.chart_tooltip(config: tooltip.tooltip_config()),
+            chart.scatter(sc),
+            chart.tooltip(config: tooltip.tooltip_config()),
           ])
           |> element.to_string
         // Should contain tooltip hit zones (weft-chart-tooltip class)
@@ -2110,8 +2198,8 @@ pub fn composed_chart_tests() {
         ])
       let html =
         chart.composed_chart(data: [], width: 400, height: 300, children: [
-          chart.chart_layout(layout: layout.Vertical),
-          chart.scatter_series(sc),
+          chart.layout(layout: layout.Vertical),
+          chart.scatter(sc),
         ])
         |> element.to_string
       html |> string.contains("svg") |> expect.to_be_true
@@ -2173,8 +2261,8 @@ pub fn error_bar_tests() {
       ]
       let svg =
         chart.line_chart(data: data, width: 400, height: 300, children: [
-          chart.line(line.line_config(data_key: "v")),
-          chart.chart_error_bar(
+          chart.line(line.line_config(data_key: "v", meta: common.series_meta())),
+          chart.error_bar(
             config: error_bar.error_bar_config(data_key: "err"),
             series_data_key: "v",
           ),
@@ -2192,8 +2280,8 @@ pub fn error_bar_tests() {
       ]
       let svg =
         chart.line_chart(data: data, width: 400, height: 300, children: [
-          chart.line(line.line_config(data_key: "v")),
-          chart.chart_error_bar(
+          chart.line(line.line_config(data_key: "v", meta: common.series_meta())),
+          chart.error_bar(
             config: error_bar.error_bar_config(data_key: "err"),
             series_data_key: "v",
           ),
@@ -2211,8 +2299,8 @@ pub fn error_bar_tests() {
       ]
       let svg =
         chart.line_chart(data: data, width: 400, height: 300, children: [
-          chart.line(line.line_config(data_key: "v")),
-          chart.chart_error_bar(
+          chart.line(line.line_config(data_key: "v", meta: common.series_meta())),
+          chart.error_bar(
             config: error_bar.error_bar_config(data_key: "err"),
             series_data_key: "v",
           ),
@@ -2232,33 +2320,45 @@ pub fn error_bar_tests() {
 pub fn series_name_tests() {
   describe("series_name", [
     it("line defaults name to empty string", fn() {
-      let config = line.line_config(data_key: "desktop")
+      let config =
+        line.line_config(data_key: "desktop", meta: common.series_meta())
       config.name |> expect.to_equal(expected: "")
     }),
     it("area defaults name to empty string", fn() {
-      let config = area.area_config(data_key: "desktop")
+      let config =
+        area.area_config(data_key: "desktop", meta: common.series_meta())
       config.name |> expect.to_equal(expected: "")
     }),
     it("bar defaults name to empty string", fn() {
-      let config = bar.bar_config(data_key: "desktop")
+      let config =
+        bar.bar_config(data_key: "desktop", meta: common.series_meta())
       config.name |> expect.to_equal(expected: "")
     }),
     it("line_name builder sets name", fn() {
       let config =
-        line.line_config(data_key: "desktop")
-        |> line.line_name("Desktop Users")
+        line.line_config(data_key: "desktop", meta: common.series_meta())
+        |> line.line_meta(
+          meta: common.series_meta()
+          |> common.series_name(name: "Desktop Users"),
+        )
       config.name |> expect.to_equal(expected: "Desktop Users")
     }),
     it("area_name builder sets name", fn() {
       let config =
-        area.area_config(data_key: "desktop")
-        |> area.area_name("Desktop Users")
+        area.area_config(data_key: "desktop", meta: common.series_meta())
+        |> area.area_meta(
+          meta: common.series_meta()
+          |> common.series_name(name: "Desktop Users"),
+        )
       config.name |> expect.to_equal(expected: "Desktop Users")
     }),
     it("bar_name builder sets name", fn() {
       let config =
-        bar.bar_config(data_key: "desktop")
-        |> bar.bar_name("Desktop Users")
+        bar.bar_config(data_key: "desktop", meta: common.series_meta())
+        |> bar.bar_meta(
+          meta: common.series_meta()
+          |> common.series_name(name: "Desktop Users"),
+        )
       config.name |> expect.to_equal(expected: "Desktop Users")
     }),
     it("tooltip uses display name when series name is set", fn() {
@@ -2271,10 +2371,13 @@ pub fn series_name_tests() {
       let svg =
         chart.line_chart(data: data, width: 400, height: 300, children: [
           chart.line(
-            line.line_config(data_key: "desktop")
-            |> line.line_name("Desktop Users"),
+            line.line_config(data_key: "desktop", meta: common.series_meta())
+            |> line.line_meta(
+              meta: common.series_meta()
+              |> common.series_name(name: "Desktop Users"),
+            ),
           ),
-          chart.chart_tooltip(tooltip.tooltip_config()),
+          chart.tooltip(tooltip.tooltip_config()),
         ])
       let html = element.to_string(svg)
       // Tooltip should contain the display name, not the data_key
@@ -2290,10 +2393,13 @@ pub fn series_name_tests() {
       let svg =
         chart.line_chart(data: data, width: 400, height: 300, children: [
           chart.line(
-            line.line_config(data_key: "desktop")
-            |> line.line_name("Desktop Users"),
+            line.line_config(data_key: "desktop", meta: common.series_meta())
+            |> line.line_meta(
+              meta: common.series_meta()
+              |> common.series_name(name: "Desktop Users"),
+            ),
           ),
-          chart.chart_legend(legend.legend_config()),
+          chart.legend(legend.legend_config()),
         ])
       let html = element.to_string(svg)
       html |> string.contains("Desktop Users") |> expect.to_be_true
@@ -2318,13 +2424,13 @@ pub fn axis_unit_tests() {
     it("x_unit builder sets unit string", fn() {
       let config =
         axis.x_axis_config()
-        |> axis.x_unit("km")
+        |> axis.axis_unit("km")
       config.unit |> expect.to_equal(expected: "km")
     }),
     it("y_unit builder sets unit string", fn() {
       let config =
         axis.y_axis_config()
-        |> axis.y_unit("$")
+        |> axis.axis_unit("$")
       config.unit |> expect.to_equal(expected: "$")
     }),
     it("y_unit appends to tick labels in rendered chart", fn() {
@@ -2340,8 +2446,8 @@ pub fn axis_unit_tests() {
       ]
       let svg =
         chart.line_chart(data: data, width: 400, height: 300, children: [
-          chart.line(line.line_config(data_key: "v")),
-          chart.y_axis(axis.y_axis_config() |> axis.y_unit("ms")),
+          chart.line(line.line_config(data_key: "v", meta: common.series_meta())),
+          chart.y_axis(axis.y_axis_config() |> axis.axis_unit("ms")),
         ])
       let html = element.to_string(svg)
       // Tick labels should have unit appended
@@ -2357,20 +2463,20 @@ pub fn axis_unit_tests() {
 pub fn bar_stroke_tests() {
   describe("bar_stroke", [
     it("default stroke is empty", fn() {
-      let config = bar.bar_config(data_key: "v")
+      let config = bar.bar_config(data_key: "v", meta: common.series_meta())
       config.stroke |> expect.to_equal(expected: "")
       config.stroke_width
       |> expect.to_equal(expected: 0.0)
     }),
     it("bar_stroke builder sets stroke color", fn() {
       let config =
-        bar.bar_config(data_key: "v")
+        bar.bar_config(data_key: "v", meta: common.series_meta())
         |> bar.bar_stroke("#333")
       config.stroke |> expect.to_equal(expected: "#333")
     }),
     it("bar_stroke_width builder sets width", fn() {
       let config =
-        bar.bar_config(data_key: "v")
+        bar.bar_config(data_key: "v", meta: common.series_meta())
         |> bar.bar_stroke_width(2.0)
       config.stroke_width
       |> expect.to_equal(expected: 2.0)
@@ -2382,7 +2488,7 @@ pub fn bar_stroke_tests() {
       let svg =
         chart.bar_chart(data: data, width: 400, height: 300, children: [
           chart.bar(
-            bar.bar_config(data_key: "v")
+            bar.bar_config(data_key: "v", meta: common.series_meta())
             |> bar.bar_stroke("#333")
             |> bar.bar_stroke_width(2.0),
           ),
@@ -2414,8 +2520,8 @@ pub fn bar_layout_tests() {
     it("renders with custom bar_category_gap", fn() {
       let svg =
         chart.bar_chart(data: data, width: 400, height: 300, children: [
-          chart.bar(bar.bar_config(data_key: "a")),
-          chart.bar(bar.bar_config(data_key: "b")),
+          chart.bar(bar.bar_config(data_key: "a", meta: common.series_meta())),
+          chart.bar(bar.bar_config(data_key: "b", meta: common.series_meta())),
           chart.bar_layout(
             bar_category_gap: 0.2,
             bar_gap: 4.0,
@@ -2428,8 +2534,8 @@ pub fn bar_layout_tests() {
     it("renders with chart-level bar_size", fn() {
       let svg =
         chart.bar_chart(data: data, width: 400, height: 300, children: [
-          chart.bar(bar.bar_config(data_key: "a")),
-          chart.bar(bar.bar_config(data_key: "b")),
+          chart.bar(bar.bar_config(data_key: "a", meta: common.series_meta())),
+          chart.bar(bar.bar_config(data_key: "b", meta: common.series_meta())),
           chart.bar_layout(
             bar_category_gap: 0.1,
             bar_gap: 4.0,
@@ -2443,8 +2549,8 @@ pub fn bar_layout_tests() {
     it("renders with custom bar_gap", fn() {
       let svg =
         chart.bar_chart(data: data, width: 400, height: 300, children: [
-          chart.bar(bar.bar_config(data_key: "a")),
-          chart.bar(bar.bar_config(data_key: "b")),
+          chart.bar(bar.bar_config(data_key: "a", meta: common.series_meta())),
+          chart.bar(bar.bar_config(data_key: "b", meta: common.series_meta())),
           chart.bar_layout(
             bar_category_gap: 0.1,
             bar_gap: 10.0,
@@ -2588,7 +2694,7 @@ pub fn sector_corner_radius_tests() {
         |> pie.pie_corner_radius(5.0)
       let svg =
         chart.pie_chart(data: data, width: 400, height: 400, children: [
-          chart.pie_series(config),
+          chart.pie(config),
         ])
       let html = element.to_string(svg)
       html |> string.contains("recharts-pie") |> expect.to_be_true
@@ -2709,9 +2815,12 @@ pub fn tooltip_unit_tests() {
       ]
       let html =
         chart.line_chart(data: data, width: 400, height: 300, children: [
-          chart.line(line.line_config(data_key: "weight")),
-          chart.y_axis(axis.y_axis_config() |> axis.y_unit("kg")),
-          chart.chart_tooltip(tooltip.tooltip_config()),
+          chart.line(line.line_config(
+            data_key: "weight",
+            meta: common.series_meta(),
+          )),
+          chart.y_axis(axis.y_axis_config() |> axis.axis_unit("kg")),
+          chart.tooltip(tooltip.tooltip_config()),
         ])
         |> element.to_string
       // Tooltip should contain the unit from y-axis
@@ -3048,14 +3157,14 @@ pub fn scale_type_tests() {
     it("x_scale_type builder sets log scale", fn() {
       let config =
         axis.x_axis_config()
-        |> axis.x_scale_type(axis.LogScaleType(base: 10.0))
+        |> axis.axis_scale_type(axis.LogScaleType(base: 10.0))
       config.scale_type
       |> expect.to_equal(expected: axis.LogScaleType(base: 10.0))
     }),
     it("y_scale_type builder sets sqrt scale", fn() {
       let config =
         axis.y_axis_config()
-        |> axis.y_scale_type(axis.SqrtScaleType)
+        |> axis.axis_scale_type(axis.SqrtScaleType)
       config.scale_type |> expect.to_equal(expected: axis.SqrtScaleType)
     }),
     it("chart with log y-scale renders", fn() {
@@ -3069,10 +3178,10 @@ pub fn scale_type_tests() {
       ]
       let html =
         chart.line_chart(data: data, width: 400, height: 300, children: [
-          chart.line(line.line_config(data_key: "v")),
+          chart.line(line.line_config(data_key: "v", meta: common.series_meta())),
           chart.y_axis(
             axis.y_axis_config()
-            |> axis.y_scale_type(axis.LogScaleType(base: 10.0)),
+            |> axis.axis_scale_type(axis.LogScaleType(base: 10.0)),
           ),
         ])
         |> element.to_string
@@ -3088,9 +3197,9 @@ pub fn scale_type_tests() {
       ]
       let html =
         chart.line_chart(data: data, width: 400, height: 300, children: [
-          chart.line(line.line_config(data_key: "v")),
+          chart.line(line.line_config(data_key: "v", meta: common.series_meta())),
           chart.y_axis(
-            axis.y_axis_config() |> axis.y_scale_type(axis.SqrtScaleType),
+            axis.y_axis_config() |> axis.axis_scale_type(axis.SqrtScaleType),
           ),
         ])
         |> element.to_string
@@ -3116,13 +3225,13 @@ pub fn axis_dimension_tests() {
     it("x_height builder sets height", fn() {
       let config =
         axis.x_axis_config()
-        |> axis.x_height(50)
+        |> axis.axis_size(50)
       config.height |> expect.to_equal(expected: 50)
     }),
     it("y_width builder sets width", fn() {
       let config =
         axis.y_axis_config()
-        |> axis.y_width(80)
+        |> axis.axis_size(80)
       config.width |> expect.to_equal(expected: 80)
     }),
     it("custom y_width changes chart layout", fn() {
@@ -3133,13 +3242,13 @@ pub fn axis_dimension_tests() {
       let without_width =
         chart.line_chart(data: data, width: 400, height: 200, children: [
           chart.y_axis(axis.y_axis_config()),
-          chart.line(line.line_config(data_key: "v")),
+          chart.line(line.line_config(data_key: "v", meta: common.series_meta())),
         ])
         |> element.to_string
       let with_width =
         chart.line_chart(data: data, width: 400, height: 200, children: [
-          chart.y_axis(axis.y_axis_config() |> axis.y_width(100)),
-          chart.line(line.line_config(data_key: "v")),
+          chart.y_axis(axis.y_axis_config() |> axis.axis_size(100)),
+          chart.line(line.line_config(data_key: "v", meta: common.series_meta())),
         ])
         |> element.to_string
       // With explicit y-axis width, the plot area shifts right
@@ -3153,13 +3262,13 @@ pub fn axis_dimension_tests() {
       let without_height =
         chart.bar_chart(data: data, width: 400, height: 200, children: [
           chart.x_axis(axis.x_axis_config()),
-          chart.bar(bar.bar_config(data_key: "v")),
+          chart.bar(bar.bar_config(data_key: "v", meta: common.series_meta())),
         ])
         |> element.to_string
       let with_height =
         chart.bar_chart(data: data, width: 400, height: 200, children: [
-          chart.x_axis(axis.x_axis_config() |> axis.x_height(60)),
-          chart.bar(bar.bar_config(data_key: "v")),
+          chart.x_axis(axis.x_axis_config() |> axis.axis_size(60)),
+          chart.bar(bar.bar_config(data_key: "v", meta: common.series_meta())),
         ])
         |> element.to_string
       // With explicit x-axis height, the plot area shrinks vertically
@@ -3465,10 +3574,7 @@ pub fn scatter_chart_tests() {
       ]
       let html =
         chart.scatter_chart(data: data, width: 400, height: 300, children: [
-          chart.scatter_series(scatter.scatter_config(
-            x_data_key: "x",
-            y_data_key: "y",
-          )),
+          chart.scatter(scatter.scatter_config(x_data_key: "x", y_data_key: "y")),
         ])
         |> element.to_string
       html |> string.contains("<svg") |> expect.to_be_true
@@ -3488,9 +3594,9 @@ pub fn scatter_chart_tests() {
       let html =
         chart.scatter_chart(data: data, width: 400, height: 300, children: [
           chart.cartesian_grid(grid.cartesian_grid_config()),
-          chart.x_axis(axis.x_axis_config() |> axis.x_type(axis.NumberAxis)),
+          chart.x_axis(axis.x_axis_config() |> axis.axis_type(axis.NumberAxis)),
           chart.y_axis(axis.y_axis_config()),
-          chart.scatter_series(
+          chart.scatter(
             scatter.scatter_config(x_data_key: "x", y_data_key: "y")
             |> scatter.scatter_fill(fill: "#8884d8"),
           ),
@@ -3504,14 +3610,14 @@ pub fn scatter_chart_tests() {
     it("scatter chart tooltip shows y values", fn() {
       let html =
         chart.scatter_chart(data: [], width: 400, height: 300, children: [
-          chart.scatter_series(
+          chart.scatter(
             scatter.scatter_config(x_data_key: "x", y_data_key: "y")
             |> scatter.scatter_name(name: "Scatter Y")
             |> scatter.scatter_data([
               dict.from_list([#("x", 10.0), #("y", 42.0)]),
             ]),
           ),
-          chart.chart_tooltip(tooltip.tooltip_config()),
+          chart.tooltip(tooltip.tooltip_config()),
         ])
         |> element.to_string
       // recharts scatter tooltip shows axis values, not the series name
@@ -3527,11 +3633,11 @@ pub fn scatter_chart_tests() {
       ]
       let html =
         chart.scatter_chart(data: data, width: 400, height: 300, children: [
-          chart.scatter_series(
+          chart.scatter(
             scatter.scatter_config(x_data_key: "x", y_data_key: "y")
             |> scatter.scatter_name(name: "Data Points"),
           ),
-          chart.chart_legend(legend.legend_config()),
+          chart.legend(legend.legend_config()),
         ])
         |> element.to_string
       html |> string.contains("Data Points") |> expect.to_be_true
@@ -3670,13 +3776,13 @@ pub fn axis_name_tests() {
     it("x_name sets the name field", fn() {
       let config =
         axis.x_axis_config()
-        |> axis.x_name("Revenue")
+        |> axis.axis_name("Revenue")
       config.name |> expect.to_equal(expected: "Revenue")
     }),
     it("y_name sets the name field", fn() {
       let config =
         axis.y_axis_config()
-        |> axis.y_name("Amount")
+        |> axis.axis_name("Amount")
       config.name |> expect.to_equal(expected: "Amount")
     }),
     it("x_axis name defaults to empty string", fn() {
@@ -3794,7 +3900,7 @@ pub fn padding_mode_tests() {
     it("x_padding builder maps to ExplicitPadding", fn() {
       let config =
         axis.x_axis_config()
-        |> axis.x_padding(10, 20)
+        |> axis.axis_padding(10, 20)
       config.padding
       |> expect.to_equal(expected: axis.ExplicitPadding(left: 10, right: 20))
       config.padding_left |> expect.to_equal(expected: 10)
@@ -3803,13 +3909,13 @@ pub fn padding_mode_tests() {
     it("x_padding_mode sets GapPadding", fn() {
       let config =
         axis.x_axis_config()
-        |> axis.x_padding_mode(axis.GapPadding)
+        |> axis.axis_padding_mode(axis.GapPadding)
       config.padding |> expect.to_equal(expected: axis.GapPadding)
     }),
     it("NoGapPadding resolves to zero padding", fn() {
       let config =
         axis.x_axis_config()
-        |> axis.x_padding_mode(axis.NoGapPadding)
+        |> axis.axis_padding_mode(axis.NoGapPadding)
       config.padding |> expect.to_equal(expected: axis.NoGapPadding)
     }),
     it("GapPadding changes chart layout", fn() {
@@ -3822,17 +3928,17 @@ pub fn padding_mode_tests() {
       ]
       let gap_html =
         chart.line_chart(data: data, width: 400, height: 300, children: [
-          chart.line(line.line_config(data_key: "v")),
+          chart.line(line.line_config(data_key: "v", meta: common.series_meta())),
           chart.x_axis(
-            axis.x_axis_config() |> axis.x_padding_mode(axis.GapPadding),
+            axis.x_axis_config() |> axis.axis_padding_mode(axis.GapPadding),
           ),
         ])
         |> element.to_string
       let no_gap_html =
         chart.line_chart(data: data, width: 400, height: 300, children: [
-          chart.line(line.line_config(data_key: "v")),
+          chart.line(line.line_config(data_key: "v", meta: common.series_meta())),
           chart.x_axis(
-            axis.x_axis_config() |> axis.x_padding_mode(axis.NoGapPadding),
+            axis.x_axis_config() |> axis.axis_padding_mode(axis.NoGapPadding),
           ),
         ])
         |> element.to_string
@@ -3853,13 +3959,14 @@ pub fn range_area_tests() {
   describe("range_area", [
     it("area_range builder sets fields correctly", fn() {
       let config =
-        area.area_config(data_key: "high")
+        area.area_config(data_key: "high", meta: common.series_meta())
         |> area.area_range("low")
       config.is_range |> expect.to_equal(expected: True)
       config.base_data_key |> expect.to_equal(expected: "low")
     }),
     it("default area is not range", fn() {
-      let config = area.area_config(data_key: "value")
+      let config =
+        area.area_config(data_key: "value", meta: common.series_meta())
       config.is_range |> expect.to_equal(expected: False)
       config.base_data_key |> expect.to_equal(expected: "")
     }),
@@ -3881,7 +3988,7 @@ pub fn range_area_tests() {
       let html =
         chart.area_chart(data: data, width: 400, height: 300, children: [
           chart.area(
-            area.area_config(data_key: "high")
+            area.area_config(data_key: "high", meta: common.series_meta())
             |> area.area_range("low"),
           ),
         ])
@@ -3907,7 +4014,7 @@ pub fn range_area_tests() {
       let html =
         chart.area_chart(data: data, width: 400, height: 300, children: [
           chart.area(
-            area.area_config(data_key: "value")
+            area.area_config(data_key: "value", meta: common.series_meta())
             |> area.area_range(""),
           ),
         ])
@@ -3929,7 +4036,10 @@ pub fn range_area_tests() {
       ]
       let html =
         chart.area_chart(data: data, width: 400, height: 300, children: [
-          chart.area(area.area_config(data_key: "value")),
+          chart.area(area.area_config(
+            data_key: "value",
+            meta: common.series_meta(),
+          )),
         ])
         |> element.to_string
       html |> string.contains("<svg") |> expect.to_be_true
@@ -4119,13 +4229,13 @@ pub fn scatter_symbols_tests() {
 pub fn tooltip_type_tests() {
   describe("tooltip_type", [
     it("default tooltip_type is DefaultTooltip for all series", fn() {
-      let line = line.line_config(data_key: "val")
+      let line = line.line_config(data_key: "val", meta: common.series_meta())
       line.tooltip_type |> expect.to_equal(expected: shape.DefaultTooltip)
 
-      let area = area.area_config(data_key: "val")
+      let area = area.area_config(data_key: "val", meta: common.series_meta())
       area.tooltip_type |> expect.to_equal(expected: shape.DefaultTooltip)
 
-      let bar = bar.bar_config(data_key: "val")
+      let bar = bar.bar_config(data_key: "val", meta: common.series_meta())
       bar.tooltip_type |> expect.to_equal(expected: shape.DefaultTooltip)
 
       let scat = scatter.scatter_config(x_data_key: "x", y_data_key: "y")
@@ -4133,20 +4243,29 @@ pub fn tooltip_type_tests() {
     }),
     it("line_tooltip_type builder sets NoTooltip", fn() {
       let config =
-        line.line_config(data_key: "val")
-        |> line.line_tooltip_type(type_: shape.NoTooltip)
+        line.line_config(data_key: "val", meta: common.series_meta())
+        |> line.line_meta(
+          meta: common.series_meta()
+          |> common.series_tooltip_type(tooltip_type: shape.NoTooltip),
+        )
       config.tooltip_type |> expect.to_equal(expected: shape.NoTooltip)
     }),
     it("area_tooltip_type builder sets NoTooltip", fn() {
       let config =
-        area.area_config(data_key: "val")
-        |> area.area_tooltip_type(type_: shape.NoTooltip)
+        area.area_config(data_key: "val", meta: common.series_meta())
+        |> area.area_meta(
+          meta: common.series_meta()
+          |> common.series_tooltip_type(tooltip_type: shape.NoTooltip),
+        )
       config.tooltip_type |> expect.to_equal(expected: shape.NoTooltip)
     }),
     it("bar_tooltip_type builder sets NoTooltip", fn() {
       let config =
-        bar.bar_config(data_key: "val")
-        |> bar.bar_tooltip_type(type_: shape.NoTooltip)
+        bar.bar_config(data_key: "val", meta: common.series_meta())
+        |> bar.bar_meta(
+          meta: common.series_meta()
+          |> common.series_tooltip_type(tooltip_type: shape.NoTooltip),
+        )
       config.tooltip_type |> expect.to_equal(expected: shape.NoTooltip)
     }),
     it("scatter_tooltip_type builder sets NoTooltip", fn() {
@@ -4170,15 +4289,20 @@ pub fn tooltip_type_tests() {
       let html =
         chart.line_chart(data: data, width: 400, height: 300, children: [
           chart.line(
-            line.line_config(data_key: "visible")
-            |> line.line_name("Visible"),
+            line.line_config(data_key: "visible", meta: common.series_meta())
+            |> line.line_meta(
+              meta: common.series_meta() |> common.series_name(name: "Visible"),
+            ),
           ),
           chart.line(
-            line.line_config(data_key: "hidden_tip")
-            |> line.line_name("Hidden Tip")
-            |> line.line_tooltip_type(type_: shape.NoTooltip),
+            line.line_config(data_key: "hidden_tip", meta: common.series_meta())
+            |> line.line_meta(
+              meta: common.series_meta()
+              |> common.series_name(name: "Hidden Tip")
+              |> common.series_tooltip_type(tooltip_type: shape.NoTooltip),
+            ),
           ),
-          chart.chart_tooltip(tooltip.tooltip_config()),
+          chart.tooltip(tooltip.tooltip_config()),
         ])
         |> element.to_string
       // The chart should render but the tooltip should NOT contain "Hidden Tip"
@@ -4192,12 +4316,12 @@ pub fn tooltip_type_tests() {
 pub fn line_fill_tests() {
   describe("line_fill", [
     it("default fill is #fff", fn() {
-      let config = line.line_config(data_key: "val")
+      let config = line.line_config(data_key: "val", meta: common.series_meta())
       config.fill |> expect.to_equal(expected: "#fff")
     }),
     it("line_fill builder sets custom fill", fn() {
       let config =
-        line.line_config(data_key: "val")
+        line.line_config(data_key: "val", meta: common.series_meta())
         |> line.line_fill(fill: "#ff0000")
       config.fill |> expect.to_equal(expected: "#ff0000")
     }),
@@ -4211,7 +4335,7 @@ pub fn line_fill_tests() {
       let html =
         chart.line_chart(data: data, width: 400, height: 300, children: [
           chart.line(
-            line.line_config(data_key: "val")
+            line.line_config(data_key: "val", meta: common.series_meta())
             |> line.line_fill(fill: "#00ff00"),
           ),
         ])
@@ -4880,7 +5004,7 @@ pub fn axis_enhancement_tests() {
     it("x_allow_duplicated_category sets the value", fn() {
       let config =
         axis.x_axis_config()
-        |> axis.x_allow_duplicated_category(False)
+        |> axis.axis_allow_duplicated_category(False)
       config.allow_duplicated_category |> expect.to_be_false
     }),
     it("allow_duplicated_category defaults to True for y-axis", fn() {
@@ -4890,7 +5014,7 @@ pub fn axis_enhancement_tests() {
     it("y_allow_duplicated_category sets the value", fn() {
       let config =
         axis.y_axis_config()
-        |> axis.y_allow_duplicated_category(False)
+        |> axis.axis_allow_duplicated_category(False)
       config.allow_duplicated_category |> expect.to_be_false
     }),
     it("axis_line_stroke defaults to empty for x-axis", fn() {
@@ -4901,8 +5025,8 @@ pub fn axis_enhancement_tests() {
     it("x_axis_line_stroke and x_axis_line_stroke_width set values", fn() {
       let config =
         axis.x_axis_config()
-        |> axis.x_axis_line_stroke("#ff0000")
-        |> axis.x_axis_line_stroke_width(2.0)
+        |> axis.axis_axis_line_stroke("#ff0000")
+        |> axis.axis_axis_line_stroke_width(2.0)
       config.axis_line_stroke |> expect.to_equal(expected: "#ff0000")
       config.axis_line_stroke_width |> expect.to_equal(expected: 2.0)
     }),
@@ -4914,18 +5038,18 @@ pub fn axis_enhancement_tests() {
     it("x_tick_line_stroke and x_tick_line_stroke_width set values", fn() {
       let config =
         axis.x_axis_config()
-        |> axis.x_tick_line_stroke("#00ff00")
-        |> axis.x_tick_line_stroke_width(1.5)
+        |> axis.axis_tick_line_stroke("#00ff00")
+        |> axis.axis_tick_line_stroke_width(1.5)
       config.tick_line_stroke |> expect.to_equal(expected: "#00ff00")
       config.tick_line_stroke_width |> expect.to_equal(expected: 1.5)
     }),
     it("y_axis_line_stroke and y_tick_line_stroke set values", fn() {
       let config =
         axis.y_axis_config()
-        |> axis.y_axis_line_stroke("#0000ff")
-        |> axis.y_axis_line_stroke_width(3.0)
-        |> axis.y_tick_line_stroke("#333")
-        |> axis.y_tick_line_stroke_width(0.5)
+        |> axis.axis_axis_line_stroke("#0000ff")
+        |> axis.axis_axis_line_stroke_width(3.0)
+        |> axis.axis_tick_line_stroke("#333")
+        |> axis.axis_tick_line_stroke_width(0.5)
       config.axis_line_stroke |> expect.to_equal(expected: "#0000ff")
       config.axis_line_stroke_width |> expect.to_equal(expected: 3.0)
       config.tick_line_stroke |> expect.to_equal(expected: "#333")
@@ -5581,7 +5705,7 @@ pub fn per_pie_data_tests() {
       let config = pie.pie_config(data_key: "value")
       let html =
         chart.pie_chart(data: chart_data, width: 400, height: 400, children: [
-          chart.pie_series(config),
+          chart.pie(config),
         ])
         |> element.to_string
       // Should render sectors from chart data
@@ -5606,7 +5730,7 @@ pub fn per_pie_data_tests() {
         |> pie.pie_data(own_data)
       let html =
         chart.pie_chart(data: chart_data, width: 400, height: 400, children: [
-          chart.pie_series(config),
+          chart.pie(config),
         ])
         |> element.to_string
       // Should render 3 sectors (one per own_data entry), not 1
@@ -5632,7 +5756,7 @@ pub fn per_pie_data_tests() {
         |> pie.pie_data(own_data)
       let html =
         chart.pie_chart(data: chart_data, width: 300, height: 300, children: [
-          chart.pie_series(config),
+          chart.pie(config),
         ])
         |> element.to_string
       // Should render 2 sectors from own data
@@ -5792,7 +5916,7 @@ pub fn funnel_render_tests() {
       let config = funnel.funnel_config(data_key: "value")
       let html =
         chart.funnel_chart(data: chart_data, width: 500, height: 400, children: [
-          chart.funnel_series(config),
+          chart.funnel(config),
         ])
         |> element.to_string
       html |> string.contains("recharts-funnel") |> expect.to_be_true
@@ -5812,8 +5936,8 @@ pub fn funnel_render_tests() {
       let config = funnel.funnel_config(data_key: "value")
       let html =
         chart.funnel_chart(data: chart_data, width: 500, height: 400, children: [
-          chart.funnel_series(config),
-          chart.chart_tooltip(config: tooltip.tooltip_config()),
+          chart.funnel(config),
+          chart.tooltip(config: tooltip.tooltip_config()),
         ])
         |> element.to_string
       // Tooltip hit zones are present (class added by render_tooltips)
@@ -5838,7 +5962,7 @@ pub fn cell_tests() {
     }),
     it("bar_cells applies per-bar fill colors", fn() {
       let config =
-        bar.bar_config(data_key: "value")
+        bar.bar_config(data_key: "value", meta: common.series_meta())
         |> bar.bar_cells(cells: [
           bar.cell_config(fill: "#ff0000"),
           bar.cell_config(fill: "#00ff00"),
@@ -5869,7 +5993,7 @@ pub fn cell_tests() {
     }),
     it("bar_cells partial list falls back to config fill", fn() {
       let config =
-        bar.bar_config(data_key: "value")
+        bar.bar_config(data_key: "value", meta: common.series_meta())
         |> bar.bar_fill("defaultFill")
         |> bar.bar_cells(cells: [bar.cell_config(fill: "#ff0000")])
       let chart_data = [
@@ -5915,7 +6039,7 @@ pub fn cell_tests() {
       ]
       let html =
         chart.pie_chart(data: chart_data, width: 400, height: 400, children: [
-          chart.pie_series(config),
+          chart.pie(config),
         ])
         |> element.to_string
       html |> string.contains("#aaa111") |> expect.to_be_true
@@ -5937,7 +6061,7 @@ pub fn cell_tests() {
       ]
       let html =
         chart.pie_chart(data: chart_data, width: 400, height: 400, children: [
-          chart.pie_series(config),
+          chart.pie(config),
         ])
         |> element.to_string
       // First sector uses cell fill
@@ -6001,7 +6125,7 @@ pub fn z_axis_tests() {
           width: 400,
           height: 300,
           children: [
-            chart.scatter_series(scatter_cfg),
+            chart.scatter(scatter_cfg),
             chart.z_axis(config: z_cfg),
           ],
         )
@@ -6026,7 +6150,7 @@ pub fn z_axis_tests() {
           data: chart_data,
           width: 400,
           height: 300,
-          children: [chart.scatter_series(scatter_cfg)],
+          children: [chart.scatter(scatter_cfg)],
         )
         |> element.to_string
       // Without ZAxis, z value 64 is used directly as size
@@ -6044,7 +6168,7 @@ pub fn series_label_tests() {
   describe("series_labels", [
     it("line with show_label renders value labels", fn() {
       let config =
-        line.line_config(data_key: "value")
+        line.line_config(data_key: "value", meta: common.series_meta())
         |> line.line_label(show: True)
       let chart_data = [
         chart.DataPoint(
@@ -6066,7 +6190,8 @@ pub fn series_label_tests() {
       html |> string.contains(">85<") |> expect.to_be_true
     }),
     it("line without show_label has no labels (default)", fn() {
-      let config = line.line_config(data_key: "value")
+      let config =
+        line.line_config(data_key: "value", meta: common.series_meta())
       config.show_label |> expect.to_equal(expected: False)
       let chart_data = [
         chart.DataPoint(
@@ -6084,7 +6209,7 @@ pub fn series_label_tests() {
     }),
     it("area with show_label renders value labels", fn() {
       let config =
-        area.area_config(data_key: "value")
+        area.area_config(data_key: "value", meta: common.series_meta())
         |> area.area_label(show: True)
       let chart_data = [
         chart.DataPoint(
@@ -6105,7 +6230,8 @@ pub fn series_label_tests() {
       html |> string.contains(">77<") |> expect.to_be_true
     }),
     it("area without show_label has no labels (default)", fn() {
-      let config = area.area_config(data_key: "value")
+      let config =
+        area.area_config(data_key: "value", meta: common.series_meta())
       config.show_label |> expect.to_equal(expected: False)
     }),
     it("scatter with show_label renders value labels", fn() {
@@ -6123,7 +6249,7 @@ pub fn series_label_tests() {
           data: chart_data,
           width: 400,
           height: 300,
-          children: [chart.scatter_series(config)],
+          children: [chart.scatter(config)],
         )
         |> element.to_string
       html |> string.contains(">99<") |> expect.to_be_true
@@ -6143,20 +6269,26 @@ pub fn series_unit_tests() {
   describe("series_unit", [
     it("line_unit builder sets unit", fn() {
       let config =
-        line.line_config(data_key: "sales")
-        |> line.line_unit("USD")
+        line.line_config(data_key: "sales", meta: common.series_meta())
+        |> line.line_meta(
+          meta: common.series_meta() |> common.series_unit(unit: "USD"),
+        )
       config.unit |> expect.to_equal(expected: "USD")
     }),
     it("area_unit builder sets unit", fn() {
       let config =
-        area.area_config(data_key: "revenue")
-        |> area.area_unit("EUR")
+        area.area_config(data_key: "revenue", meta: common.series_meta())
+        |> area.area_meta(
+          meta: common.series_meta() |> common.series_unit(unit: "EUR"),
+        )
       config.unit |> expect.to_equal(expected: "EUR")
     }),
     it("bar_unit builder sets unit", fn() {
       let config =
-        bar.bar_config(data_key: "count")
-        |> bar.bar_unit("pcs")
+        bar.bar_config(data_key: "count", meta: common.series_meta())
+        |> bar.bar_meta(
+          meta: common.series_meta() |> common.series_unit(unit: "pcs"),
+        )
       config.unit |> expect.to_equal(expected: "pcs")
     }),
     it("per-series unit overrides y-axis unit in tooltip", fn() {
@@ -6169,13 +6301,18 @@ pub fn series_unit_tests() {
       let html =
         chart.line_chart(data: data, width: 400, height: 300, children: [
           chart.x_axis(axis.x_axis_config()),
-          chart.y_axis(axis.y_axis_config() |> axis.y_unit("$")),
+          chart.y_axis(axis.y_axis_config() |> axis.axis_unit("$")),
           chart.line(
-            line.line_config(data_key: "usd")
-            |> line.line_unit(" USD"),
+            line.line_config(data_key: "usd", meta: common.series_meta())
+            |> line.line_meta(
+              meta: common.series_meta() |> common.series_unit(unit: " USD"),
+            ),
           ),
-          chart.line(line.line_config(data_key: "eur")),
-          chart.chart_tooltip(tooltip.tooltip_config()),
+          chart.line(line.line_config(
+            data_key: "eur",
+            meta: common.series_meta(),
+          )),
+          chart.tooltip(tooltip.tooltip_config()),
         ])
         |> element.to_string
       // The USD series should use " USD" from per-series unit
@@ -6343,25 +6480,25 @@ pub fn axis_stroke_dasharray_tests() {
     it("x_axis_line_stroke_dasharray builder sets pattern", fn() {
       let config =
         axis.x_axis_config()
-        |> axis.x_axis_line_stroke_dasharray("5 5")
+        |> axis.axis_axis_line_stroke_dasharray("5 5")
       config.axis_line_stroke_dasharray |> expect.to_equal(expected: "5 5")
     }),
     it("x_tick_line_stroke_dasharray builder sets pattern", fn() {
       let config =
         axis.x_axis_config()
-        |> axis.x_tick_line_stroke_dasharray("3 3")
+        |> axis.axis_tick_line_stroke_dasharray("3 3")
       config.tick_line_stroke_dasharray |> expect.to_equal(expected: "3 3")
     }),
     it("y_axis_line_stroke_dasharray builder sets pattern", fn() {
       let config =
         axis.y_axis_config()
-        |> axis.y_axis_line_stroke_dasharray("5 5")
+        |> axis.axis_axis_line_stroke_dasharray("5 5")
       config.axis_line_stroke_dasharray |> expect.to_equal(expected: "5 5")
     }),
     it("y_tick_line_stroke_dasharray builder sets pattern", fn() {
       let config =
         axis.y_axis_config()
-        |> axis.y_tick_line_stroke_dasharray("3 3")
+        |> axis.axis_tick_line_stroke_dasharray("3 3")
       config.tick_line_stroke_dasharray |> expect.to_equal(expected: "3 3")
     }),
     it("stroke-dasharray appears in rendered x-axis when set", fn() {
@@ -6372,10 +6509,10 @@ pub fn axis_stroke_dasharray_tests() {
         chart.line_chart(data: data, width: 400, height: 300, children: [
           chart.x_axis(
             axis.x_axis_config()
-            |> axis.x_axis_line_stroke_dasharray("5 5"),
+            |> axis.axis_axis_line_stroke_dasharray("5 5"),
           ),
           chart.y_axis(axis.y_axis_config()),
-          chart.line(line.line_config(data_key: "v")),
+          chart.line(line.line_config(data_key: "v", meta: common.series_meta())),
         ])
         |> element.to_string
       html |> string.contains("stroke-dasharray=\"5 5\"") |> expect.to_be_true
@@ -6420,7 +6557,7 @@ pub fn polar_grid_fill_tests() {
           chart.polar_grid(
             grid.polar_grid_config() |> grid.polar_grid_fill(color: "#eee"),
           ),
-          chart.radar_series(radar.radar_config(data_key: "v")),
+          chart.radar(radar.radar_config(data_key: "v")),
         ])
         |> element.to_string
       html |> string.contains("fill=\"#eee\"") |> expect.to_be_true
@@ -6454,16 +6591,28 @@ pub fn reverse_stack_order_tests() {
         chart.area_chart(data: data, width: 400, height: 300, children: [
           chart.x_axis(axis.x_axis_config()),
           chart.y_axis(axis.y_axis_config()),
-          chart.area(area.area_config(data_key: "a") |> area.stack_id("s")),
-          chart.area(area.area_config(data_key: "b") |> area.stack_id("s")),
+          chart.area(
+            area.area_config(data_key: "a", meta: common.series_meta())
+            |> area.area_stack_id("s"),
+          ),
+          chart.area(
+            area.area_config(data_key: "b", meta: common.series_meta())
+            |> area.area_stack_id("s"),
+          ),
         ])
         |> element.to_string
       let html_reversed =
         chart.area_chart(data: data, width: 400, height: 300, children: [
           chart.x_axis(axis.x_axis_config()),
           chart.y_axis(axis.y_axis_config()),
-          chart.area(area.area_config(data_key: "a") |> area.stack_id("s")),
-          chart.area(area.area_config(data_key: "b") |> area.stack_id("s")),
+          chart.area(
+            area.area_config(data_key: "a", meta: common.series_meta())
+            |> area.area_stack_id("s"),
+          ),
+          chart.area(
+            area.area_config(data_key: "b", meta: common.series_meta())
+            |> area.area_stack_id("s"),
+          ),
           chart.reverse_stack_order(True),
         ])
         |> element.to_string
@@ -6732,17 +6881,17 @@ pub fn axis_id_defaults_tests() {
       config.axis_id |> expect.to_equal(expected: "0")
     }),
     it("LineConfig defaults x_axis_id and y_axis_id to 0", fn() {
-      let config = line.line_config(data_key: "v")
+      let config = line.line_config(data_key: "v", meta: common.series_meta())
       config.x_axis_id |> expect.to_equal(expected: "0")
       config.y_axis_id |> expect.to_equal(expected: "0")
     }),
     it("AreaConfig defaults x_axis_id and y_axis_id to 0", fn() {
-      let config = area.area_config(data_key: "v")
+      let config = area.area_config(data_key: "v", meta: common.series_meta())
       config.x_axis_id |> expect.to_equal(expected: "0")
       config.y_axis_id |> expect.to_equal(expected: "0")
     }),
     it("BarConfig defaults x_axis_id and y_axis_id to 0", fn() {
-      let config = bar.bar_config(data_key: "v")
+      let config = bar.bar_config(data_key: "v", meta: common.series_meta())
       config.x_axis_id |> expect.to_equal(expected: "0")
       config.y_axis_id |> expect.to_equal(expected: "0")
     }),
@@ -6779,36 +6928,45 @@ pub fn axis_id_builders_tests() {
     it("x_axis_id sets XAxisConfig axis_id", fn() {
       let config =
         axis.x_axis_config()
-        |> axis.x_axis_id("1")
+        |> axis.axis_id("1")
       config.axis_id |> expect.to_equal(expected: "1")
     }),
     it("y_axis_id sets YAxisConfig axis_id", fn() {
       let config =
         axis.y_axis_config()
-        |> axis.y_axis_id("1")
+        |> axis.axis_id("1")
       config.axis_id |> expect.to_equal(expected: "1")
     }),
     it("line_x_axis_id and line_y_axis_id set LineConfig axis IDs", fn() {
       let config =
-        line.line_config(data_key: "v")
-        |> line.line_x_axis_id(id: "x1")
-        |> line.line_y_axis_id(id: "y1")
+        line.line_config(data_key: "v", meta: common.series_meta())
+        |> line.line_meta(
+          meta: common.series_meta()
+          |> common.series_x_axis_id(id: "x1")
+          |> common.series_y_axis_id(id: "y1"),
+        )
       config.x_axis_id |> expect.to_equal(expected: "x1")
       config.y_axis_id |> expect.to_equal(expected: "y1")
     }),
     it("area_x_axis_id and area_y_axis_id set AreaConfig axis IDs", fn() {
       let config =
-        area.area_config(data_key: "v")
-        |> area.area_x_axis_id(id: "x1")
-        |> area.area_y_axis_id(id: "y1")
+        area.area_config(data_key: "v", meta: common.series_meta())
+        |> area.area_meta(
+          meta: common.series_meta()
+          |> common.series_x_axis_id(id: "x1")
+          |> common.series_y_axis_id(id: "y1"),
+        )
       config.x_axis_id |> expect.to_equal(expected: "x1")
       config.y_axis_id |> expect.to_equal(expected: "y1")
     }),
     it("bar_x_axis_id and bar_y_axis_id set BarConfig axis IDs", fn() {
       let config =
-        bar.bar_config(data_key: "v")
-        |> bar.bar_x_axis_id(id: "x1")
-        |> bar.bar_y_axis_id(id: "y1")
+        bar.bar_config(data_key: "v", meta: common.series_meta())
+        |> bar.bar_meta(
+          meta: common.series_meta()
+          |> common.series_x_axis_id(id: "x1")
+          |> common.series_y_axis_id(id: "y1"),
+        )
       config.x_axis_id |> expect.to_equal(expected: "x1")
       config.y_axis_id |> expect.to_equal(expected: "y1")
     }),
@@ -6865,7 +7023,7 @@ pub fn multi_y_axis_render_tests() {
       let html =
         chart.line_chart(data: data, width: 500, height: 300, children: [
           chart.y_axis(axis.y_axis_config()),
-          chart.line(line.line_config(data_key: "v")),
+          chart.line(line.line_config(data_key: "v", meta: common.series_meta())),
         ])
         |> element.to_string
       // Should render a y-axis group
@@ -6890,19 +7048,23 @@ pub fn multi_y_axis_render_tests() {
       ]
       let html =
         chart.line_chart(data: data, width: 600, height: 300, children: [
-          chart.y_axis(axis.y_axis_config() |> axis.y_axis_id("0")),
+          chart.y_axis(axis.y_axis_config() |> axis.axis_id("0")),
           chart.y_axis(
             axis.y_axis_config()
-            |> axis.y_axis_id("1")
-            |> axis.y_orientation(axis.Right),
+            |> axis.axis_id("1")
+            |> axis.axis_orientation(axis.Right),
           ),
           chart.line(
-            line.line_config(data_key: "temp")
-            |> line.line_y_axis_id(id: "0"),
+            line.line_config(data_key: "temp", meta: common.series_meta())
+            |> line.line_meta(
+              meta: common.series_meta() |> common.series_y_axis_id(id: "0"),
+            ),
           ),
           chart.line(
-            line.line_config(data_key: "humidity")
-            |> line.line_y_axis_id(id: "1"),
+            line.line_config(data_key: "humidity", meta: common.series_meta())
+            |> line.line_meta(
+              meta: common.series_meta() |> common.series_y_axis_id(id: "1"),
+            ),
           ),
         ])
         |> element.to_string
@@ -6935,19 +7097,23 @@ pub fn multi_y_axis_render_tests() {
       ]
       let html =
         chart.line_chart(data: data, width: 600, height: 300, children: [
-          chart.y_axis(axis.y_axis_config() |> axis.y_axis_id("0")),
+          chart.y_axis(axis.y_axis_config() |> axis.axis_id("0")),
           chart.y_axis(
             axis.y_axis_config()
-            |> axis.y_axis_id("1")
-            |> axis.y_orientation(axis.Right),
+            |> axis.axis_id("1")
+            |> axis.axis_orientation(axis.Right),
           ),
           chart.line(
-            line.line_config(data_key: "small")
-            |> line.line_y_axis_id(id: "0"),
+            line.line_config(data_key: "small", meta: common.series_meta())
+            |> line.line_meta(
+              meta: common.series_meta() |> common.series_y_axis_id(id: "0"),
+            ),
           ),
           chart.line(
-            line.line_config(data_key: "large")
-            |> line.line_y_axis_id(id: "1"),
+            line.line_config(data_key: "large", meta: common.series_meta())
+            |> line.line_meta(
+              meta: common.series_meta() |> common.series_y_axis_id(id: "1"),
+            ),
           ),
         ])
         |> element.to_string
@@ -6974,10 +7140,12 @@ pub fn multi_y_axis_render_tests() {
       ]
       let html_single_axis =
         chart.line_chart(data: data, width: 600, height: 300, children: [
-          chart.y_axis(axis.y_axis_config() |> axis.y_axis_id("0")),
+          chart.y_axis(axis.y_axis_config() |> axis.axis_id("0")),
           chart.line(
-            line.line_config(data_key: "small")
-            |> line.line_y_axis_id(id: "0"),
+            line.line_config(data_key: "small", meta: common.series_meta())
+            |> line.line_meta(
+              meta: common.series_meta() |> common.series_y_axis_id(id: "0"),
+            ),
           ),
         ])
         |> element.to_string
@@ -6998,19 +7166,23 @@ pub fn multi_y_axis_render_tests() {
       ]
       let html =
         chart.area_chart(data: data, width: 600, height: 300, children: [
-          chart.y_axis(axis.y_axis_config() |> axis.y_axis_id("0")),
+          chart.y_axis(axis.y_axis_config() |> axis.axis_id("0")),
           chart.y_axis(
             axis.y_axis_config()
-            |> axis.y_axis_id("1")
-            |> axis.y_orientation(axis.Right),
+            |> axis.axis_id("1")
+            |> axis.axis_orientation(axis.Right),
           ),
           chart.area(
-            area.area_config(data_key: "v1")
-            |> area.area_y_axis_id(id: "0"),
+            area.area_config(data_key: "v1", meta: common.series_meta())
+            |> area.area_meta(
+              meta: common.series_meta() |> common.series_y_axis_id(id: "0"),
+            ),
           ),
           chart.area(
-            area.area_config(data_key: "v2")
-            |> area.area_y_axis_id(id: "1"),
+            area.area_config(data_key: "v2", meta: common.series_meta())
+            |> area.area_meta(
+              meta: common.series_meta() |> common.series_y_axis_id(id: "1"),
+            ),
           ),
         ])
         |> element.to_string
@@ -7033,19 +7205,23 @@ pub fn multi_y_axis_render_tests() {
       ]
       let html =
         chart.bar_chart(data: data, width: 600, height: 300, children: [
-          chart.y_axis(axis.y_axis_config() |> axis.y_axis_id("0")),
+          chart.y_axis(axis.y_axis_config() |> axis.axis_id("0")),
           chart.y_axis(
             axis.y_axis_config()
-            |> axis.y_axis_id("1")
-            |> axis.y_orientation(axis.Right),
+            |> axis.axis_id("1")
+            |> axis.axis_orientation(axis.Right),
           ),
           chart.bar(
-            bar.bar_config(data_key: "revenue")
-            |> bar.bar_y_axis_id(id: "0"),
+            bar.bar_config(data_key: "revenue", meta: common.series_meta())
+            |> bar.bar_meta(
+              meta: common.series_meta() |> common.series_y_axis_id(id: "0"),
+            ),
           ),
           chart.bar(
-            bar.bar_config(data_key: "count")
-            |> bar.bar_y_axis_id(id: "1"),
+            bar.bar_config(data_key: "count", meta: common.series_meta())
+            |> bar.bar_meta(
+              meta: common.series_meta() |> common.series_y_axis_id(id: "1"),
+            ),
           ),
         ])
         |> element.to_string
@@ -7063,19 +7239,23 @@ pub fn multi_y_axis_render_tests() {
       ]
       let html =
         chart.line_chart(data: data, width: 600, height: 300, children: [
-          chart.y_axis(axis.y_axis_config() |> axis.y_axis_id("0")),
+          chart.y_axis(axis.y_axis_config() |> axis.axis_id("0")),
           chart.y_axis(
             axis.y_axis_config()
-            |> axis.y_axis_id("1")
-            |> axis.y_orientation(axis.Right),
+            |> axis.axis_id("1")
+            |> axis.axis_orientation(axis.Right),
           ),
           chart.line(
-            line.line_config(data_key: "v1")
-            |> line.line_y_axis_id(id: "0"),
+            line.line_config(data_key: "v1", meta: common.series_meta())
+            |> line.line_meta(
+              meta: common.series_meta() |> common.series_y_axis_id(id: "0"),
+            ),
           ),
           chart.line(
-            line.line_config(data_key: "v2")
-            |> line.line_y_axis_id(id: "1"),
+            line.line_config(data_key: "v2", meta: common.series_meta())
+            |> line.line_meta(
+              meta: common.series_meta() |> common.series_y_axis_id(id: "1"),
+            ),
           ),
           chart.reference_line(
             reference.horizontal_line(value: 5.0)
@@ -7278,7 +7458,7 @@ pub fn treemap_tests() {
         ])
       let html =
         chart.treemap_chart(width: 500, height: 400, children: [
-          chart.treemap_series(config: config),
+          chart.treemap(config: config),
         ])
         |> element.to_string
       html |> string.contains("<svg") |> expect.to_be_true
@@ -7461,8 +7641,8 @@ pub fn treemap_tests() {
         ])
       let html =
         chart.treemap_chart(width: 400, height: 300, children: [
-          chart.treemap_series(config: config),
-          chart.chart_tooltip(tooltip.tooltip_config()),
+          chart.treemap(config: config),
+          chart.tooltip(tooltip.tooltip_config()),
         ])
         |> element.to_string
       html |> string.contains("chart-hotspot") |> expect.to_be_true
@@ -7772,7 +7952,7 @@ pub fn sunburst_tests() {
         |> sunburst.sunburst_data(data: root)
       let html =
         chart.sunburst_chart(width: 500, height: 400, children: [
-          chart.sunburst_series(config: config),
+          chart.sunburst(config: config),
         ])
         |> element.to_string
       html |> string.contains("<svg") |> expect.to_be_true
@@ -8094,7 +8274,7 @@ pub fn sankey_tests() {
       let config = sankey.sankey_config(data: data)
       let html =
         chart.sankey_chart(width: 500, height: 400, children: [
-          chart.sankey_series(config: config),
+          chart.sankey(config: config),
         ])
         |> element.to_string
       html |> string.contains("<svg") |> expect.to_be_true
@@ -8279,7 +8459,10 @@ pub fn layout_direction_tests() {
       // Without chart_layout, bars should render in default (Horizontal) mode
       let html =
         chart.bar_chart(data: test_data, width: 600, height: 400, children: [
-          chart.bar(bar.bar_config(data_key: "desktop")),
+          chart.bar(bar.bar_config(
+            data_key: "desktop",
+            meta: common.series_meta(),
+          )),
         ])
         |> element.to_string
       // Should contain bar SVG elements
@@ -8289,8 +8472,11 @@ pub fn layout_direction_tests() {
     it("Vertical layout produces horizontal bars (value extends along X)", fn() {
       let html =
         chart.bar_chart(data: test_data, width: 600, height: 400, children: [
-          chart.chart_layout(layout: layout.Vertical),
-          chart.bar(bar.bar_config(data_key: "desktop")),
+          chart.layout(layout: layout.Vertical),
+          chart.bar(bar.bar_config(
+            data_key: "desktop",
+            meta: common.series_meta(),
+          )),
         ])
         |> element.to_string
       // Should still produce bar elements
@@ -8304,9 +8490,9 @@ pub fn layout_direction_tests() {
     it("Vertical layout puts categories on Y-axis", fn() {
       let html =
         chart.bar_chart(data: test_data, width: 600, height: 400, children: [
-          chart.chart_layout(layout: layout.Vertical),
+          chart.layout(layout: layout.Vertical),
           chart.bar(
-            bar.bar_config(data_key: "desktop")
+            bar.bar_config(data_key: "desktop", meta: common.series_meta())
             |> bar.bar_fill("#ff0000"),
           ),
         ])
@@ -8321,9 +8507,9 @@ pub fn layout_direction_tests() {
     it("Vertical layout line chart swaps coordinates", fn() {
       let html =
         chart.line_chart(data: test_data, width: 600, height: 400, children: [
-          chart.chart_layout(layout: layout.Vertical),
+          chart.layout(layout: layout.Vertical),
           chart.line(
-            line.line_config(data_key: "desktop")
+            line.line_config(data_key: "desktop", meta: common.series_meta())
             |> line.line_stroke("#ff0000"),
           ),
         ])
@@ -8338,10 +8524,10 @@ pub fn layout_direction_tests() {
     it("Vertical layout area chart renders correctly", fn() {
       let html =
         chart.area_chart(data: test_data, width: 600, height: 400, children: [
-          chart.chart_layout(layout: layout.Vertical),
+          chart.layout(layout: layout.Vertical),
           chart.area(
-            area.area_config(data_key: "desktop")
-            |> area.fill("#ff0000"),
+            area.area_config(data_key: "desktop", meta: common.series_meta())
+            |> area.area_fill("#ff0000"),
           ),
         ])
         |> element.to_string
@@ -8352,13 +8538,13 @@ pub fn layout_direction_tests() {
     it("Vertical layout with stacking works", fn() {
       let html =
         chart.bar_chart(data: test_data, width: 600, height: 400, children: [
-          chart.chart_layout(layout: layout.Vertical),
+          chart.layout(layout: layout.Vertical),
           chart.bar(
-            bar.bar_config(data_key: "desktop")
+            bar.bar_config(data_key: "desktop", meta: common.series_meta())
             |> bar.bar_stack_id("a"),
           ),
           chart.bar(
-            bar.bar_config(data_key: "mobile")
+            bar.bar_config(data_key: "mobile", meta: common.series_meta())
             |> bar.bar_stack_id("a"),
           ),
         ])
@@ -8374,13 +8560,19 @@ pub fn layout_direction_tests() {
       // Explicitly setting Horizontal should produce the same output as default
       let html_default =
         chart.bar_chart(data: test_data, width: 600, height: 400, children: [
-          chart.bar(bar.bar_config(data_key: "desktop")),
+          chart.bar(bar.bar_config(
+            data_key: "desktop",
+            meta: common.series_meta(),
+          )),
         ])
         |> element.to_string
       let html_horizontal =
         chart.bar_chart(data: test_data, width: 600, height: 400, children: [
-          chart.chart_layout(layout: layout.Horizontal),
-          chart.bar(bar.bar_config(data_key: "desktop")),
+          chart.layout(layout: layout.Horizontal),
+          chart.bar(bar.bar_config(
+            data_key: "desktop",
+            meta: common.series_meta(),
+          )),
         ])
         |> element.to_string
       html_horizontal |> expect.to_equal(expected: html_default)
@@ -8392,9 +8584,15 @@ pub fn layout_direction_tests() {
           width: 600,
           height: 400,
           children: [
-            chart.chart_layout(layout: layout.Vertical),
-            chart.bar(bar.bar_config(data_key: "desktop")),
-            chart.line(line.line_config(data_key: "mobile")),
+            chart.layout(layout: layout.Vertical),
+            chart.bar(bar.bar_config(
+              data_key: "desktop",
+              meta: common.series_meta(),
+            )),
+            chart.line(line.line_config(
+              data_key: "mobile",
+              meta: common.series_meta(),
+            )),
           ],
         )
         |> element.to_string
@@ -8407,14 +8605,20 @@ pub fn layout_direction_tests() {
     it("Vertical bar layout produces different geometry than Horizontal", fn() {
       let html_h =
         chart.bar_chart(data: test_data, width: 600, height: 400, children: [
-          chart.chart_layout(layout: layout.Horizontal),
-          chart.bar(bar.bar_config(data_key: "desktop")),
+          chart.layout(layout: layout.Horizontal),
+          chart.bar(bar.bar_config(
+            data_key: "desktop",
+            meta: common.series_meta(),
+          )),
         ])
         |> element.to_string
       let html_v =
         chart.bar_chart(data: test_data, width: 600, height: 400, children: [
-          chart.chart_layout(layout: layout.Vertical),
-          chart.bar(bar.bar_config(data_key: "desktop")),
+          chart.layout(layout: layout.Vertical),
+          chart.bar(bar.bar_config(
+            data_key: "desktop",
+            meta: common.series_meta(),
+          )),
         ])
         |> element.to_string
       // Horizontal and Vertical should produce different SVG output
@@ -8423,13 +8627,13 @@ pub fn layout_direction_tests() {
     it("Vertical layout with multi-bar side-by-side works", fn() {
       let html =
         chart.bar_chart(data: test_data, width: 600, height: 400, children: [
-          chart.chart_layout(layout: layout.Vertical),
+          chart.layout(layout: layout.Vertical),
           chart.bar(
-            bar.bar_config(data_key: "desktop")
+            bar.bar_config(data_key: "desktop", meta: common.series_meta())
             |> bar.bar_fill("#ff0000"),
           ),
           chart.bar(
-            bar.bar_config(data_key: "mobile")
+            bar.bar_config(data_key: "mobile", meta: common.series_meta())
             |> bar.bar_fill("#0000ff"),
           ),
         ])
@@ -8443,9 +8647,9 @@ pub fn layout_direction_tests() {
     it("Vertical layout bar with labels renders label text", fn() {
       let html =
         chart.bar_chart(data: test_data, width: 600, height: 400, children: [
-          chart.chart_layout(layout: layout.Vertical),
+          chart.layout(layout: layout.Vertical),
           chart.bar(
-            bar.bar_config(data_key: "desktop")
+            bar.bar_config(data_key: "desktop", meta: common.series_meta())
             |> bar.bar_label(True),
           ),
         ])
@@ -8462,14 +8666,20 @@ pub fn layout_direction_tests() {
       fn() {
         let html_h =
           chart.line_chart(data: test_data, width: 600, height: 400, children: [
-            chart.chart_layout(layout: layout.Horizontal),
-            chart.line(line.line_config(data_key: "desktop")),
+            chart.layout(layout: layout.Horizontal),
+            chart.line(line.line_config(
+              data_key: "desktop",
+              meta: common.series_meta(),
+            )),
           ])
           |> element.to_string
         let html_v =
           chart.line_chart(data: test_data, width: 600, height: 400, children: [
-            chart.chart_layout(layout: layout.Vertical),
-            chart.line(line.line_config(data_key: "desktop")),
+            chart.layout(layout: layout.Vertical),
+            chart.line(line.line_config(
+              data_key: "desktop",
+              meta: common.series_meta(),
+            )),
           ])
           |> element.to_string
         // Horizontal and Vertical should produce different paths
@@ -9758,7 +9968,7 @@ pub fn svg_overflow_visible_tests() {
       ]
       let html =
         chart.pie_chart(data: data, width: 360, height: 360, children: [
-          chart.pie_series(
+          chart.pie(
             pie.pie_config(data_key: "value")
             |> pie.pie_outer_radius(140.0)
             |> pie.pie_label(True),
@@ -9786,7 +9996,7 @@ pub fn svg_overflow_visible_tests() {
       ]
       let html =
         chart.radar_chart(data: data, width: 400, height: 400, children: [
-          chart.radar_series(radar.radar_config(data_key: "score")),
+          chart.radar(radar.radar_config(data_key: "score")),
         ])
         |> element.to_string
       html
@@ -9802,7 +10012,10 @@ pub fn svg_overflow_visible_tests() {
       ]
       let html =
         chart.line_chart(data: data, width: 400, height: 300, children: [
-          chart.line(line.line_config(data_key: "sales")),
+          chart.line(line.line_config(
+            data_key: "sales",
+            meta: common.series_meta(),
+          )),
         ])
         |> element.to_string
       html

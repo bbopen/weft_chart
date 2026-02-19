@@ -11,6 +11,7 @@
 //// import weft_chart.{data_point}
 //// import weft_chart/chart
 //// import weft_chart/series/area
+//// import weft_chart/series/common
 //// import weft_chart/curve
 ////
 //// let data = [
@@ -20,8 +21,8 @@
 ////
 //// chart.area_chart(data: data, width: 500, height: 300, children: [
 ////   chart.area(
-////     area.area_config(data_key: "revenue")
-////     |> area.curve_type(curve.Natural),
+////     area.area_config(data_key: "revenue", meta: common.series_meta())
+////     |> area.area_curve_type(curve.Natural),
 ////   ),
 //// ])
 //// ```

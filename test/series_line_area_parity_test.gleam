@@ -10,6 +10,7 @@ import startest/expect
 import weft_chart/curve
 import weft_chart/render
 import weft_chart/series/area
+import weft_chart/series/common
 import weft_chart/series/line
 
 pub fn monotone_curve_alias_tests() {
@@ -63,13 +64,14 @@ pub fn bump_curve_alias_tests() {
 pub fn line_animate_new_values_default_tests() {
   describe("line animate_new_values default", [
     it("defaults to True matching recharts", fn() {
-      let config = line.line_config(data_key: "value")
+      let config =
+        line.line_config(data_key: "value", meta: common.series_meta())
       config.animate_new_values
       |> expect.to_be_true
     }),
     it("can be set to False via builder", fn() {
       let config =
-        line.line_config(data_key: "value")
+        line.line_config(data_key: "value", meta: common.series_meta())
         |> line.line_animate_new_values(animate: False)
       config.animate_new_values
       |> expect.to_be_false
@@ -80,13 +82,14 @@ pub fn line_animate_new_values_default_tests() {
 pub fn line_clip_dot_default_tests() {
   describe("line clip_dot default", [
     it("defaults to True matching recharts", fn() {
-      let config = line.line_config(data_key: "value")
+      let config =
+        line.line_config(data_key: "value", meta: common.series_meta())
       config.clip_dot
       |> expect.to_be_true
     }),
     it("can be set to False via builder", fn() {
       let config =
-        line.line_config(data_key: "value")
+        line.line_config(data_key: "value", meta: common.series_meta())
         |> line.line_clip_dot(clip: False)
       config.clip_dot
       |> expect.to_be_false
@@ -97,13 +100,14 @@ pub fn line_clip_dot_default_tests() {
 pub fn area_custom_dot_tests() {
   describe("area custom_dot", [
     it("defaults to None", fn() {
-      let config = area.area_config(data_key: "value")
+      let config =
+        area.area_config(data_key: "value", meta: common.series_meta())
       config.custom_dot
       |> expect.to_equal(expected: None)
     }),
     it("sets renderer via builder", fn() {
       let config =
-        area.area_config(data_key: "value")
+        area.area_config(data_key: "value", meta: common.series_meta())
         |> area.area_custom_dot(renderer: fn(_props: render.DotProps) {
           element.none()
         })
@@ -117,13 +121,14 @@ pub fn area_custom_dot_tests() {
 pub fn area_animate_new_values_default_tests() {
   describe("area animate_new_values default", [
     it("defaults to True matching recharts", fn() {
-      let config = area.area_config(data_key: "value")
+      let config =
+        area.area_config(data_key: "value", meta: common.series_meta())
       config.animate_new_values
       |> expect.to_be_true
     }),
     it("can be set to False via builder", fn() {
       let config =
-        area.area_config(data_key: "value")
+        area.area_config(data_key: "value", meta: common.series_meta())
         |> area.area_animate_new_values(animate: False)
       config.animate_new_values
       |> expect.to_be_false
@@ -134,13 +139,14 @@ pub fn area_animate_new_values_default_tests() {
 pub fn area_clip_dot_default_tests() {
   describe("area clip_dot default", [
     it("defaults to True matching recharts", fn() {
-      let config = area.area_config(data_key: "value")
+      let config =
+        area.area_config(data_key: "value", meta: common.series_meta())
       config.clip_dot
       |> expect.to_be_true
     }),
     it("can be set to False via builder", fn() {
       let config =
-        area.area_config(data_key: "value")
+        area.area_config(data_key: "value", meta: common.series_meta())
         |> area.area_clip_dot(clip: False)
       config.clip_dot
       |> expect.to_be_false

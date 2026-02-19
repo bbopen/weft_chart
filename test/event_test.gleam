@@ -13,6 +13,7 @@ import startest/expect
 import weft_chart/chart
 import weft_chart/event
 import weft_chart/internal/layout
+import weft_chart/series/common
 import weft_chart/series/line
 import weft_chart/tooltip
 
@@ -121,7 +122,7 @@ pub fn event_tests() {
     // ----- Event builders on chart produce correct ChartChild -----
     describe("chart_event builder", [
       it("produces EventChild for on_click", fn() {
-        let child = chart.chart_event(handler: event.on_click(handler: Clicked))
+        let child = chart.event(handler: event.on_click(handler: Clicked))
         case child {
           chart.EventChild(..) -> True
           _ -> False
@@ -130,7 +131,7 @@ pub fn event_tests() {
       }),
       it("produces EventChild for on_mouse_leave", fn() {
         let child =
-          chart.chart_event(
+          chart.event(
             handler: event.on_mouse_leave(handler: fn() { MouseLeft }),
           )
         case child {
@@ -149,8 +150,11 @@ pub fn event_tests() {
             width: 400,
             height: 300,
             children: [
-              chart.line(line.line_config(data_key: "val")),
-              chart.chart_event(handler: event.on_click(handler: Clicked)),
+              chart.line(line.line_config(
+                data_key: "val",
+                meta: common.series_meta(),
+              )),
+              chart.event(handler: event.on_click(handler: Clicked)),
             ],
           )
           |> element.to_string
@@ -164,12 +168,13 @@ pub fn event_tests() {
             width: 400,
             height: 300,
             children: [
-              chart.line(line.line_config(data_key: "val")),
-              chart.chart_event(handler: event.on_click(handler: Clicked)),
-              chart.chart_event(handler: event.on_mouse_enter(
-                handler: MouseEntered,
+              chart.line(line.line_config(
+                data_key: "val",
+                meta: common.series_meta(),
               )),
-              chart.chart_event(
+              chart.event(handler: event.on_click(handler: Clicked)),
+              chart.event(handler: event.on_mouse_enter(handler: MouseEntered)),
+              chart.event(
                 handler: event.on_mouse_leave(handler: fn() { MouseLeft }),
               ),
             ],
@@ -195,7 +200,10 @@ pub fn event_tests() {
             width: 400,
             height: 300,
             children: [
-              chart.line(line.line_config(data_key: "val")),
+              chart.line(line.line_config(
+                data_key: "val",
+                meta: common.series_meta(),
+              )),
               chart.throttle(delay_ms: 150),
             ],
           )
@@ -210,7 +218,12 @@ pub fn event_tests() {
             data: sample_data(),
             width: 400,
             height: 300,
-            children: [chart.line(line.line_config(data_key: "val"))],
+            children: [
+              chart.line(line.line_config(
+                data_key: "val",
+                meta: common.series_meta(),
+              )),
+            ],
           )
           |> element.to_string
         html
@@ -737,9 +750,15 @@ pub fn event_tests() {
             width: 400,
             height: 300,
             children: [
-              chart.line(line.line_config(data_key: "present_value")),
-              chart.line(line.line_config(data_key: "missing_value")),
-              chart.chart_tooltip(config: tooltip.tooltip_config()),
+              chart.line(line.line_config(
+                data_key: "present_value",
+                meta: common.series_meta(),
+              )),
+              chart.line(line.line_config(
+                data_key: "missing_value",
+                meta: common.series_meta(),
+              )),
+              chart.tooltip(config: tooltip.tooltip_config()),
             ],
           )
           |> element.to_string
@@ -753,9 +772,15 @@ pub fn event_tests() {
             width: 400,
             height: 300,
             children: [
-              chart.line(line.line_config(data_key: "present_value")),
-              chart.line(line.line_config(data_key: "missing_value")),
-              chart.chart_tooltip(
+              chart.line(line.line_config(
+                data_key: "present_value",
+                meta: common.series_meta(),
+              )),
+              chart.line(line.line_config(
+                data_key: "missing_value",
+                meta: common.series_meta(),
+              )),
+              chart.tooltip(
                 config: tooltip.tooltip_config()
                 |> tooltip.tooltip_filter_null(filter: False),
               ),
@@ -773,9 +798,12 @@ pub fn event_tests() {
             width: 400,
             height: 300,
             children: [
-              chart.chart_layout(layout: layout.Vertical),
-              chart.line(line.line_config(data_key: "val")),
-              chart.chart_tooltip(
+              chart.layout(layout: layout.Vertical),
+              chart.line(line.line_config(
+                data_key: "val",
+                meta: common.series_meta(),
+              )),
+              chart.tooltip(
                 config: tooltip.tooltip_config()
                 |> tooltip.tooltip_default_index(index: 0)
                 |> tooltip.tooltip_show_active_dot(show: True),
@@ -802,9 +830,12 @@ pub fn event_tests() {
             width: 400,
             height: 300,
             children: [
-              chart.line(line.line_config(data_key: "val")),
-              chart.chart_tooltip(config: tooltip_config),
-              chart.chart_event(handler: event.on_click(handler: Clicked)),
+              chart.line(line.line_config(
+                data_key: "val",
+                meta: common.series_meta(),
+              )),
+              chart.tooltip(config: tooltip_config),
+              chart.event(handler: event.on_click(handler: Clicked)),
               chart.throttle(delay_ms: 200),
             ],
           )
@@ -823,7 +854,12 @@ pub fn event_tests() {
             data: sample_data(),
             width: 400,
             height: 300,
-            children: [chart.line(line.line_config(data_key: "val"))],
+            children: [
+              chart.line(line.line_config(
+                data_key: "val",
+                meta: common.series_meta(),
+              )),
+            ],
           )
           |> element.to_string
         html |> string.contains("<svg") |> expect.to_be_true

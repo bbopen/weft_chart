@@ -4,6 +4,7 @@ import startest.{describe, it}
 import startest/expect
 import weft_chart/axis
 import weft_chart/series/area
+import weft_chart/series/common
 import weft_chart/series/pie
 
 pub fn main() {
@@ -13,7 +14,7 @@ pub fn main() {
 pub fn area_fill_opacity_tests() {
   describe("area_config fill_opacity", [
     it("defaults to 0.6 matching recharts", fn() {
-      let config = area.area_config(data_key: "x")
+      let config = area.area_config(data_key: "x", meta: common.series_meta())
       config.fill_opacity |> expect.to_equal(expected: 0.6)
     }),
   ])
@@ -22,7 +23,7 @@ pub fn area_fill_opacity_tests() {
 pub fn area_base_value_tests() {
   describe("area_config base_value", [
     it("defaults to Auto", fn() {
-      let config = area.area_config(data_key: "x")
+      let config = area.area_config(data_key: "x", meta: common.series_meta())
       config.base_value |> expect.to_equal(expected: area.Auto)
     }),
   ])
