@@ -341,7 +341,7 @@ fn monotone_x_slopes(points: List(#(Float, Float))) -> List(Float) {
               let abs_s1 = math.abs(s1)
               let half_abs_p = 0.5 *. math.abs(p)
               let min_val = math.list_min([abs_s0, abs_s1, half_abs_p])
-              math.sign(s0) *. math.sign(s1) *. min_val
+              { math.sign(s0) +. math.sign(s1) } *. min_val
             }
           }
         })
