@@ -15,6 +15,7 @@ import startest/expect
 import weft_chart/brush
 import weft_chart/chart
 import weft_chart/grid
+import weft_chart/scale
 import weft_chart/series/radar
 
 // ---------------------------------------------------------------------------
@@ -255,6 +256,50 @@ pub fn brush_defaults_parity_tests() {
         )
       config.brush_padding |> expect.to_equal(expected: 2.0)
     }),
+  ])
+}
+
+pub fn cartesian_grid_stripe_direction_tests() {
+  describe("CartesianGrid stripe direction", [
+    it(
+      "horizontal_fill produces ordered non-overlapping bands with descending coordinates",
+      fn() {
+        let x_scale =
+          scale.linear(
+            domain_min: 0.0,
+            domain_max: 100.0,
+            range_start: 0.0,
+            range_end: 400.0,
+          )
+        let y_scale =
+          scale.linear(
+            domain_min: 0.0,
+            domain_max: 100.0,
+            range_start: 300.0,
+            range_end: 0.0,
+          )
+        let config =
+          grid.cartesian_grid_config()
+          |> grid.grid_horizontal_fill(colors: ["#111", "#222"])
+          |> grid.grid_horizontal_values(values: [0.0, 25.0, 50.0, 75.0, 100.0])
+        let html =
+          grid.render_cartesian_grid(
+            config: config,
+            x_scale: x_scale,
+            y_scale: y_scale,
+            plot_x: 0.0,
+            plot_y: 0.0,
+            plot_width: 400.0,
+            plot_height: 300.0,
+          )
+          |> element.to_string
+        // Bands should be split across multiple ordered y starts.
+        html |> string.contains("y=\"0\"") |> expect.to_be_true
+        html |> string.contains("y=\"75\"") |> expect.to_be_true
+        html |> string.contains("y=\"150\"") |> expect.to_be_true
+        html |> string.contains("y=\"225\"") |> expect.to_be_true
+      },
+    ),
   ])
 }
 

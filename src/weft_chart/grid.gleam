@@ -422,11 +422,14 @@ fn render_stripes(
         True -> [plot_y, ..list.append(coords, [plot_y +. plot_height])]
         False -> [plot_x, ..list.append(coords, [plot_x +. plot_width])]
       }
+      // Normalize coordinate order to keep stripe bands non-overlapping
+      // regardless of axis direction.
+      let normalized_coords = normalize_bounds(all_coords)
       let opacity_attrs = case fill_opacity == 1.0 {
         True -> []
         False -> [svg.attr("fill-opacity", float.to_string(fill_opacity))]
       }
-      let pairs = list.zip(all_coords, list.drop(all_coords, 1))
+      let pairs = list.zip(normalized_coords, list.drop(normalized_coords, 1))
       list.index_map(pairs, fn(pair, i) {
         let #(start, end) = pair
         let color = cycle_list(colors, i)
@@ -435,7 +438,7 @@ fn render_stripes(
           True ->
             svg.rect(
               x: math.fmt(plot_x),
-              y: math.fmt(start),
+              y: math.fmt(math.list_min([start, end])),
               width: math.fmt(plot_width),
               height: math.fmt(dim),
               attrs: list.append(
@@ -445,7 +448,7 @@ fn render_stripes(
             )
           False ->
             svg.rect(
-              x: math.fmt(start),
+              x: math.fmt(math.list_min([start, end])),
               y: math.fmt(plot_y),
               width: math.fmt(dim),
               height: math.fmt(plot_height),
@@ -457,6 +460,29 @@ fn render_stripes(
         }
       })
     }
+  }
+}
+
+/// Normalize and de-duplicate stripe boundary coordinates.
+fn normalize_bounds(coords: List(Float)) -> List(Float) {
+  let sorted = list.sort(coords, float.compare)
+  dedupe_sorted(coords: sorted, previous: None, acc: [])
+}
+
+fn dedupe_sorted(
+  coords coords: List(Float),
+  previous previous: Option(Float),
+  acc acc: List(Float),
+) -> List(Float) {
+  case coords {
+    [] -> list.reverse(acc)
+    [value, ..rest] ->
+      case previous {
+        Some(prev) if prev == value ->
+          dedupe_sorted(coords: rest, previous: previous, acc: acc)
+        _ ->
+          dedupe_sorted(coords: rest, previous: Some(value), acc: [value, ..acc])
+      }
   }
 }
 

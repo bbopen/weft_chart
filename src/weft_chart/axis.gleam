@@ -105,6 +105,66 @@ pub type AxisOrientation {
   Right
 }
 
+/// Axis role used by the additive axis v2 API.
+pub type AxisRole {
+  /// Horizontal axis role (x-axis semantics).
+  XAxisRole
+  /// Vertical axis role (y-axis semantics).
+  YAxisRole
+}
+
+/// Shared axis configuration for the additive axis v2 API.
+///
+/// Convert to concrete `XAxisConfig`/`YAxisConfig` using `axis_to_x` or
+/// `axis_to_y`.
+pub type AxisBaseConfig(msg) {
+  AxisBaseConfig(
+    role: AxisRole,
+    data_key: String,
+    type_: AxisType,
+    orientation: AxisOrientation,
+    show_tick_line: Bool,
+    show_axis_line: Bool,
+    tick_margin: Int,
+    tick_count: Int,
+    tick_formatter: fn(String, Int) -> String,
+    padding_left: Int,
+    padding_right: Int,
+    padding_top: Int,
+    padding_bottom: Int,
+    padding: PaddingMode,
+    hidden: Bool,
+    reversed: Bool,
+    mirror: Bool,
+    tick_size: Int,
+    allow_decimals: Bool,
+    angle: Float,
+    min_tick_gap: Int,
+    ticks_override: Option(TickOverride),
+    label: String,
+    interval: AxisInterval,
+    allow_data_overflow: Bool,
+    domain_min: Float,
+    domain_max: Float,
+    has_custom_domain: Bool,
+    unit: String,
+    scale_type: ScaleType,
+    width: Int,
+    height: Int,
+    name: String,
+    allow_duplicated_category: Bool,
+    axis_line_stroke: String,
+    axis_line_stroke_width: Float,
+    tick_line_stroke: String,
+    tick_line_stroke_width: Float,
+    axis_line_stroke_dasharray: String,
+    tick_line_stroke_dasharray: String,
+    axis_id: String,
+    custom_tick: Option(fn(render.TickProps) -> Element(msg)),
+    include_hidden: Bool,
+  )
+}
+
 /// Configuration for an x-axis.
 pub type XAxisConfig(msg) {
   XAxisConfig(
@@ -211,6 +271,203 @@ pub type ZAxisConfig {
 // Constructors
 // ---------------------------------------------------------------------------
 
+/// Create a shared axis v2 configuration for the requested role.
+pub fn axis_base_config(role role: AxisRole) -> AxisBaseConfig(msg) {
+  case role {
+    XAxisRole ->
+      AxisBaseConfig(
+        role: XAxisRole,
+        data_key: "category",
+        type_: CategoryAxis,
+        orientation: Bottom,
+        show_tick_line: True,
+        show_axis_line: True,
+        tick_margin: 2,
+        tick_count: 5,
+        tick_formatter: fn(v, _i) { v },
+        padding_left: 0,
+        padding_right: 0,
+        padding_top: 0,
+        padding_bottom: 0,
+        padding: ExplicitPadding(left: 0, right: 0),
+        hidden: False,
+        reversed: False,
+        mirror: False,
+        tick_size: 6,
+        allow_decimals: True,
+        angle: 0.0,
+        min_tick_gap: 5,
+        ticks_override: None,
+        label: "",
+        interval: PreserveEnd,
+        allow_data_overflow: False,
+        domain_min: 0.0,
+        domain_max: 0.0,
+        has_custom_domain: False,
+        unit: "",
+        scale_type: LinearScaleType,
+        width: 60,
+        height: 30,
+        name: "",
+        allow_duplicated_category: True,
+        axis_line_stroke: "",
+        axis_line_stroke_width: 0.0,
+        tick_line_stroke: "",
+        tick_line_stroke_width: 0.0,
+        axis_line_stroke_dasharray: "",
+        tick_line_stroke_dasharray: "",
+        axis_id: "0",
+        custom_tick: None,
+        include_hidden: False,
+      )
+    YAxisRole ->
+      AxisBaseConfig(
+        role: YAxisRole,
+        data_key: "",
+        type_: NumberAxis,
+        orientation: Left,
+        show_tick_line: True,
+        show_axis_line: True,
+        tick_margin: 2,
+        tick_count: 5,
+        tick_formatter: fn(v, _i) { v },
+        padding_left: 0,
+        padding_right: 0,
+        padding_top: 0,
+        padding_bottom: 0,
+        padding: ExplicitPadding(left: 0, right: 0),
+        hidden: False,
+        reversed: False,
+        mirror: False,
+        tick_size: 6,
+        allow_decimals: True,
+        angle: 0.0,
+        min_tick_gap: 5,
+        ticks_override: None,
+        label: "",
+        interval: PreserveEnd,
+        allow_data_overflow: False,
+        domain_min: 0.0,
+        domain_max: 0.0,
+        has_custom_domain: False,
+        unit: "",
+        scale_type: LinearScaleType,
+        width: 60,
+        height: 30,
+        name: "",
+        allow_duplicated_category: True,
+        axis_line_stroke: "",
+        axis_line_stroke_width: 0.0,
+        tick_line_stroke: "",
+        tick_line_stroke_width: 0.0,
+        axis_line_stroke_dasharray: "",
+        tick_line_stroke_dasharray: "",
+        axis_id: "0",
+        custom_tick: None,
+        include_hidden: False,
+      )
+  }
+}
+
+/// Create a shared axis v2 configuration for x-axis semantics.
+pub fn x_axis_base_config() -> AxisBaseConfig(msg) {
+  axis_base_config(role: XAxisRole)
+}
+
+/// Create a shared axis v2 configuration for y-axis semantics.
+pub fn y_axis_base_config() -> AxisBaseConfig(msg) {
+  axis_base_config(role: YAxisRole)
+}
+
+/// Convert a shared v2 axis config into an `XAxisConfig`.
+pub fn axis_to_x(config config: AxisBaseConfig(msg)) -> XAxisConfig(msg) {
+  XAxisConfig(
+    data_key: config.data_key,
+    type_: config.type_,
+    orientation: config.orientation,
+    show_tick_line: config.show_tick_line,
+    show_axis_line: config.show_axis_line,
+    tick_margin: config.tick_margin,
+    tick_count: config.tick_count,
+    tick_formatter: config.tick_formatter,
+    padding_left: config.padding_left,
+    padding_right: config.padding_right,
+    padding: config.padding,
+    hidden: config.hidden,
+    reversed: config.reversed,
+    mirror: config.mirror,
+    tick_size: config.tick_size,
+    allow_decimals: config.allow_decimals,
+    angle: config.angle,
+    min_tick_gap: config.min_tick_gap,
+    ticks_override: config.ticks_override,
+    label: config.label,
+    interval: config.interval,
+    allow_data_overflow: config.allow_data_overflow,
+    domain_min: config.domain_min,
+    domain_max: config.domain_max,
+    has_custom_domain: config.has_custom_domain,
+    unit: config.unit,
+    scale_type: config.scale_type,
+    height: config.height,
+    name: config.name,
+    allow_duplicated_category: config.allow_duplicated_category,
+    axis_line_stroke: config.axis_line_stroke,
+    axis_line_stroke_width: config.axis_line_stroke_width,
+    tick_line_stroke: config.tick_line_stroke,
+    tick_line_stroke_width: config.tick_line_stroke_width,
+    axis_line_stroke_dasharray: config.axis_line_stroke_dasharray,
+    tick_line_stroke_dasharray: config.tick_line_stroke_dasharray,
+    axis_id: config.axis_id,
+    custom_tick: config.custom_tick,
+    include_hidden: config.include_hidden,
+  )
+}
+
+/// Convert a shared v2 axis config into a `YAxisConfig`.
+pub fn axis_to_y(config config: AxisBaseConfig(msg)) -> YAxisConfig(msg) {
+  YAxisConfig(
+    data_key: config.data_key,
+    type_: config.type_,
+    orientation: config.orientation,
+    show_tick_line: config.show_tick_line,
+    show_axis_line: config.show_axis_line,
+    tick_count: config.tick_count,
+    tick_formatter: config.tick_formatter,
+    domain_min: config.domain_min,
+    domain_max: config.domain_max,
+    has_custom_domain: config.has_custom_domain,
+    hidden: config.hidden,
+    reversed: config.reversed,
+    mirror: config.mirror,
+    tick_size: config.tick_size,
+    allow_decimals: config.allow_decimals,
+    tick_margin: config.tick_margin,
+    ticks_override: config.ticks_override,
+    label: config.label,
+    padding_top: config.padding_top,
+    padding_bottom: config.padding_bottom,
+    min_tick_gap: config.min_tick_gap,
+    angle: config.angle,
+    interval: config.interval,
+    allow_data_overflow: config.allow_data_overflow,
+    unit: config.unit,
+    scale_type: config.scale_type,
+    width: config.width,
+    name: config.name,
+    allow_duplicated_category: config.allow_duplicated_category,
+    axis_line_stroke: config.axis_line_stroke,
+    axis_line_stroke_width: config.axis_line_stroke_width,
+    tick_line_stroke: config.tick_line_stroke,
+    tick_line_stroke_width: config.tick_line_stroke_width,
+    axis_line_stroke_dasharray: config.axis_line_stroke_dasharray,
+    tick_line_stroke_dasharray: config.tick_line_stroke_dasharray,
+    axis_id: config.axis_id,
+    custom_tick: config.custom_tick,
+    include_hidden: config.include_hidden,
+  )
+}
+
 /// Create a z-axis configuration with default settings.
 /// Default range is 64-64 matching recharts ZAxis defaults.
 pub fn z_axis_config(data_key data_key: String) -> ZAxisConfig {
@@ -225,91 +482,220 @@ pub fn z_axis_config(data_key data_key: String) -> ZAxisConfig {
 
 /// Create default x-axis configuration.
 pub fn x_axis_config() -> XAxisConfig(msg) {
-  XAxisConfig(
-    data_key: "category",
-    type_: CategoryAxis,
-    orientation: Bottom,
-    show_tick_line: True,
-    show_axis_line: True,
-    tick_margin: 2,
-    tick_count: 5,
-    tick_formatter: fn(v, _i) { v },
-    padding_left: 0,
-    padding_right: 0,
-    padding: ExplicitPadding(left: 0, right: 0),
-    hidden: False,
-    reversed: False,
-    mirror: False,
-    tick_size: 6,
-    allow_decimals: True,
-    angle: 0.0,
-    min_tick_gap: 5,
-    ticks_override: None,
-    label: "",
-    interval: PreserveEnd,
-    allow_data_overflow: False,
-    domain_min: 0.0,
-    domain_max: 0.0,
-    has_custom_domain: False,
-    unit: "",
-    scale_type: LinearScaleType,
-    height: 30,
-    name: "",
-    allow_duplicated_category: True,
-    axis_line_stroke: "",
-    axis_line_stroke_width: 0.0,
-    tick_line_stroke: "",
-    tick_line_stroke_width: 0.0,
-    axis_line_stroke_dasharray: "",
-    tick_line_stroke_dasharray: "",
-    axis_id: "0",
-    custom_tick: None,
-    include_hidden: False,
-  )
+  axis_to_x(config: x_axis_base_config())
 }
 
 /// Create default y-axis configuration.
 pub fn y_axis_config() -> YAxisConfig(msg) {
-  YAxisConfig(
-    data_key: "",
-    type_: NumberAxis,
-    orientation: Left,
-    show_tick_line: True,
-    show_axis_line: True,
-    tick_count: 5,
-    tick_formatter: fn(v, _i) { v },
-    domain_min: 0.0,
-    domain_max: 0.0,
-    has_custom_domain: False,
-    hidden: False,
-    reversed: False,
-    mirror: False,
-    tick_size: 6,
-    allow_decimals: True,
-    tick_margin: 2,
-    ticks_override: None,
-    label: "",
-    padding_top: 0,
-    padding_bottom: 0,
-    min_tick_gap: 5,
-    angle: 0.0,
-    interval: PreserveEnd,
-    allow_data_overflow: False,
-    unit: "",
-    scale_type: LinearScaleType,
-    width: 60,
-    name: "",
-    allow_duplicated_category: True,
-    axis_line_stroke: "",
-    axis_line_stroke_width: 0.0,
-    tick_line_stroke: "",
-    tick_line_stroke_width: 0.0,
-    axis_line_stroke_dasharray: "",
-    tick_line_stroke_dasharray: "",
-    axis_id: "0",
-    custom_tick: None,
-    include_hidden: False,
+  axis_to_y(config: y_axis_base_config())
+}
+
+// ---------------------------------------------------------------------------
+// Axis v2 shared builders
+// ---------------------------------------------------------------------------
+
+/// Set the data key on a shared v2 axis config.
+pub fn axis_data_key(
+  config config: AxisBaseConfig(msg),
+  key key: String,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, data_key: key)
+}
+
+/// Set the axis type on a shared v2 axis config.
+pub fn axis_type(
+  config config: AxisBaseConfig(msg),
+  type_ type_: AxisType,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, type_: type_)
+}
+
+/// Set orientation on a shared v2 axis config.
+pub fn axis_orientation(
+  config config: AxisBaseConfig(msg),
+  orientation orientation: AxisOrientation,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, orientation: orientation)
+}
+
+/// Show or hide tick lines on a shared v2 axis config.
+pub fn axis_tick_line(
+  config config: AxisBaseConfig(msg),
+  show show: Bool,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, show_tick_line: show)
+}
+
+/// Show or hide the main axis line on a shared v2 axis config.
+pub fn axis_axis_line(
+  config config: AxisBaseConfig(msg),
+  show show: Bool,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, show_axis_line: show)
+}
+
+/// Set tick margin on a shared v2 axis config.
+pub fn axis_tick_margin(
+  config config: AxisBaseConfig(msg),
+  margin margin: Int,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, tick_margin: margin)
+}
+
+/// Set tick count hint on a shared v2 axis config.
+pub fn axis_tick_count(
+  config config: AxisBaseConfig(msg),
+  count count: Int,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, tick_count: count)
+}
+
+/// Set tick formatter on a shared v2 axis config.
+pub fn axis_tick_formatter(
+  config config: AxisBaseConfig(msg),
+  formatter formatter: fn(String, Int) -> String,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, tick_formatter: formatter)
+}
+
+/// Set padding mode on a shared v2 axis config.
+///
+/// For x-axis role this updates left/right padding. For y-axis role this
+/// keeps mode metadata while y-axis padding remains top/bottom based.
+pub fn axis_padding_mode(
+  config config: AxisBaseConfig(msg),
+  mode mode: PaddingMode,
+) -> AxisBaseConfig(msg) {
+  case mode {
+    ExplicitPadding(left:, right:) ->
+      AxisBaseConfig(
+        ..config,
+        padding: mode,
+        padding_left: left,
+        padding_right: right,
+      )
+    GapPadding | NoGapPadding -> AxisBaseConfig(..config, padding: mode)
+  }
+}
+
+/// Set directional padding on a shared v2 axis config.
+///
+/// For x-axis role sets left/right. For y-axis role sets top/bottom.
+pub fn axis_padding(
+  config config: AxisBaseConfig(msg),
+  start start: Int,
+  end end: Int,
+) -> AxisBaseConfig(msg) {
+  case config.role {
+    XAxisRole ->
+      AxisBaseConfig(
+        ..config,
+        padding_left: start,
+        padding_right: end,
+        padding: ExplicitPadding(left: start, right: end),
+      )
+    YAxisRole ->
+      AxisBaseConfig(..config, padding_top: start, padding_bottom: end)
+  }
+}
+
+/// Hide or show a shared v2 axis config.
+pub fn axis_hide(
+  config config: AxisBaseConfig(msg),
+  hide hide: Bool,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, hidden: hide)
+}
+
+/// Set reversed direction on a shared v2 axis config.
+pub fn axis_reversed(
+  config config: AxisBaseConfig(msg),
+  reversed reversed: Bool,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, reversed: reversed)
+}
+
+/// Set whether mirrored ticks are used on a shared v2 axis config.
+pub fn axis_mirror(
+  config config: AxisBaseConfig(msg),
+  mirror mirror: Bool,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, mirror: mirror)
+}
+
+/// Set custom domain on a shared v2 axis config.
+pub fn axis_domain(
+  config config: AxisBaseConfig(msg),
+  min min: Float,
+  max max: Float,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(
+    ..config,
+    domain_min: min,
+    domain_max: max,
+    has_custom_domain: True,
   )
+}
+
+/// Set unit text on a shared v2 axis config.
+pub fn axis_unit(
+  config config: AxisBaseConfig(msg),
+  unit unit: String,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, unit: unit)
+}
+
+/// Set label text on a shared v2 axis config.
+pub fn axis_label(
+  config config: AxisBaseConfig(msg),
+  text text: String,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, label: text)
+}
+
+/// Set display name on a shared v2 axis config.
+pub fn axis_name(
+  config config: AxisBaseConfig(msg),
+  name name: String,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, name: name)
+}
+
+/// Set axis id on a shared v2 axis config.
+pub fn axis_id(
+  config config: AxisBaseConfig(msg),
+  id id: String,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, axis_id: id)
+}
+
+/// Set include-hidden behavior on a shared v2 axis config.
+pub fn axis_include_hidden(
+  config config: AxisBaseConfig(msg),
+  include include: Bool,
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, include_hidden: include)
+}
+
+/// Set role-aware axis size on a shared v2 axis config.
+///
+/// For x-axis role this sets `height`. For y-axis role this sets `width`.
+pub fn axis_size(
+  config config: AxisBaseConfig(msg),
+  size size: Int,
+) -> AxisBaseConfig(msg) {
+  case config.role {
+    XAxisRole -> AxisBaseConfig(..config, height: size)
+    YAxisRole -> AxisBaseConfig(..config, width: size)
+  }
+}
+
+/// Set custom tick renderer on a shared v2 axis config.
+pub fn axis_custom_tick(
+  config config: AxisBaseConfig(msg),
+  renderer renderer: fn(render.TickProps) -> Element(msg),
+) -> AxisBaseConfig(msg) {
+  AxisBaseConfig(..config, custom_tick: Some(renderer))
 }
 
 // ---------------------------------------------------------------------------

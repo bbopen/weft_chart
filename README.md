@@ -15,3 +15,13 @@ gleam add weft_chart
 
 See [SPEC.md](SPEC.md) for the complete technical specification.
 
+## Preferred API Path (Additive v2)
+
+The library now includes additive v2 config helpers for axis and shared series metadata:
+
+- `axis.x_axis_base_config` / `axis.y_axis_base_config`
+- `chart.x_axis_v2` / `chart.y_axis_v2`
+- `series/common.series_meta`
+- `line.line_config_v2`, `area.area_config_v2`, `bar.bar_config_v2`
+
+Legacy APIs remain fully supported in this cycle (`x_axis_config`, `y_axis_config`, `line_config`, `area_config`, `bar_config`) and are kept as compatibility paths.

@@ -4,6 +4,7 @@
 //// margins and axis space from the total dimensions.
 
 import gleam/int
+import weft_chart/scale
 
 // ---------------------------------------------------------------------------
 // Types
@@ -67,5 +68,68 @@ pub fn plot_area(
       True -> 0.0
       False -> h
     },
+  )
+}
+
+/// Build a category scale that adapts to chart layout direction.
+///
+/// Horizontal layout maps categories along the horizontal span.
+/// Vertical layout maps categories along the vertical span.
+pub fn category_scale(
+  direction direction: LayoutDirection,
+  categories categories: List(String),
+  use_band use_band: Bool,
+  horizontal_start horizontal_start: Float,
+  horizontal_end horizontal_end: Float,
+  vertical_start vertical_start: Float,
+  vertical_end vertical_end: Float,
+) -> scale.Scale {
+  let #(range_start, range_end) = case direction {
+    Horizontal -> #(horizontal_start, horizontal_end)
+    Vertical -> #(vertical_start, vertical_end)
+  }
+
+  case use_band {
+    True ->
+      scale.band(
+        categories: categories,
+        range_start: range_start,
+        range_end: range_end,
+        padding_inner: 0.1,
+        padding_outer: 0.1,
+      )
+    False ->
+      scale.point(
+        categories: categories,
+        range_start: range_start,
+        range_end: range_end,
+        padding: 0.05,
+      )
+  }
+}
+
+/// Build a linear value scale that adapts to chart layout direction.
+///
+/// Horizontal layout maps values along the vertical span.
+/// Vertical layout maps values along the horizontal span.
+pub fn value_scale(
+  direction direction: LayoutDirection,
+  domain_min domain_min: Float,
+  domain_max domain_max: Float,
+  horizontal_start horizontal_start: Float,
+  horizontal_end horizontal_end: Float,
+  vertical_start vertical_start: Float,
+  vertical_end vertical_end: Float,
+) -> scale.Scale {
+  let #(range_start, range_end) = case direction {
+    Horizontal -> #(vertical_start, vertical_end)
+    Vertical -> #(horizontal_start, horizontal_end)
+  }
+
+  scale.linear(
+    domain_min: domain_min,
+    domain_max: domain_max,
+    range_start: range_start,
+    range_end: range_end,
   )
 }

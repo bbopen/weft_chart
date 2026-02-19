@@ -127,7 +127,7 @@ pub fn container_layout_tests() {
           ])
           |> element.to_string
         html
-        |> string.contains("clip-path=\"url(#weft-chart-clip)\"")
+        |> string.contains("clip-path=\"url(#weft-chart-clip-")
         |> expect.to_be_true
       }),
     ]),

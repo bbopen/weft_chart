@@ -614,6 +614,36 @@ pub fn sunburst_css_class_tests() {
   ])
 }
 
+pub fn sunburst_ring_thickness_guard_tests() {
+  describe("sunburst ring thickness", [
+    it(
+      "keeps rendering stable when inner_radius exceeds available outer radius",
+      fn() {
+        let root =
+          sunburst.sunburst_node(
+            name: "root",
+            value: 100.0,
+            fill: "",
+            children: [
+              sunburst.sunburst_leaf(name: "A", value: 60.0, fill: "#ff0000"),
+              sunburst.sunburst_leaf(name: "B", value: 40.0, fill: "#00ff00"),
+            ],
+          )
+        let config =
+          sunburst.sunburst_config()
+          |> sunburst.sunburst_data(data: root)
+          |> sunburst.sunburst_inner_radius(radius: 120.0)
+        let html =
+          sunburst.render_sunburst(config: config, width: 100, height: 100)
+          |> element.to_string
+        html |> string.contains("NaN") |> expect.to_be_false
+        html |> string.contains("Infinity") |> expect.to_be_false
+        html |> string.contains("recharts-sunburst") |> expect.to_be_true
+      },
+    ),
+  ])
+}
+
 // ---------------------------------------------------------------------------
 // Sankey series
 // ---------------------------------------------------------------------------

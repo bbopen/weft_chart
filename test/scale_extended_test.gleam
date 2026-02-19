@@ -464,3 +464,39 @@ pub fn resolve_percent_tests() {
     }),
   ])
 }
+
+pub fn reversed_category_scale_tests() {
+  describe("reversed category scales", [
+    it("band_apply keeps reversed category positions inside range", fn() {
+      let s =
+        scale.band(
+          categories: ["A", "B", "C"],
+          range_start: 300.0,
+          range_end: 0.0,
+          padding_inner: 0.0,
+          padding_outer: 0.0,
+        )
+      let #(a_start, a_bw) = scale.band_apply(s, "A")
+      let #(b_start, _b_bw) = scale.band_apply(s, "B")
+      let #(c_start, _c_bw) = scale.band_apply(s, "C")
+      { a_start <=. 300.0 && a_start >=. 0.0 } |> expect.to_be_true
+      { b_start <=. 300.0 && b_start >=. 0.0 } |> expect.to_be_true
+      { c_start <=. 300.0 && c_start >=. 0.0 } |> expect.to_be_true
+      { a_start +. a_bw <=. 300.0 } |> expect.to_be_true
+      // Reversed order: A should start to the right of C.
+      { a_start >. c_start } |> expect.to_be_true
+    }),
+    it("point_apply returns descending coordinates for reversed range", fn() {
+      let s =
+        scale.point(
+          categories: ["A", "B", "C"],
+          range_start: 300.0,
+          range_end: 0.0,
+          padding: 0.0,
+        )
+      scale.point_apply(s, "A") |> expect.to_equal(expected: 300.0)
+      scale.point_apply(s, "B") |> expect.to_equal(expected: 150.0)
+      scale.point_apply(s, "C") |> expect.to_equal(expected: 0.0)
+    }),
+  ])
+}

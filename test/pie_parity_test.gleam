@@ -128,3 +128,32 @@ pub fn pie_label_line_stroke_tests() {
     }),
   ])
 }
+
+pub fn pie_padding_budget_tests() {
+  describe("pie padding/min-angle budget", [
+    it("renders stable sector paths when padding exceeds sweep", fn() {
+      let data = [
+        dict.from_list([#("v", 10.0)]),
+        dict.from_list([#("v", 20.0)]),
+      ]
+      let config =
+        pie.pie_config(data_key: "v")
+        |> pie.pie_start_angle(0.0)
+        |> pie.pie_end_angle(30.0)
+        |> pie.pie_padding_angle(20.0)
+        |> pie.pie_min_angle(5.0)
+      let html =
+        pie.render_pie(
+          config: config,
+          data: data,
+          categories: ["A", "B"],
+          width: 400.0,
+          height: 400.0,
+        )
+        |> element.to_string
+      html |> string.contains("NaN") |> expect.to_be_false
+      html |> string.contains("Infinity") |> expect.to_be_false
+      html |> string.contains("class=\"recharts-pie\"") |> expect.to_be_true
+    }),
+  ])
+}

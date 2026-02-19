@@ -331,7 +331,11 @@ pub fn sunburst_sector_infos(
       let max_depth = get_max_depth(root)
       let ring_thickness = case max_depth == 0 {
         True -> 0.0
-        False -> { outer_radius -. inner_radius } /. int.to_float(max_depth)
+        False ->
+          float.max(
+            { outer_radius -. inner_radius } /. int.to_float(max_depth),
+            0.0,
+          )
       }
       let angle_range = config.end_angle -. config.start_angle
 
@@ -413,7 +417,11 @@ pub fn render_sunburst(
       let max_depth = get_max_depth(root)
       let ring_thickness = case max_depth == 0 {
         True -> 0.0
-        False -> { outer_radius -. inner_radius } /. int.to_float(max_depth)
+        False ->
+          float.max(
+            { outer_radius -. inner_radius } /. int.to_float(max_depth),
+            0.0,
+          )
       }
 
       let angle_range = config.end_angle -. config.start_angle

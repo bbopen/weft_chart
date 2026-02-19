@@ -183,6 +183,38 @@ pub fn reference_area_custom_shape_tests() {
       |> string.contains("recharts-reference-area")
       |> expect.to_be_true
     }),
+    it("Discard overflow omits fully out-of-plot areas", fn() {
+      let x_scale =
+        scale.linear(
+          domain_min: 0.0,
+          domain_max: 100.0,
+          range_start: 0.0,
+          range_end: 400.0,
+        )
+      let y_scale =
+        scale.linear(
+          domain_min: 0.0,
+          domain_max: 100.0,
+          range_start: 300.0,
+          range_end: 0.0,
+        )
+      let config =
+        reference.horizontal_area(value1: 120.0, value2: 140.0)
+        |> reference.area_if_overflow(overflow: reference.Discard)
+      let html =
+        reference.render_reference_area(
+          config: config,
+          x_scale: x_scale,
+          y_scale: y_scale,
+          plot_x: 0.0,
+          plot_y: 0.0,
+          plot_width: 400.0,
+          plot_height: 300.0,
+          clip_path_id: "clip",
+        )
+        |> element.to_string
+      html |> expect.to_equal(expected: "")
+    }),
   ])
 }
 

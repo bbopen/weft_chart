@@ -905,8 +905,14 @@ fn compute_angles_with_min(
         False -> int.to_float(n_nonzero - 1) *. effective_padding
       }
 
-      let abs_delta =
-        math.abs(config.end_angle -. config.start_angle) -. total_padding
+      // Available sweep after reserving inter-sector padding.
+      // Clamp to zero to avoid negative angle budgets when padding exceeds
+      // the total requested sweep.
+      let available_angle =
+        float.max(
+          math.abs(config.end_angle -. config.start_angle) -. total_padding,
+          0.0,
+        )
 
       case config.min_angle <=. 0.0 {
         // No minimum angle — distribute proportionally with padding
@@ -917,7 +923,7 @@ fn compute_angles_with_min(
               #([], config.start_angle),
               fn(state, value, index) {
                 let #(acc, current_start) = state
-                let sweep = math.abs(value) /. total *. abs_delta
+                let sweep = math.abs(value) /. total *. available_angle
                 let current_end = current_start +. sweep *. dir
                 // Add padding after non-zero entries (not the first)
                 let next_start = case index < n - 1 && value >. 0.0 {
@@ -933,7 +939,10 @@ fn compute_angles_with_min(
         False -> {
           // Calculate available angle after subtracting minAngle reservations
           let real_total_angle =
-            abs_delta -. int.to_float(n_nonzero) *. config.min_angle
+            float.max(
+              available_angle -. int.to_float(n_nonzero) *. config.min_angle,
+              0.0,
+            )
 
           // Compute final sweep angles
           let final_sweeps =
@@ -941,23 +950,18 @@ fn compute_angles_with_min(
               let abs_v = math.abs(v)
               case abs_v <=. 0.0 {
                 True -> 0.0
-                False -> {
-                  let proportional =
-                    abs_v /. total *. math.abs(real_total_angle)
-                  case proportional <. config.min_angle {
-                    True -> config.min_angle
-                    False -> proportional +. config.min_angle
-                  }
-                }
+                False -> config.min_angle +. abs_v /. total *. real_total_angle
               }
             })
 
           // Normalize if total exceeds available
           let sweep_total =
             list.fold(final_sweeps, 0.0, fn(acc, s) { acc +. s })
-          let normalized = case sweep_total >. abs_delta && sweep_total >. 0.0 {
+          let normalized = case
+            sweep_total >. available_angle && sweep_total >. 0.0
+          {
             True -> {
-              let scale_factor = abs_delta /. sweep_total
+              let scale_factor = available_angle /. sweep_total
               list.map(final_sweeps, fn(s) { s *. scale_factor })
             }
             False -> final_sweeps

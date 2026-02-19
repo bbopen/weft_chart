@@ -1,8 +1,11 @@
 //// Tests for series custom render callbacks.
 
+import gleam/dict
+import gleam/string
 import lustre/element
 import startest.{describe, it}
 import startest/expect
+import weft_chart/chart
 import weft_chart/series/area
 import weft_chart/series/bar
 import weft_chart/series/funnel
@@ -101,6 +104,64 @@ pub fn custom_shape_tests() {
         pie.pie_config(data_key: "v")
         |> pie.pie_custom_label_line(renderer: fn(_props) { element.none() })
       True |> expect.to_be_true
+    }),
+  ])
+}
+
+fn scatter_data() -> List(chart.DataPoint) {
+  [
+    chart.DataPoint(
+      category: "A",
+      values: dict.from_list([#("x", 0.0), #("y", 10.0)]),
+    ),
+    chart.DataPoint(
+      category: "B",
+      values: dict.from_list([#("x", 50.0), #("y", 20.0)]),
+    ),
+    chart.DataPoint(
+      category: "C",
+      values: dict.from_list([#("x", 100.0), #("y", 50.0)]),
+    ),
+  ]
+}
+
+pub fn scatter_line_type_render_tests() {
+  describe("scatter_line_type", [
+    it("FittingLine renders a different path than JointLine", fn() {
+      let joint_html =
+        chart.scatter_chart(
+          data: scatter_data(),
+          width: 400,
+          height: 300,
+          children: [
+            chart.scatter_series(
+              scatter.scatter_config(x_data_key: "x", y_data_key: "y")
+              |> scatter.scatter_show_line(show: True)
+              |> scatter.scatter_line_type(type_: scatter.JointLine),
+            ),
+          ],
+        )
+        |> element.to_string
+
+      let fitting_html =
+        chart.scatter_chart(
+          data: scatter_data(),
+          width: 400,
+          height: 300,
+          children: [
+            chart.scatter_series(
+              scatter.scatter_config(x_data_key: "x", y_data_key: "y")
+              |> scatter.scatter_show_line(show: True)
+              |> scatter.scatter_line_type(type_: scatter.FittingLine),
+            ),
+          ],
+        )
+        |> element.to_string
+
+      fitting_html
+      |> string.contains("recharts-scatter-line")
+      |> expect.to_be_true
+      { joint_html != fitting_html } |> expect.to_be_true
     }),
   ])
 }

@@ -19,6 +19,7 @@ import weft_chart/internal/math
 import weft_chart/internal/svg
 import weft_chart/render
 import weft_chart/scale.{type Scale}
+import weft_chart/series/common
 import weft_chart/shape
 
 // ---------------------------------------------------------------------------
@@ -93,38 +94,89 @@ type MaybePoint {
 /// Create an area configuration with default settings.
 /// When `name` is empty, `data_key` is used for tooltip/legend display.
 pub fn area_config(data_key data_key: String) -> AreaConfig(msg) {
+  area_config_v2(data_key: data_key, meta: common.series_meta())
+}
+
+/// Create an area configuration using shared series metadata.
+pub fn area_config_v2(
+  data_key data_key: String,
+  meta meta: common.SeriesMeta,
+) -> AreaConfig(msg) {
+  area_meta(
+    config: AreaConfig(
+      data_key: data_key,
+      name: "",
+      curve_type: curve.Linear,
+      fill: "var(--weft-chart-area-fill, currentColor)",
+      fill_opacity: 0.6,
+      stroke: "var(--weft-chart-area-stroke, currentColor)",
+      stroke_width: 2.0,
+      stack_id: "",
+      connect_nulls: False,
+      show_dot: False,
+      dot_radius: 3.0,
+      gradient_id: "",
+      gradient_stops: [],
+      base_value: Auto,
+      hide: False,
+      legend_type: shape.LineIcon,
+      is_range: False,
+      base_data_key: "",
+      tooltip_type: shape.DefaultTooltip,
+      show_label: False,
+      unit: "",
+      x_axis_id: "0",
+      y_axis_id: "0",
+      custom_dot: None,
+      custom_label: None,
+      active_dot: None,
+      active_index: None,
+      css_class: "",
+      animate_new_values: True,
+      animation: animation.line_default(),
+      clip_dot: True,
+    ),
+    meta: meta,
+  )
+}
+
+/// Apply shared series metadata to an existing area configuration.
+pub fn area_meta(
+  config config: AreaConfig(msg),
+  meta meta: common.SeriesMeta,
+) -> AreaConfig(msg) {
   AreaConfig(
-    data_key: data_key,
-    name: "",
-    curve_type: curve.Linear,
-    fill: "var(--weft-chart-area-fill, currentColor)",
-    fill_opacity: 0.6,
-    stroke: "var(--weft-chart-area-stroke, currentColor)",
-    stroke_width: 2.0,
-    stack_id: "",
-    connect_nulls: False,
-    show_dot: False,
-    dot_radius: 3.0,
-    gradient_id: "",
-    gradient_stops: [],
-    base_value: Auto,
-    hide: False,
-    legend_type: shape.LineIcon,
-    is_range: False,
-    base_data_key: "",
-    tooltip_type: shape.DefaultTooltip,
-    show_label: False,
-    unit: "",
-    x_axis_id: "0",
-    y_axis_id: "0",
-    custom_dot: None,
-    custom_label: None,
-    active_dot: None,
-    active_index: None,
-    css_class: "",
-    animate_new_values: True,
-    animation: animation.line_default(),
-    clip_dot: True,
+    data_key: config.data_key,
+    name: meta.name,
+    curve_type: config.curve_type,
+    fill: config.fill,
+    fill_opacity: config.fill_opacity,
+    stroke: config.stroke,
+    stroke_width: config.stroke_width,
+    stack_id: config.stack_id,
+    connect_nulls: config.connect_nulls,
+    show_dot: config.show_dot,
+    dot_radius: config.dot_radius,
+    gradient_id: config.gradient_id,
+    gradient_stops: config.gradient_stops,
+    base_value: config.base_value,
+    hide: meta.hide,
+    legend_type: config.legend_type,
+    is_range: config.is_range,
+    base_data_key: config.base_data_key,
+    tooltip_type: meta.tooltip_type,
+    show_label: config.show_label,
+    unit: meta.unit,
+    x_axis_id: meta.x_axis_id,
+    y_axis_id: meta.y_axis_id,
+    custom_dot: config.custom_dot,
+    custom_label: config.custom_label,
+    active_dot: config.active_dot,
+    active_index: config.active_index,
+    css_class: meta.css_class,
+    animate_new_values: config.animate_new_values,
+    animation: config.animation,
+    clip_dot: config.clip_dot,
   )
 }
 

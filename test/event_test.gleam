@@ -12,6 +12,7 @@ import startest.{describe, it}
 import startest/expect
 import weft_chart/chart
 import weft_chart/event
+import weft_chart/internal/layout
 import weft_chart/series/line
 import weft_chart/tooltip
 
@@ -37,6 +38,15 @@ fn sample_data() -> List(chart.DataPoint) {
     chart.DataPoint(category: "A", values: dict.from_list([#("val", 10.0)])),
     chart.DataPoint(category: "B", values: dict.from_list([#("val", 20.0)])),
     chart.DataPoint(category: "C", values: dict.from_list([#("val", 30.0)])),
+  ]
+}
+
+fn missing_series_data() -> List(chart.DataPoint) {
+  [
+    chart.DataPoint(
+      category: "A",
+      values: dict.from_list([#("present_value", 10.0)]),
+    ),
   ]
 }
 
@@ -564,6 +574,218 @@ pub fn event_tests() {
           )
           |> element.to_string
         html |> string.contains("chart-tooltip-dot") |> expect.to_be_true
+      }),
+    ]),
+    // ----- default_index + filter_null behavior -----
+    describe("tooltip default_index and filter_null", [
+      it("uses default_index when state-driven and active_index is None", fn() {
+        let config =
+          tooltip.tooltip_config()
+          |> tooltip.tooltip_default_index(index: 1)
+          |> tooltip.tooltip_on_enter(handler: Some(TooltipEnter))
+          |> tooltip.tooltip_on_leave(handler: Some(fn() { TooltipLeave }))
+        let payloads = [
+          tooltip.TooltipPayload(
+            label: "A",
+            entries: [
+              tooltip.TooltipEntry(
+                name: "val",
+                value: 10.0,
+                color: "#ff0000",
+                unit: "",
+                hidden: False,
+                entry_type: tooltip.VisibleEntry,
+              ),
+            ],
+            x: 50.0,
+            y: 100.0,
+            active_dots: [],
+            zone_width: 0.0,
+            zone_height: 0.0,
+          ),
+          tooltip.TooltipPayload(
+            label: "B",
+            entries: [
+              tooltip.TooltipEntry(
+                name: "val",
+                value: 20.0,
+                color: "#00ff00",
+                unit: "",
+                hidden: False,
+                entry_type: tooltip.VisibleEntry,
+              ),
+            ],
+            x: 150.0,
+            y: 80.0,
+            active_dots: [],
+            zone_width: 0.0,
+            zone_height: 0.0,
+          ),
+        ]
+        let html =
+          tooltip.render_tooltips(
+            config: config,
+            payloads: payloads,
+            plot_x: 0.0,
+            plot_y: 0.0,
+            plot_width: 400.0,
+            plot_height: 200.0,
+            zone_width: 50.0,
+            zone_mode: tooltip.ColumnZone,
+            zone_extra_attrs: [],
+          )
+          |> element.to_string
+        let popup_count =
+          string.split(html, "chart-tooltip-popup")
+          |> list_length_minus_one
+        popup_count |> expect.to_equal(expected: 1)
+      }),
+      it("marks default tooltip hotspot in CSS-hover mode", fn() {
+        let config =
+          tooltip.tooltip_config()
+          |> tooltip.tooltip_default_index(index: 0)
+        let payloads = [
+          tooltip.TooltipPayload(
+            label: "A",
+            entries: [
+              tooltip.TooltipEntry(
+                name: "val",
+                value: 10.0,
+                color: "#ff0000",
+                unit: "",
+                hidden: False,
+                entry_type: tooltip.VisibleEntry,
+              ),
+            ],
+            x: 50.0,
+            y: 100.0,
+            active_dots: [],
+            zone_width: 0.0,
+            zone_height: 0.0,
+          ),
+        ]
+        let html =
+          tooltip.render_tooltips(
+            config: config,
+            payloads: payloads,
+            plot_x: 0.0,
+            plot_y: 0.0,
+            plot_width: 400.0,
+            plot_height: 200.0,
+            zone_width: 50.0,
+            zone_mode: tooltip.ColumnZone,
+            zone_extra_attrs: [],
+          )
+          |> element.to_string
+        html
+        |> string.contains("chart-default-active")
+        |> expect.to_be_true
+      }),
+      it("RowZone renders active dots using per-entry x coordinates", fn() {
+        let config =
+          tooltip.tooltip_config()
+          |> tooltip.tooltip_show_active_dot(show: True)
+          |> tooltip.tooltip_default_index(index: 0)
+        let payloads = [
+          tooltip.TooltipPayload(
+            label: "A",
+            entries: [
+              tooltip.TooltipEntry(
+                name: "v1",
+                value: 10.0,
+                color: "#ff0000",
+                unit: "",
+                hidden: False,
+                entry_type: tooltip.VisibleEntry,
+              ),
+              tooltip.TooltipEntry(
+                name: "v2",
+                value: 20.0,
+                color: "#00ff00",
+                unit: "",
+                hidden: False,
+                entry_type: tooltip.VisibleEntry,
+              ),
+            ],
+            x: 80.0,
+            y: 120.0,
+            active_dots: [40.0, 90.0],
+            zone_width: 0.0,
+            zone_height: 0.0,
+          ),
+        ]
+        let html =
+          tooltip.render_tooltips(
+            config: config,
+            payloads: payloads,
+            plot_x: 0.0,
+            plot_y: 0.0,
+            plot_width: 400.0,
+            plot_height: 200.0,
+            zone_width: 50.0,
+            zone_mode: tooltip.RowZone,
+            zone_extra_attrs: [],
+          )
+          |> element.to_string
+        html |> string.contains("cx=\"40\"") |> expect.to_be_true
+        html |> string.contains("cx=\"90\"") |> expect.to_be_true
+      }),
+      it("filter_null=False includes missing series entries", fn() {
+        let html_filtered =
+          chart.line_chart(
+            data: missing_series_data(),
+            width: 400,
+            height: 300,
+            children: [
+              chart.line(line.line_config(data_key: "present_value")),
+              chart.line(line.line_config(data_key: "missing_value")),
+              chart.chart_tooltip(config: tooltip.tooltip_config()),
+            ],
+          )
+          |> element.to_string
+        html_filtered
+        |> string.contains("missing_value")
+        |> expect.to_be_false
+
+        let html_include_missing =
+          chart.line_chart(
+            data: missing_series_data(),
+            width: 400,
+            height: 300,
+            children: [
+              chart.line(line.line_config(data_key: "present_value")),
+              chart.line(line.line_config(data_key: "missing_value")),
+              chart.chart_tooltip(
+                config: tooltip.tooltip_config()
+                |> tooltip.tooltip_filter_null(filter: False),
+              ),
+            ],
+          )
+          |> element.to_string
+        html_include_missing
+        |> string.contains("missing_value")
+        |> expect.to_be_true
+      }),
+      it("vertical chart layout emits row-zone tooltip geometry", fn() {
+        let html =
+          chart.line_chart(
+            data: sample_data(),
+            width: 400,
+            height: 300,
+            children: [
+              chart.chart_layout(layout: layout.Vertical),
+              chart.line(line.line_config(data_key: "val")),
+              chart.chart_tooltip(
+                config: tooltip.tooltip_config()
+                |> tooltip.tooltip_default_index(index: 0)
+                |> tooltip.tooltip_show_active_dot(show: True),
+              ),
+            ],
+          )
+          |> element.to_string
+        html |> string.contains("chart-tooltip-zone") |> expect.to_be_true
+        // RowZone uses full plot width for hit zones in vertical layout.
+        html |> string.contains("width=\"390\"") |> expect.to_be_true
       }),
     ]),
     // ----- Full chart integration -----

@@ -102,7 +102,7 @@ pub fn area_dot_clip_rendering_tests() {
 
       // The paths group should be inside a clip-path group
       html
-      |> string.contains("clip-path=\"url(#weft-chart-clip)\"")
+      |> string.contains("clip-path=\"url(#weft-chart-clip-")
       |> expect.to_be_true
     }),
     it("dots are inside clip-path by default (clip_dot=True)", fn() {
@@ -173,7 +173,7 @@ pub fn line_dot_clip_rendering_tests() {
         |> element.to_string
 
       html
-      |> string.contains("clip-path=\"url(#weft-chart-clip)\"")
+      |> string.contains("clip-path=\"url(#weft-chart-clip-")
       |> expect.to_be_true
     }),
     it("dots are inside clip-path by default (clip_dot=True)", fn() {

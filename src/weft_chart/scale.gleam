@@ -421,7 +421,13 @@ pub fn band_apply(scale: Scale, category: String) -> #(Float, Float) {
       case n == 0 {
         True -> #(range_start, 0.0)
         False -> {
-          let total = math.abs(range_end -. range_start)
+          let span = range_end -. range_start
+          let reversed = span <. 0.0
+          let direction = case reversed {
+            True -> -1.0
+            False -> 1.0
+          }
+          let total = math.abs(span)
           let outer_total = 2.0 *. padding_outer
           let inner_total = int.to_float(n - 1) *. padding_inner
           let band_total = int.to_float(n)
@@ -430,11 +436,12 @@ pub fn band_apply(scale: Scale, category: String) -> #(Float, Float) {
           let offset = unit *. padding_outer
 
           let index = find_index(categories, category, 0)
-          let x =
-            range_start
-            +. offset
-            +. int.to_float(index)
-            *. { bw +. unit *. padding_inner }
+          let step = bw +. unit *. padding_inner
+          let distance = offset +. int.to_float(index) *. step
+          let x = case reversed {
+            True -> range_start +. direction *. { distance +. bw }
+            False -> range_start +. distance
+          }
           #(x, bw)
         }
       }
@@ -453,12 +460,17 @@ pub fn point_apply(scale: Scale, category: String) -> Float {
       case n <= 1 {
         True -> { range_start +. range_end } /. 2.0
         False -> {
-          let total = math.abs(range_end -. range_start)
+          let span = range_end -. range_start
+          let direction = case span <. 0.0 {
+            True -> -1.0
+            False -> 1.0
+          }
+          let total = math.abs(span)
           let pad_px = total *. padding /. 2.0
           let usable = total -. 2.0 *. pad_px
           let step = usable /. int.to_float(n - 1)
           let index = find_index(categories, category, 0)
-          range_start +. pad_px +. int.to_float(index) *. step
+          range_start +. direction *. { pad_px +. int.to_float(index) *. step }
         }
       }
     }

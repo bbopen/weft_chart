@@ -101,6 +101,10 @@ pub type ZoneMode {
   /// Used for line, area, and bar charts where each x position
   /// corresponds to a vertical column of data.
   ColumnZone
+  /// Full-width horizontal strip centered on payload.y.
+  /// Used for vertical-layout cartesian charts where categories
+  /// are positioned on the y-axis.
+  RowZone
   /// Small square centered on the payload's (x, y) position.
   /// Used for scatter charts where each point is at an arbitrary
   /// 2-D position and full-height strips would cause incorrect
@@ -615,12 +619,43 @@ fn render_single_tooltip(
   }
   let half_zone_w = effective_zone_w /. 2.0
   let half_zone_h = effective_zone_h /. 2.0
-  let zone_x = payload.x -. half_zone_w
-  // ColumnZone: full-height vertical strip (line/bar/area).
-  // PointZone: small square (or rect) centered on the point's (x, y) (scatter/treemap).
-  let #(zone_actual_y, zone_actual_height) = case zone_mode {
-    ColumnZone -> #(plot_y, plot_height)
-    PointZone -> #(payload.y -. half_zone_h, effective_zone_h)
+  // Compute hit zone bounds by mode.
+  let #(zone_actual_x, zone_actual_y, zone_actual_width, zone_actual_height) = case
+    zone_mode
+  {
+    // ColumnZone: full-height vertical strip (line/bar/area).
+    ColumnZone -> #(
+      payload.x -. half_zone_w,
+      plot_y,
+      effective_zone_w,
+      plot_height,
+    )
+    // RowZone: full-width horizontal strip (vertical cartesian layout).
+    RowZone -> #(plot_x, payload.y -. half_zone_h, plot_width, effective_zone_h)
+    // PointZone: small square (or rect) centered on the point.
+    PointZone -> #(
+      payload.x -. half_zone_w,
+      payload.y -. half_zone_h,
+      effective_zone_w,
+      effective_zone_h,
+    )
+  }
+
+  // Determine if tooltip is state-driven (event handlers present)
+  let is_state_driven = case config.on_tooltip_enter {
+    Some(_) -> True
+    None -> False
+  }
+
+  // Resolve active index for state-driven mode:
+  // active_index takes precedence; default_index is fallback.
+  let resolved_active_index = case config.active_index {
+    Some(i) -> Some(i)
+    None ->
+      case config.default_index >= 0 {
+        True -> Some(config.default_index)
+        False -> None
+      }
   }
 
   // Tooltip popup dimensions — estimate width based on content
@@ -698,12 +733,6 @@ fn render_single_tooltip(
     <> int.to_string(config.animation_duration)
     <> "ms ease"
 
-  // Determine if tooltip is state-driven (event handlers present)
-  let is_state_driven = case config.on_tooltip_enter {
-    Some(_) -> True
-    None -> False
-  }
-
   // Build event attributes for hit zone
   let enter_attrs = case config.on_tooltip_enter {
     None -> []
@@ -722,9 +751,9 @@ fn render_single_tooltip(
   // Hit zone
   let zone_el =
     svg.rect(
-      x: math.fmt(zone_x),
+      x: math.fmt(zone_actual_x),
       y: math.fmt(zone_actual_y),
-      width: math.fmt(effective_zone_w),
+      width: math.fmt(zone_actual_width),
       height: math.fmt(zone_actual_height),
       attrs: list.flatten([
         [
@@ -741,11 +770,21 @@ fn render_single_tooltip(
   // When state-driven, only show cursor/dot/popup for active_index match
   let is_active = case is_state_driven {
     True ->
-      case config.active_index {
+      case resolved_active_index {
         Some(active) -> active == index
         None -> False
       }
     False -> True
+  }
+
+  // For CSS-hover mode, optionally force one default hotspot active.
+  let is_default_active = case is_state_driven {
+    True -> False
+    False ->
+      case resolved_active_index {
+        Some(active) -> active == index
+        None -> False
+      }
   }
 
   // Build dasharray attr list (empty when no dasharray configured).
@@ -778,9 +817,9 @@ fn render_single_tooltip(
           )
         HorizontalCursor ->
           svg.line(
-            x1: math.fmt(zone_x),
+            x1: math.fmt(zone_actual_x),
             y1: math.fmt(payload.y),
-            x2: math.fmt(zone_x +. zone_width),
+            x2: math.fmt(zone_actual_x +. zone_actual_width),
             y2: math.fmt(payload.y),
             attrs: list.flatten([
               [
@@ -793,10 +832,10 @@ fn render_single_tooltip(
           )
         RectangleCursor ->
           svg.rect(
-            x: math.fmt(zone_x),
-            y: math.fmt(plot_y),
-            width: math.fmt(zone_width),
-            height: math.fmt(plot_height),
+            x: math.fmt(zone_actual_x),
+            y: math.fmt(zone_actual_y),
+            width: math.fmt(zone_actual_width),
+            height: math.fmt(zone_actual_height),
             attrs: [
               svg.attr("fill", "var(--weft-chart-cursor, #d4d4d8)"),
               svg.attr("opacity", "0.3"),
@@ -848,21 +887,34 @@ fn render_single_tooltip(
       list.filter_map(list.zip(payload.entries, payload.active_dots), fn(pair) {
         let #(entry, dot_y) = pair
         case entry.entry_type {
-          NoneEntry -> Error(Nil)
+          NoneEntry -> skip()
           VisibleEntry ->
-            Ok(
-              svg.circle(
-                cx: math.fmt(payload.x),
-                cy: math.fmt(dot_y),
-                r: "4",
-                attrs: [
-                  svg.attr("fill", entry.color),
-                  svg.attr("stroke", "white"),
-                  svg.attr("stroke-width", "2"),
-                  svg.attr("class", "chart-tooltip-dot"),
-                ],
-              ),
-            )
+            include(case zone_mode {
+              RowZone ->
+                svg.circle(
+                  cx: math.fmt(dot_y),
+                  cy: math.fmt(payload.y),
+                  r: "4",
+                  attrs: [
+                    svg.attr("fill", entry.color),
+                    svg.attr("stroke", "white"),
+                    svg.attr("stroke-width", "2"),
+                    svg.attr("class", "chart-tooltip-dot"),
+                  ],
+                )
+              _ ->
+                svg.circle(
+                  cx: math.fmt(payload.x),
+                  cy: math.fmt(dot_y),
+                  r: "4",
+                  attrs: [
+                    svg.attr("fill", entry.color),
+                    svg.attr("stroke", "white"),
+                    svg.attr("stroke-width", "2"),
+                    svg.attr("class", "chart-tooltip-dot"),
+                  ],
+                )
+            })
         }
       })
     _, _ -> []
@@ -912,7 +964,12 @@ fn render_single_tooltip(
   }
 
   svg.g(
-    attrs: [svg.attr("class", "chart-hotspot")],
+    attrs: [
+      svg.attr("class", case is_default_active {
+        True -> "chart-hotspot chart-default-active"
+        False -> "chart-hotspot"
+      }),
+    ],
     children: list.flatten([
       [zone_el],
       [cursor_el],
@@ -949,7 +1006,7 @@ fn render_default_tooltip_content(
         attribute.style("font-weight", "600"),
         attribute.style("margin-bottom", "4px"),
         attribute.style("color", "var(--weft-chart-tooltip-fg, currentColor)"),
-        ..label_style_attrs(config.label_style)
+        ..style_attrs(config.label_style)
       ]
       svg.xhtml(tag: "div", attrs: label_attrs, children: [
         element.text(config.label_formatter(payload.label, visible_entries)),
@@ -982,7 +1039,7 @@ fn render_default_tooltip_content(
         attribute.style("font-size", "11px"),
         attribute.style("line-height", "1.4"),
         attribute.style("color", entry.color),
-        ..item_style_attrs(config.item_style)
+        ..style_attrs(config.item_style)
       ]
 
       svg.xhtml(tag: "div", attrs: item_attrs, children: [
@@ -1014,7 +1071,7 @@ fn render_default_tooltip_content(
     attribute.style("border-radius", "8px"),
     attribute.style("background", "var(--weft-chart-tooltip-bg, #ffffff)"),
     attribute.style("box-shadow", "0 1px 3px rgba(0,0,0,0.1)"),
-    ..content_style_attrs(config.content_style)
+    ..style_attrs(config.content_style)
   ]
 
   svg.xhtml(tag: "div", attrs: container_attrs, children: [
@@ -1024,23 +1081,7 @@ fn render_default_tooltip_content(
 }
 
 /// Build style attributes from an optional inline CSS string.
-fn content_style_attrs(style: Option(String)) -> List(attribute.Attribute(msg)) {
-  case style {
-    None -> []
-    Some(css) -> [svg.attr("style", css)]
-  }
-}
-
-/// Build item style attributes from an optional inline CSS string.
-fn item_style_attrs(style: Option(String)) -> List(attribute.Attribute(msg)) {
-  case style {
-    None -> []
-    Some(css) -> [svg.attr("style", css)]
-  }
-}
-
-/// Build label style attributes from an optional inline CSS string.
-fn label_style_attrs(style: Option(String)) -> List(attribute.Attribute(msg)) {
+fn style_attrs(style: Option(String)) -> List(attribute.Attribute(msg)) {
   case style {
     None -> []
     Some(css) -> [svg.attr("style", css)]
@@ -1129,12 +1170,20 @@ fn dedup_entries_by_name(entries: List(TooltipEntry)) -> List(TooltipEntry) {
   result
 }
 
+fn include(value: a) -> Result(a, Nil) {
+  Ok(value)
+}
+
+fn skip() -> Result(a, Nil) {
+  Error(Nil)
+}
+
 /// Safe list index access.
 fn list_at(items: List(a), index: Int) -> Result(a, Nil) {
   case items, index {
-    [], _ -> Error(Nil)
-    [first, ..], 0 -> Ok(first)
+    [], _ -> skip()
+    [first, ..], 0 -> include(first)
     [_, ..rest], n if n > 0 -> list_at(rest, n - 1)
-    _, _ -> Error(Nil)
+    _, _ -> skip()
   }
 }

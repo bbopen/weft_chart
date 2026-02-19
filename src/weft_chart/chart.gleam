@@ -24,6 +24,9 @@ import weft_chart/curve
 import weft_chart/error_bar
 import weft_chart/event.{type ChartEvent}
 import weft_chart/grid
+import weft_chart/internal/cartesian/clip as cartesian_clip
+import weft_chart/internal/cartesian/context as cartesian_context
+import weft_chart/internal/cartesian/tooltip_payload as cartesian_tooltip_payload
 import weft_chart/internal/layout
 import weft_chart/internal/math
 import weft_chart/internal/svg
@@ -230,9 +233,19 @@ pub fn x_axis(config: axis.XAxisConfig(msg)) -> ChartChild(msg) {
   XAxisChild(config: config)
 }
 
+/// Create an x-axis child from shared axis v2 configuration.
+pub fn x_axis_v2(config config: axis.AxisBaseConfig(msg)) -> ChartChild(msg) {
+  XAxisChild(config: axis.axis_to_x(config: config))
+}
+
 /// Create a y-axis child.
 pub fn y_axis(config: axis.YAxisConfig(msg)) -> ChartChild(msg) {
   YAxisChild(config: config)
+}
+
+/// Create a y-axis child from shared axis v2 configuration.
+pub fn y_axis_v2(config config: axis.AxisBaseConfig(msg)) -> ChartChild(msg) {
+  YAxisChild(config: axis.axis_to_y(config: config))
 }
 
 /// Create a z-axis child for size encoding in scatter charts.
@@ -817,23 +830,15 @@ fn render_cartesian(
           )
         }
         False ->
-          case use_band {
-            True ->
-              scale.band(
-                categories: categories,
-                range_start: cat_range_start,
-                range_end: cat_range_end,
-                padding_inner: 0.1,
-                padding_outer: 0.1,
-              )
-            False ->
-              scale.point(
-                categories: categories,
-                range_start: cat_range_start,
-                range_end: cat_range_end,
-                padding: 0.05,
-              )
-          }
+          layout.category_scale(
+            direction: layout.Horizontal,
+            categories: categories,
+            use_band: use_band,
+            horizontal_start: cat_range_start,
+            horizontal_end: cat_range_end,
+            vertical_start: plot.y,
+            vertical_end: plot.y +. plot.height,
+          )
       }
     layout.Vertical -> {
       // Vertical layout: x-axis shows values (linear scale, X-range)
@@ -855,11 +860,14 @@ fn render_cartesian(
           }
         False -> x_data_domain
       }
-      scale.linear(
+      layout.value_scale(
+        direction: layout.Vertical,
         domain_min: x_domain_final.0,
         domain_max: x_domain_final.1,
-        range_start: x_range_start,
-        range_end: x_range_end,
+        horizontal_start: x_range_start,
+        horizontal_end: x_range_end,
+        vertical_start: plot.y +. plot.height,
+        vertical_end: plot.y,
       )
     }
   }
@@ -884,23 +892,16 @@ fn render_cartesian(
     }
     layout.Vertical -> {
       // Vertical: y-axis shows categories (band/point scale, Y-range)
-      let cat_y_scale = case use_band {
-        True ->
-          scale.band(
-            categories: categories,
-            range_start: cat_range_start,
-            range_end: cat_range_end,
-            padding_inner: 0.1,
-            padding_outer: 0.1,
-          )
-        False ->
-          scale.point(
-            categories: categories,
-            range_start: cat_range_start,
-            range_end: cat_range_end,
-            padding: 0.05,
-          )
-      }
+      let cat_y_scale =
+        layout.category_scale(
+          direction: layout.Vertical,
+          categories: categories,
+          use_band: use_band,
+          horizontal_start: x_range_start,
+          horizontal_end: x_range_end,
+          vertical_start: cat_range_start,
+          vertical_end: cat_range_end,
+        )
       let ys = dict.from_list([#("0", cat_y_scale)])
       #(ys, cat_y_scale)
     }
@@ -934,8 +935,24 @@ fn render_cartesian(
       }
   }
 
-  // Clip path for allowDataOverflow and reference element hidden overflow
-  let clip_path_id = "weft-chart-clip"
+  // Clip path for allowDataOverflow and reference element hidden overflow.
+  // Use a chart-scoped deterministic id to avoid collisions across charts.
+  let clip_path_id =
+    chart_clip_path_id(
+      children: children,
+      chart_kind: "cartesian",
+      width: width,
+      height: height,
+      data: data,
+    )
+  let cartesian_ctx =
+    cartesian_context.cartesian_context(
+      plot: plot,
+      categories: categories,
+      values: values_list,
+      chart_layout: chart_layout,
+      clip_path_id: clip_path_id,
+    )
 
   // Compute multi-bar positions for side-by-side layout
   // For Vertical layout, use y_scale (the category/band scale) for positions
@@ -1328,13 +1345,27 @@ fn render_cartesian(
               series_info,
               x_scale,
               y_scale,
-              categories,
+              cartesian_ctx.categories,
+              cartesian_ctx.chart_layout,
               config.include_hidden,
+              config.filter_null,
               y_unit,
             )
-          let zone_w = case list.length(categories) <= 1 {
-            True -> plot.width
-            False -> plot.width /. int.to_float(list.length(categories))
+          let #(zone_w, zone_mode) = case chart_layout {
+            layout.Horizontal -> {
+              let w = case list.length(categories) <= 1 {
+                True -> plot.width
+                False -> plot.width /. int.to_float(list.length(categories))
+              }
+              #(w, tooltip.ColumnZone)
+            }
+            layout.Vertical -> {
+              let h = case list.length(categories) <= 1 {
+                True -> plot.height
+                False -> plot.height /. int.to_float(list.length(categories))
+              }
+              #(h, tooltip.RowZone)
+            }
           }
           Ok(
             tooltip.render_tooltips(
@@ -1345,7 +1376,7 @@ fn render_cartesian(
               plot_width: plot.width,
               plot_height: plot.height,
               zone_width: zone_w,
-              zone_mode: tooltip.ColumnZone,
+              zone_mode: zone_mode,
               zone_extra_attrs: [],
             ),
           )
@@ -1422,17 +1453,13 @@ fn render_cartesian(
 
   // Build clipPath definition for the plot area
   let clip_defs =
-    svg.defs([
-      svg.clip_path(id: clip_path_id, children: [
-        svg.rect(
-          x: math.fmt(plot.x),
-          y: math.fmt(plot.y),
-          width: math.fmt(plot.width),
-          height: math.fmt(plot.height),
-          attrs: [],
-        ),
-      ]),
-    ])
+    build_clip_defs(
+      clip_path_id: cartesian_ctx.clip_path_id,
+      plot_x: cartesian_ctx.plot.x,
+      plot_y: cartesian_ctx.plot.y,
+      plot_width: cartesian_ctx.plot.width,
+      plot_height: cartesian_ctx.plot.height,
+    )
 
   // Tooltip CSS
   let style_el =
@@ -1962,8 +1989,15 @@ fn render_scatter_chart(
   // Build legend payload
   let legend_payload = build_legend_payload(children)
 
-  // Clip path
-  let clip_path_id = "weft-chart-clip"
+  // Clip path (chart-scoped id to avoid collisions across charts).
+  let clip_path_id =
+    chart_clip_path_id(
+      children: children,
+      chart_kind: "scatter",
+      width: width,
+      height: height,
+      data: data,
+    )
 
   // Render children
   let rendered_children =
@@ -2167,17 +2201,13 @@ fn render_scatter_chart(
 
   // Clip path definition
   let clip_defs =
-    svg.defs([
-      svg.clip_path(id: clip_path_id, children: [
-        svg.rect(
-          x: math.fmt(plot.x),
-          y: math.fmt(plot.y),
-          width: math.fmt(plot.width),
-          height: math.fmt(plot.height),
-          attrs: [],
-        ),
-      ]),
-    ])
+    build_clip_defs(
+      clip_path_id: clip_path_id,
+      plot_x: plot.x,
+      plot_y: plot.y,
+      plot_width: plot.width,
+      plot_height: plot.height,
+    )
 
   let style_el =
     svg.el(tag: "style", attrs: [], children: [
@@ -2951,6 +2981,30 @@ fn find_id(children: List(ChartChild(msg))) -> String {
   })
 }
 
+/// Build a chart-scoped clip-path id.
+///
+/// Uses explicit chart id when provided; otherwise derives a deterministic
+/// fallback signature from chart kind, dimensions, and data shape.
+fn chart_clip_path_id(
+  children children: List(ChartChild(msg)),
+  chart_kind chart_kind: String,
+  width width: Int,
+  height height: Int,
+  data data: List(DataPoint),
+) -> String {
+  let explicit_id = find_id(children)
+  let categories = list.map(data, fn(dp) { dp.category })
+  let values = list.map(data, fn(dp) { dp.values })
+  cartesian_clip.clip_path_id(
+    explicit_id: explicit_id,
+    chart_kind: chart_kind,
+    width: width,
+    height: height,
+    categories: categories,
+    values: values,
+  )
+}
+
 fn find_style(children: List(ChartChild(msg))) -> String {
   list.fold(children, "", fn(acc, child) {
     case child {
@@ -3105,9 +3159,24 @@ fn chart_event_to_attrs(evt: ChartEvent(msg)) -> List(Attribute(msg)) {
 
 /// Wrap an element in a group with clip-path for series clipping.
 fn clip_series(el: Element(msg), clip_id: String) -> Element(msg) {
-  svg.g(attrs: [svg.attr("clip-path", "url(#" <> clip_id <> ")")], children: [
-    el,
-  ])
+  cartesian_clip.clip_series(el: el, clip_id: clip_id)
+}
+
+/// Build clip-path `<defs>` for a cartesian plot area.
+fn build_clip_defs(
+  clip_path_id clip_path_id: String,
+  plot_x plot_x: Float,
+  plot_y plot_y: Float,
+  plot_width plot_width: Float,
+  plot_height plot_height: Float,
+) -> Element(msg) {
+  cartesian_clip.clip_defs(
+    clip_id: clip_path_id,
+    plot_x: plot_x,
+    plot_y: plot_y,
+    plot_width: plot_width,
+    plot_height: plot_height,
+  )
 }
 
 /// Build the outer SVG wrapper using attributes extracted from children.
@@ -4637,15 +4706,15 @@ fn has_bar_children(children: List(ChartChild(msg))) -> Bool {
 fn collect_data_keys(children: List(ChartChild(msg))) -> List(String) {
   list.filter_map(children, fn(child) {
     case child {
-      AreaChild(config:) -> Ok(config.data_key)
-      BarChild(config:) -> Ok(config.data_key)
-      LineChild(config:) -> Ok(config.data_key)
-      PieChild(config:) -> Ok(config.data_key)
-      RadarChild(config:) -> Ok(config.data_key)
-      RadialBarChild(config:) -> Ok(config.data_key)
-      ScatterChild(config:) -> Ok(config.y_data_key)
-      FunnelChild(config:) -> Ok(config.data_key)
-      _ -> Error(Nil)
+      AreaChild(config:) -> include(config.data_key)
+      BarChild(config:) -> include(config.data_key)
+      LineChild(config:) -> include(config.data_key)
+      PieChild(config:) -> include(config.data_key)
+      RadarChild(config:) -> include(config.data_key)
+      RadialBarChild(config:) -> include(config.data_key)
+      ScatterChild(config:) -> include(config.y_data_key)
+      FunnelChild(config:) -> include(config.data_key)
+      _ -> skip()
     }
   })
 }
@@ -4665,7 +4734,7 @@ fn collect_series_display_info(
   list.filter_map(children, fn(child) {
     case child {
       AreaChild(config:) ->
-        Ok(#(
+        include(#(
           config.data_key,
           series_display_name(config.name, config.data_key),
           config.stroke,
@@ -4674,7 +4743,7 @@ fn collect_series_display_info(
           config.unit,
         ))
       BarChild(config:) ->
-        Ok(#(
+        include(#(
           config.data_key,
           series_display_name(config.name, config.data_key),
           config.fill,
@@ -4683,7 +4752,7 @@ fn collect_series_display_info(
           config.unit,
         ))
       LineChild(config:) ->
-        Ok(#(
+        include(#(
           config.data_key,
           series_display_name(config.name, config.data_key),
           config.stroke,
@@ -4692,7 +4761,7 @@ fn collect_series_display_info(
           config.unit,
         ))
       PieChild(config:) ->
-        Ok(#(
+        include(#(
           config.data_key,
           series_display_name("", config.data_key),
           "var(--color-" <> config.data_key <> ", currentColor)",
@@ -4701,7 +4770,7 @@ fn collect_series_display_info(
           "",
         ))
       RadarChild(config:) ->
-        Ok(#(
+        include(#(
           config.data_key,
           series_display_name(config.name, config.data_key),
           config.stroke,
@@ -4710,7 +4779,7 @@ fn collect_series_display_info(
           "",
         ))
       RadialBarChild(config:) ->
-        Ok(#(
+        include(#(
           config.data_key,
           series_display_name("", config.data_key),
           "var(--color-" <> config.data_key <> ", currentColor)",
@@ -4719,7 +4788,7 @@ fn collect_series_display_info(
           "",
         ))
       ScatterChild(config:) ->
-        Ok(#(
+        include(#(
           config.y_data_key,
           series_display_name(config.name, config.y_data_key),
           config.fill,
@@ -4727,7 +4796,7 @@ fn collect_series_display_info(
           is_no_tooltip(config.tooltip_type),
           "",
         ))
-      _ -> Error(Nil)
+      _ -> skip()
     }
   })
 }
@@ -4748,77 +4817,59 @@ fn series_display_name(name: String, data_key: String) -> String {
   }
 }
 
+fn include(value: a) -> Result(a, Nil) {
+  Ok(value)
+}
+
+fn skip() -> Result(a, Nil) {
+  Error(Nil)
+}
+
 fn build_tooltip_payloads(
   data: List(DataPoint),
   series_info: List(#(String, String, String, Bool, Bool, String)),
   x_scale: scale.Scale,
   y_scale: scale.Scale,
   categories: List(String),
+  chart_layout: layout.LayoutDirection,
   include_hidden: Bool,
+  filter_null: Bool,
   y_unit: String,
 ) -> List(tooltip.TooltipPayload) {
-  list.zip(categories, data)
-  |> list.map(fn(pair) {
-    let #(cat, dp) = pair
-    let x = scale.point_apply(x_scale, cat)
+  let rows =
+    list.zip(categories, data)
+    |> list.map(fn(pair) {
+      let #(category, point) = pair
+      cartesian_tooltip_payload.tooltip_datum(
+        category: category,
+        values: point.values,
+      )
+    })
 
-    let entries =
-      list.filter_map(series_info, fn(info) {
-        let #(data_key, display_name, color, hidden, no_tooltip, series_unit) =
-          info
-        // Per-series unit overrides y-axis unit when non-empty
-        let effective_unit = case series_unit {
-          "" -> y_unit
-          u -> u
-        }
-        // Skip NoTooltip series unconditionally
-        // Skip hidden series unless include_hidden is set
-        case no_tooltip {
-          True -> Error(Nil)
-          False ->
-            case hidden && !include_hidden {
-              True -> Error(Nil)
-              False ->
-                case dict.get(dp.values, data_key) {
-                  Ok(value) ->
-                    Ok(tooltip.TooltipEntry(
-                      name: display_name,
-                      value: value,
-                      color: color,
-                      unit: effective_unit,
-                      hidden: hidden,
-                      entry_type: tooltip.VisibleEntry,
-                    ))
-                  Error(_) -> Error(Nil)
-                }
-            }
-        }
-      })
+  let series =
+    list.map(series_info, fn(info) {
+      let #(data_key, display_name, color, hidden, no_tooltip, series_unit) =
+        info
+      cartesian_tooltip_payload.tooltip_series_info(
+        data_key: data_key,
+        display_name: display_name,
+        color: color,
+        hidden: hidden,
+        no_tooltip: no_tooltip,
+        unit: series_unit,
+      )
+    })
 
-    // Compute per-entry SVG y coordinates for active dots
-    let entry_ys = list.map(entries, fn(e) { scale.apply(y_scale, e.value) })
-
-    // Y position for tooltip popup: average of all entry y values.
-    // This centers the popup vertically among all active series rather
-    // than anchoring to the first series only.
-    let y = case entry_ys {
-      [] -> 0.0
-      ys -> {
-        let sum = list.fold(ys, 0.0, fn(acc, v) { acc +. v })
-        sum /. int.to_float(list.length(ys))
-      }
-    }
-
-    tooltip.TooltipPayload(
-      label: cat,
-      entries: entries,
-      x: x,
-      y: y,
-      active_dots: entry_ys,
-      zone_width: 0.0,
-      zone_height: 0.0,
-    )
-  })
+  cartesian_tooltip_payload.build_payloads(
+    data: rows,
+    series_info: series,
+    x_scale: x_scale,
+    y_scale: y_scale,
+    chart_layout: chart_layout,
+    include_hidden: include_hidden,
+    filter_null: filter_null,
+    y_unit: y_unit,
+  )
 }
 
 /// Build legend payload entries from series children.
@@ -5025,6 +5076,9 @@ fn tooltip_css() -> String {
   <> ".chart-hotspot:hover .chart-tooltip-cursor { display: block; }"
   <> ".chart-hotspot:hover .chart-tooltip-dot { display: block; }"
   <> ".chart-hotspot:hover .chart-tooltip-popup { display: block; }"
+  <> ".chart-hotspot.chart-default-active .chart-tooltip-cursor { display: block; }"
+  <> ".chart-hotspot.chart-default-active .chart-tooltip-dot { display: block; }"
+  <> ".chart-hotspot.chart-default-active .chart-tooltip-popup { display: block; }"
 }
 
 /// Extract values for valid (non-missing) area points, preserving order.

@@ -18,6 +18,7 @@ import weft_chart/internal/math
 import weft_chart/internal/svg
 import weft_chart/render
 import weft_chart/scale.{type Scale}
+import weft_chart/series/common
 import weft_chart/shape
 
 // ---------------------------------------------------------------------------
@@ -93,36 +94,85 @@ pub type BarPosition {
 /// Create a bar configuration with default settings.
 /// Matches recharts Bar defaults.
 pub fn bar_config(data_key data_key: String) -> BarConfig(msg) {
+  bar_config_v2(data_key: data_key, meta: common.series_meta())
+}
+
+/// Create a bar configuration using shared series metadata.
+pub fn bar_config_v2(
+  data_key data_key: String,
+  meta meta: common.SeriesMeta,
+) -> BarConfig(msg) {
+  bar_meta(
+    config: BarConfig(
+      data_key: data_key,
+      name: "",
+      fill: "var(--weft-chart-bar-fill, currentColor)",
+      radius: 0.0,
+      radius_corners: #(0.0, 0.0, 0.0, 0.0),
+      has_custom_corners: False,
+      stack_id: "",
+      bar_size: 0,
+      max_bar_size: 0,
+      min_point_size: FixedMinPointSize(0.0),
+      show_background: False,
+      background_fill: "var(--weft-chart-bar-bg, #eee)",
+      show_label: False,
+      stroke: "",
+      stroke_width: 0.0,
+      hide: False,
+      legend_type: shape.RectIcon,
+      tooltip_type: shape.DefaultTooltip,
+      cells: [],
+      unit: "",
+      x_axis_id: "0",
+      y_axis_id: "0",
+      custom_label: None,
+      custom_shape: None,
+      active_bar: None,
+      active_index: None,
+      css_class: "",
+      animation: animation.bar_default(),
+      data_override: None,
+    ),
+    meta: meta,
+  )
+}
+
+/// Apply shared series metadata to an existing bar configuration.
+pub fn bar_meta(
+  config config: BarConfig(msg),
+  meta meta: common.SeriesMeta,
+) -> BarConfig(msg) {
   BarConfig(
-    data_key: data_key,
-    name: "",
-    fill: "var(--weft-chart-bar-fill, currentColor)",
-    radius: 0.0,
-    radius_corners: #(0.0, 0.0, 0.0, 0.0),
-    has_custom_corners: False,
-    stack_id: "",
-    bar_size: 0,
-    max_bar_size: 0,
-    min_point_size: FixedMinPointSize(0.0),
-    show_background: False,
-    background_fill: "var(--weft-chart-bar-bg, #eee)",
-    show_label: False,
-    stroke: "",
-    stroke_width: 0.0,
-    hide: False,
-    legend_type: shape.RectIcon,
-    tooltip_type: shape.DefaultTooltip,
-    cells: [],
-    unit: "",
-    x_axis_id: "0",
-    y_axis_id: "0",
-    custom_label: None,
-    custom_shape: None,
-    active_bar: None,
-    active_index: None,
-    css_class: "",
-    animation: animation.bar_default(),
-    data_override: None,
+    data_key: config.data_key,
+    name: meta.name,
+    fill: config.fill,
+    radius: config.radius,
+    radius_corners: config.radius_corners,
+    has_custom_corners: config.has_custom_corners,
+    stack_id: config.stack_id,
+    bar_size: config.bar_size,
+    max_bar_size: config.max_bar_size,
+    min_point_size: config.min_point_size,
+    show_background: config.show_background,
+    background_fill: config.background_fill,
+    show_label: config.show_label,
+    stroke: config.stroke,
+    stroke_width: config.stroke_width,
+    hide: meta.hide,
+    legend_type: config.legend_type,
+    tooltip_type: meta.tooltip_type,
+    cells: config.cells,
+    unit: meta.unit,
+    x_axis_id: meta.x_axis_id,
+    y_axis_id: meta.y_axis_id,
+    custom_label: config.custom_label,
+    custom_shape: config.custom_shape,
+    active_bar: config.active_bar,
+    active_index: config.active_index,
+    css_class: meta.css_class,
+    animation: config.animation,
+    data_override: config.data_override,
   )
 }
 

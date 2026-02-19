@@ -778,10 +778,17 @@ pub fn render_reference_area(
   // Check discard
   case config.if_overflow {
     Discard -> {
-      let in_range = case config.direction {
-        Horizontal -> rh >. 0.0
-        Vertical -> rw >. 0.0
-      }
+      let in_range =
+        rect_intersects_plot(
+          rx,
+          ry,
+          rw,
+          rh,
+          plot_x,
+          plot_y,
+          plot_width,
+          plot_height,
+        )
       case in_range {
         False -> element.none()
         True ->
@@ -1027,4 +1034,30 @@ fn point_in_plot(
   && x <=. plot_x +. plot_width
   && y >=. plot_y
   && y <=. plot_y +. plot_height
+}
+
+/// Check whether a rectangle intersects the plot bounds.
+fn rect_intersects_plot(
+  rx: Float,
+  ry: Float,
+  rw: Float,
+  rh: Float,
+  plot_x: Float,
+  plot_y: Float,
+  plot_width: Float,
+  plot_height: Float,
+) -> Bool {
+  case rw <=. 0.0 || rh <=. 0.0 {
+    True -> False
+    False -> {
+      let rect_right = rx +. rw
+      let rect_bottom = ry +. rh
+      let plot_right = plot_x +. plot_width
+      let plot_bottom = plot_y +. plot_height
+      rect_right >. plot_x
+      && rx <. plot_right
+      && rect_bottom >. plot_y
+      && ry <. plot_bottom
+    }
+  }
 }

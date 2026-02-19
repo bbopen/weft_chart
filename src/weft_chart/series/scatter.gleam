@@ -460,18 +460,25 @@ pub fn render_scatter_with_z(
             [] -> element.none()
             [_] -> element.none()
             _ -> {
-              let d = points_to_path(point_pairs)
-              svg.el(
-                tag: "path",
-                attrs: [
-                  svg.attr("d", d),
-                  svg.attr("fill", "none"),
-                  svg.attr("stroke", config.fill),
-                  svg.attr("stroke-width", "1"),
-                  svg.attr("class", "recharts-scatter-line"),
-                ],
-                children: [],
-              )
+              let path = case config.line_type {
+                JointLine -> Some(points_to_path(point_pairs))
+                FittingLine -> fitting_line_path(point_pairs)
+              }
+              case path {
+                None -> element.none()
+                Some(d) ->
+                  svg.el(
+                    tag: "path",
+                    attrs: [
+                      svg.attr("d", d),
+                      svg.attr("fill", "none"),
+                      svg.attr("stroke", config.fill),
+                      svg.attr("stroke-width", "1"),
+                      svg.attr("class", "recharts-scatter-line"),
+                    ],
+                    children: [],
+                  )
+              }
             }
           }
         }
@@ -806,6 +813,79 @@ fn points_to_path(points: List(#(Float, Float))) -> String {
       list.fold(rest, start, fn(acc, p) {
         acc <> "L" <> math.fmt(p.0) <> "," <> math.fmt(p.1)
       })
+    }
+  }
+}
+
+/// Build a least-squares fitting line path for scatter points.
+///
+/// Returns None when there are fewer than 2 points.
+fn fitting_line_path(points: List(#(Float, Float))) -> Option(String) {
+  case regression_endpoints(points) {
+    None -> None
+    Some(#(x1, y1, x2, y2)) ->
+      Some(
+        "M"
+        <> math.fmt(x1)
+        <> ","
+        <> math.fmt(y1)
+        <> "L"
+        <> math.fmt(x2)
+        <> ","
+        <> math.fmt(y2),
+      )
+  }
+}
+
+/// Compute fitting-line endpoints spanning the observed x-domain.
+///
+/// Uses ordinary least squares. If x variance is near zero, falls back
+/// to a vertical line through mean x and y min/max.
+fn regression_endpoints(
+  points: List(#(Float, Float)),
+) -> Option(#(Float, Float, Float, Float)) {
+  case points {
+    [] -> None
+    [_] -> None
+    [first, ..rest] -> {
+      let #(fx, fy) = first
+      let #(sum_x, sum_y, sum_xx, sum_xy, min_x, max_x, min_y, max_y) =
+        list.fold(
+          rest,
+          #(fx, fy, fx *. fx, fx *. fy, fx, fx, fy, fy),
+          fn(acc, point) {
+            let #(sx, sy, sxx, sxy, lo_x, hi_x, lo_y, hi_y) = acc
+            let #(x, y) = point
+            #(
+              sx +. x,
+              sy +. y,
+              sxx +. x *. x,
+              sxy +. x *. y,
+              float.min(lo_x, x),
+              float.max(hi_x, x),
+              float.min(lo_y, y),
+              float.max(hi_y, y),
+            )
+          },
+        )
+      let n = int.to_float(list.length(points))
+      let denom = n *. sum_xx -. sum_x *. sum_x
+      case float.absolute_value(denom) <. 0.0000001 {
+        True -> {
+          let mean_x = sum_x /. n
+          Some(#(mean_x, min_y, mean_x, max_y))
+        }
+        False -> {
+          let slope = { n *. sum_xy -. sum_x *. sum_y } /. denom
+          let intercept = { sum_y -. slope *. sum_x } /. n
+          Some(#(
+            min_x,
+            slope *. min_x +. intercept,
+            max_x,
+            slope *. max_x +. intercept,
+          ))
+        }
+      }
     }
   }
 }

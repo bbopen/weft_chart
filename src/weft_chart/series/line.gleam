@@ -19,6 +19,7 @@ import weft_chart/internal/math
 import weft_chart/internal/svg
 import weft_chart/render
 import weft_chart/scale.{type Scale}
+import weft_chart/series/common
 import weft_chart/shape
 
 // ---------------------------------------------------------------------------
@@ -69,32 +70,77 @@ type MaybePoint {
 /// Create a line configuration with default settings.
 /// When `name` is empty, `data_key` is used for tooltip/legend display.
 pub fn line_config(data_key data_key: String) -> LineConfig(msg) {
+  line_config_v2(data_key: data_key, meta: common.series_meta())
+}
+
+/// Create a line configuration using shared series metadata.
+pub fn line_config_v2(
+  data_key data_key: String,
+  meta meta: common.SeriesMeta,
+) -> LineConfig(msg) {
+  line_meta(
+    config: LineConfig(
+      data_key: data_key,
+      name: "",
+      curve_type: curve.Linear,
+      stroke: "var(--weft-chart-line-stroke, currentColor)",
+      stroke_width: 2.0,
+      stroke_dasharray: "",
+      connect_nulls: False,
+      show_dot: True,
+      dot_radius: 3.0,
+      fill: "#fff",
+      hide: False,
+      legend_type: shape.LineIcon,
+      tooltip_type: shape.DefaultTooltip,
+      show_label: False,
+      unit: "",
+      x_axis_id: "0",
+      y_axis_id: "0",
+      custom_dot: None,
+      custom_label: None,
+      active_dot: None,
+      active_index: None,
+      css_class: "",
+      animate_new_values: True,
+      animation: animation.line_default(),
+      clip_dot: True,
+    ),
+    meta: meta,
+  )
+}
+
+/// Apply shared series metadata to an existing line configuration.
+pub fn line_meta(
+  config config: LineConfig(msg),
+  meta meta: common.SeriesMeta,
+) -> LineConfig(msg) {
   LineConfig(
-    data_key: data_key,
-    name: "",
-    curve_type: curve.Linear,
-    stroke: "var(--weft-chart-line-stroke, currentColor)",
-    stroke_width: 2.0,
-    stroke_dasharray: "",
-    connect_nulls: False,
-    show_dot: True,
-    dot_radius: 3.0,
-    fill: "#fff",
-    hide: False,
-    legend_type: shape.LineIcon,
-    tooltip_type: shape.DefaultTooltip,
-    show_label: False,
-    unit: "",
-    x_axis_id: "0",
-    y_axis_id: "0",
-    custom_dot: None,
-    custom_label: None,
-    active_dot: None,
-    active_index: None,
-    css_class: "",
-    animate_new_values: True,
-    animation: animation.line_default(),
-    clip_dot: True,
+    data_key: config.data_key,
+    name: meta.name,
+    curve_type: config.curve_type,
+    stroke: config.stroke,
+    stroke_width: config.stroke_width,
+    stroke_dasharray: config.stroke_dasharray,
+    connect_nulls: config.connect_nulls,
+    show_dot: config.show_dot,
+    dot_radius: config.dot_radius,
+    fill: config.fill,
+    hide: meta.hide,
+    legend_type: config.legend_type,
+    tooltip_type: meta.tooltip_type,
+    show_label: config.show_label,
+    unit: meta.unit,
+    x_axis_id: meta.x_axis_id,
+    y_axis_id: meta.y_axis_id,
+    custom_dot: config.custom_dot,
+    custom_label: config.custom_label,
+    active_dot: config.active_dot,
+    active_index: config.active_index,
+    css_class: meta.css_class,
+    animate_new_values: config.animate_new_values,
+    animation: config.animation,
+    clip_dot: config.clip_dot,
   )
 }
 
