@@ -6420,6 +6420,53 @@ pub fn radial_bar_tooltip_data_tests() {
   ])
 }
 
+pub fn polar_tooltip_rendering_tests() {
+  describe("polar_tooltip_rendering", [
+    it("radar_chart with TooltipChild renders tooltip hotspots", fn() {
+      let data = [
+        chart.DataPoint(category: "A", values: dict.from_list([#("v", 40.0)])),
+        chart.DataPoint(category: "B", values: dict.from_list([#("v", 75.0)])),
+      ]
+
+      let html =
+        chart.radar_chart(data: data, width: 400, height: 320, children: [
+          chart.radar(radar.radar_config(data_key: "v")),
+          chart.tooltip(tooltip.tooltip_config()),
+        ])
+        |> element.to_string
+
+      html |> string.contains("chart-hotspot") |> expect.to_be_true
+      html |> string.contains("recharts-tooltip-wrapper") |> expect.to_be_true
+      html |> string.contains(">A<") |> expect.to_be_true
+      html |> string.contains(">B<") |> expect.to_be_true
+    }),
+    it("radial_bar_chart with TooltipChild renders tooltip hotspots", fn() {
+      let data = [
+        chart.DataPoint(
+          category: "Alpha",
+          values: dict.from_list([#("v", 55.0)]),
+        ),
+        chart.DataPoint(
+          category: "Beta",
+          values: dict.from_list([#("v", 88.0)]),
+        ),
+      ]
+
+      let html =
+        chart.radial_bar_chart(data: data, width: 400, height: 320, children: [
+          chart.radial_bar(radial_bar.radial_bar_config(data_key: "v")),
+          chart.tooltip(tooltip.tooltip_config()),
+        ])
+        |> element.to_string
+
+      html |> string.contains("chart-hotspot") |> expect.to_be_true
+      html |> string.contains("recharts-tooltip-wrapper") |> expect.to_be_true
+      html |> string.contains(">Alpha<") |> expect.to_be_true
+      html |> string.contains(">Beta<") |> expect.to_be_true
+    }),
+  ])
+}
+
 pub fn cell_enhancement_tests() {
   describe("cell_enhancements", [
     it("bar cell_config_full sets all fields", fn() {

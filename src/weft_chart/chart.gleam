@@ -29,6 +29,7 @@ import weft_chart/internal/cartesian/context as cartesian_context
 import weft_chart/internal/cartesian/tooltip_payload as cartesian_tooltip_payload
 import weft_chart/internal/layout
 import weft_chart/internal/math
+import weft_chart/internal/polar
 import weft_chart/internal/svg
 import weft_chart/legend
 import weft_chart/polar_axis
@@ -1522,8 +1523,9 @@ fn render_polar(
   // Build legend payload
   let legend_payload = build_legend_payload(children)
 
-  // Build pie tooltip payloads from each PieChild's sector centroids.
-  // Matches recharts tooltipPosition = polarToCartesian(cx, cy, middleRadius, midAngle).
+  // Build tooltip payloads for polar series from rendered geometry centroids.
+  // Pie uses sector centroids; radar uses vertex positions; radial bar uses
+  // arc midpoints.
   let pie_tooltip_payloads =
     list.flat_map(children, fn(child) {
       case child {
@@ -1583,7 +1585,57 @@ fn render_polar(
       }
     })
 
-  // Render pie tooltips if a TooltipChild is present.
+  let radar_tooltip_payloads =
+    list.flat_map(children, fn(child) {
+      case child {
+        RadarChild(config:) ->
+          build_radar_tooltip_payloads(
+            config: config,
+            data: values_list,
+            categories: categories,
+            cx: cx,
+            cy: cy,
+            max_radius: max_radius,
+            domain_max: domain_max,
+          )
+        _ -> []
+      }
+    })
+
+  let radial_bar_tooltip_payloads =
+    list.flat_map(children, fn(child) {
+      case child {
+        RadialBarChild(config:) -> {
+          let #(rb_data, rb_cats) = case config.data {
+            [] -> #(values_list, categories)
+            own_data -> {
+              let cats =
+                list.index_map(own_data, fn(_d, i) {
+                  "item-" <> int.to_string(i)
+                })
+              #(own_data, cats)
+            }
+          }
+          build_radial_bar_tooltip_payloads(
+            config: config,
+            data: rb_data,
+            categories: rb_cats,
+            cx: cx,
+            cy: cy,
+            domain_max: domain_max,
+          )
+        }
+        _ -> []
+      }
+    })
+
+  let polar_tooltip_payloads =
+    list.append(
+      pie_tooltip_payloads,
+      list.append(radar_tooltip_payloads, radial_bar_tooltip_payloads),
+    )
+
+  // Render polar tooltips if a TooltipChild is present.
   let pie_zone_width =
     list.fold(children, 60.0, fn(acc, child) {
       case child {
@@ -1599,15 +1651,14 @@ fn render_polar(
       }
     })
 
-  let rendered_pie_tooltips =
+  let rendered_polar_tooltips =
     list.filter_map(children, fn(child) {
       case child {
         TooltipChild(config:) ->
-          case pie_tooltip_payloads {
+          case polar_tooltip_payloads {
             [] -> Error(Nil)
             payloads -> {
-              // Pie charts have no cursor — recharts shows no line/cross on hover,
-              // only the tooltip popup itself.
+              // Polar charts have no cartesian cursor overlays.
               let config =
                 tooltip.TooltipConfig(..config, cursor_type: tooltip.NoCursor)
               Ok(
@@ -1630,7 +1681,7 @@ fn render_polar(
     })
 
   // Tooltip CSS (needed if any tooltip children exist)
-  let pie_style_els = case
+  let polar_style_els = case
     list.any(children, fn(c) {
       case c {
         TooltipChild(..) -> True
@@ -1797,12 +1848,193 @@ fn render_polar(
     width: width,
     height: height,
     svg_children: list.flatten([
-      pie_style_els,
+      polar_style_els,
       rendered_children,
-      rendered_pie_tooltips,
+      rendered_polar_tooltips,
     ]),
     children: children,
   )
+}
+
+fn build_radar_tooltip_payloads(
+  config config: radar.RadarConfig(msg),
+  data data: List(Dict(String, Float)),
+  categories categories: List(String),
+  cx cx: Float,
+  cy cy: Float,
+  max_radius max_radius: Float,
+  domain_max domain_max: Float,
+) -> List(tooltip.TooltipPayload) {
+  case config.hide || is_no_tooltip(config.tooltip_type) {
+    True -> []
+    False -> {
+      let n = list.length(categories)
+      case n == 0 {
+        True -> []
+        False -> {
+          let angle_step = 360.0 /. int.to_float(n)
+          let arc_len = { 2.0 *. math.pi *. max_radius } /. int.to_float(n)
+          let zone_size = float.max(18.0, float.min(48.0, arc_len *. 0.45))
+          let display_name = case config.name {
+            "" -> config.data_key
+            n -> n
+          }
+
+          list.index_map(list.zip(categories, data), fn(pair, index) {
+            let #(category, values) = pair
+            let value = case dict.get(values, config.data_key) {
+              Ok(v) -> v
+              Error(_) -> 0.0
+            }
+            let ratio = case domain_max <=. 0.0 {
+              True -> 0.0
+              False -> math.clamp(value /. domain_max, 0.0, 1.0)
+            }
+            // Keep the hit zone away from the center so hover targets map
+            // to visible vertices even when the value is zero.
+            let radius = case ratio <=. 0.0 {
+              True -> max_radius *. 0.45
+              False -> ratio *. max_radius
+            }
+            let angle = int.to_float(index) *. angle_step
+            let #(px, py) =
+              polar.to_cartesian(
+                cx: cx,
+                cy: cy,
+                radius: radius,
+                angle_degrees: angle,
+              )
+
+            tooltip.TooltipPayload(
+              label: category,
+              entries: [
+                tooltip.TooltipEntry(
+                  name: display_name,
+                  value: value,
+                  color: config.stroke,
+                  unit: config.unit,
+                  hidden: False,
+                  entry_type: tooltip.VisibleEntry,
+                ),
+              ],
+              x: px,
+              y: py,
+              active_dots: [],
+              zone_width: zone_size,
+              zone_height: zone_size,
+            )
+          })
+        }
+      }
+    }
+  }
+}
+
+fn build_radial_bar_tooltip_payloads(
+  config config: radial_bar.RadialBarConfig(msg),
+  data data: List(Dict(String, Float)),
+  categories categories: List(String),
+  cx cx: Float,
+  cy cy: Float,
+  domain_max domain_max: Float,
+) -> List(tooltip.TooltipPayload) {
+  case config.hide || is_no_tooltip(config.tooltip_type) {
+    True -> []
+    False -> {
+      let n = list.length(categories)
+      case n == 0 {
+        True -> []
+        False -> {
+          let radius_range = config.outer_radius -. config.inner_radius
+          let raw_bar_height = radius_range /. int.to_float(n)
+          let bar_height = case config.max_bar_size >. 0.0 {
+            True -> float.min(raw_bar_height, config.max_bar_size)
+            False -> raw_bar_height
+          }
+          let safe_bar_height = case bar_height <. 0.0 {
+            True -> 0.0
+            False -> bar_height
+          }
+          let zone_size = float.max(14.0, safe_bar_height *. 0.9)
+          let total_angle = config.end_angle -. config.start_angle
+
+          list.index_map(list.zip(categories, data), fn(pair, index) {
+            let #(category, values) = pair
+            let value = case dict.get(values, config.data_key) {
+              Ok(v) -> v
+              Error(_) -> 0.0
+            }
+
+            let ratio = case domain_max <=. 0.0 {
+              True -> 0.0
+              False -> value /. domain_max
+            }
+            let raw_delta = total_angle *. ratio
+            let delta_angle = case
+              float.absolute_value(raw_delta) <. config.min_point_size
+              && config.min_point_size >. 0.0
+              && value >. 0.0
+            {
+              True -> {
+                let sign = case total_angle <. 0.0 {
+                  True -> -1.0
+                  False -> 1.0
+                }
+                sign *. config.min_point_size
+              }
+              False -> raw_delta
+            }
+            let data_angle = config.start_angle +. delta_angle
+
+            let inner_r =
+              config.inner_radius +. int.to_float(index) *. bar_height
+            let outer_r = inner_r +. safe_bar_height *. 0.8
+            let mid_r = { inner_r +. outer_r } /. 2.0
+            let mid_a = polar.mid_angle(config.start_angle, data_angle)
+            let #(px, py) =
+              polar.to_cartesian(
+                cx: cx,
+                cy: cy,
+                radius: mid_r,
+                angle_degrees: mid_a,
+              )
+            let fill = radial_bar_cycle_fill(config.fills, index)
+
+            tooltip.TooltipPayload(
+              label: category,
+              entries: [
+                tooltip.TooltipEntry(
+                  name: config.data_key,
+                  value: value,
+                  color: fill,
+                  unit: "",
+                  hidden: False,
+                  entry_type: tooltip.VisibleEntry,
+                ),
+              ],
+              x: px,
+              y: py,
+              active_dots: [],
+              zone_width: zone_size,
+              zone_height: zone_size,
+            )
+          })
+        }
+      }
+    }
+  }
+}
+
+fn radial_bar_cycle_fill(fills: List(String), index: Int) -> String {
+  let n = list.length(fills)
+  case n == 0 {
+    True -> "currentColor"
+    False ->
+      case list_at(fills, index % n) {
+        Ok(fill) -> fill
+        Error(_) -> "currentColor"
+      }
+  }
 }
 
 // ---------------------------------------------------------------------------
