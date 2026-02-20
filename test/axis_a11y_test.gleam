@@ -1,6 +1,7 @@
 //// Tests for axis custom tick and SVG accessibility features.
 
 import gleam/dict
+import gleam/option
 import gleam/string
 import lustre/element
 import startest.{describe, it}
@@ -70,10 +71,19 @@ pub fn svg_a11y_tests() {
         ),
       ]
       let html =
-        chart.line_chart(data: data, width: 400, height: 300, children: [
-          chart.line(line.line_config(data_key: "v", meta: common.series_meta())),
-          chart.title(text: "My Chart"),
-        ])
+        chart.line_chart(
+          data: data,
+          width: chart.FixedWidth(pixels: 400),
+          theme: option.None,
+          height: 300,
+          children: [
+            chart.line(line.line_config(
+              data_key: "v",
+              meta: common.series_meta(),
+            )),
+            chart.title(text: "My Chart"),
+          ],
+        )
         |> element.to_string
       html |> string.contains("<title>My Chart</title>") |> expect.to_be_true
     }),
@@ -85,10 +95,19 @@ pub fn svg_a11y_tests() {
         ),
       ]
       let html =
-        chart.line_chart(data: data, width: 400, height: 300, children: [
-          chart.line(line.line_config(data_key: "v", meta: common.series_meta())),
-          chart.desc(text: "Revenue over time"),
-        ])
+        chart.line_chart(
+          data: data,
+          width: chart.FixedWidth(pixels: 400),
+          theme: option.None,
+          height: 300,
+          children: [
+            chart.line(line.line_config(
+              data_key: "v",
+              meta: common.series_meta(),
+            )),
+            chart.desc(text: "Revenue over time"),
+          ],
+        )
         |> element.to_string
       html
       |> string.contains("<desc>Revenue over time</desc>")

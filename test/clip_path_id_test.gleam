@@ -4,6 +4,7 @@
 //// document do not collide.
 
 import gleam/dict
+import gleam/option
 import gleam/string
 import lustre/element
 import startest.{describe, it}
@@ -36,7 +37,8 @@ pub fn clip_path_id_tests() {
       let html_a =
         chart.line_chart(
           data: sample_data_a(),
-          width: 400,
+          width: chart.FixedWidth(pixels: 400),
+          theme: option.None,
           height: 300,
           children: [
             chart.id(id: "chart-a"),
@@ -51,7 +53,8 @@ pub fn clip_path_id_tests() {
       let html_b =
         chart.line_chart(
           data: sample_data_a(),
-          width: 400,
+          width: chart.FixedWidth(pixels: 400),
+          theme: option.None,
           height: 300,
           children: [
             chart.id(id: "chart-b"),
@@ -74,7 +77,8 @@ pub fn clip_path_id_tests() {
       let html_a =
         chart.line_chart(
           data: sample_data_a(),
-          width: 400,
+          width: chart.FixedWidth(pixels: 400),
+          theme: option.None,
           height: 300,
           children: [
             chart.line(line.line_config(
@@ -88,7 +92,8 @@ pub fn clip_path_id_tests() {
       let html_b =
         chart.line_chart(
           data: sample_data_b(),
-          width: 400,
+          width: chart.FixedWidth(pixels: 400),
+          theme: option.None,
           height: 300,
           children: [
             chart.line(line.line_config(

@@ -26,9 +26,15 @@ pub fn single_bar_sizing_tests() {
         chart.DataPoint(category: "A", values: dict.from_list([#("v", 10.0)])),
       ]
       let html =
-        chart.bar_chart(data: data, width: 400, height: 300, children: [
-          chart.bar(bar.bar_config(data_key: "v", meta: common.series_meta())),
-        ])
+        chart.bar_chart(
+          data: data,
+          width: chart.FixedWidth(pixels: 400),
+          theme: option.None,
+          height: 300,
+          children: [
+            chart.bar(bar.bar_config(data_key: "v", meta: common.series_meta())),
+          ],
+        )
         |> element.to_string
       // Single bar should NOT use the old 60% fallback
       // With 10% category gap, the bar gets 80% of bandwidth
@@ -52,10 +58,16 @@ pub fn multi_bar_positioning_tests() {
         ),
       ]
       let html =
-        chart.bar_chart(data: data, width: 400, height: 300, children: [
-          chart.bar(bar.bar_config(data_key: "v1", meta: common.series_meta())),
-          chart.bar(bar.bar_config(data_key: "v2", meta: common.series_meta())),
-        ])
+        chart.bar_chart(
+          data: data,
+          width: chart.FixedWidth(pixels: 400),
+          theme: option.None,
+          height: 300,
+          children: [
+            chart.bar(bar.bar_config(data_key: "v1", meta: common.series_meta())),
+            chart.bar(bar.bar_config(data_key: "v2", meta: common.series_meta())),
+          ],
+        )
         |> element.to_string
       // Both bars should be rendered
       html |> string.contains("recharts-bar") |> expect.to_be_true
@@ -72,11 +84,17 @@ pub fn multi_bar_positioning_tests() {
         ),
       ]
       let html =
-        chart.bar_chart(data: data, width: 400, height: 300, children: [
-          chart.bar(bar.bar_config(data_key: "v1", meta: common.series_meta())),
-          chart.bar(bar.bar_config(data_key: "v2", meta: common.series_meta())),
-          chart.bar(bar.bar_config(data_key: "v3", meta: common.series_meta())),
-        ])
+        chart.bar_chart(
+          data: data,
+          width: chart.FixedWidth(pixels: 400),
+          theme: option.None,
+          height: 300,
+          children: [
+            chart.bar(bar.bar_config(data_key: "v1", meta: common.series_meta())),
+            chart.bar(bar.bar_config(data_key: "v2", meta: common.series_meta())),
+            chart.bar(bar.bar_config(data_key: "v3", meta: common.series_meta())),
+          ],
+        )
         |> element.to_string
       html |> string.contains("recharts-bar") |> expect.to_be_true
     }),
@@ -88,15 +106,21 @@ pub fn multi_bar_positioning_tests() {
         ),
       ]
       let html =
-        chart.bar_chart(data: data, width: 400, height: 300, children: [
-          chart.bar_layout(
-            bar_category_gap: 0.15,
-            bar_gap: 20.0,
-            chart_bar_size: chart.FixedBarSize(size: 0),
-          ),
-          chart.bar(bar.bar_config(data_key: "v1", meta: common.series_meta())),
-          chart.bar(bar.bar_config(data_key: "v2", meta: common.series_meta())),
-        ])
+        chart.bar_chart(
+          data: data,
+          width: chart.FixedWidth(pixels: 400),
+          theme: option.None,
+          height: 300,
+          children: [
+            chart.bar_layout(
+              bar_category_gap: 0.15,
+              bar_gap: 20.0,
+              chart_bar_size: chart.FixedBarSize(size: 0),
+            ),
+            chart.bar(bar.bar_config(data_key: "v1", meta: common.series_meta())),
+            chart.bar(bar.bar_config(data_key: "v2", meta: common.series_meta())),
+          ],
+        )
         |> element.to_string
       html |> string.contains("recharts-bar") |> expect.to_be_true
     }),
@@ -108,15 +132,21 @@ pub fn multi_bar_positioning_tests() {
         ),
       ]
       let html =
-        chart.bar_chart(data: data, width: 400, height: 300, children: [
-          chart.bar_layout(
-            bar_category_gap: 0.1,
-            bar_gap: 4.0,
-            chart_bar_size: chart.FixedBarSize(size: 30),
-          ),
-          chart.bar(bar.bar_config(data_key: "v1", meta: common.series_meta())),
-          chart.bar(bar.bar_config(data_key: "v2", meta: common.series_meta())),
-        ])
+        chart.bar_chart(
+          data: data,
+          width: chart.FixedWidth(pixels: 400),
+          theme: option.None,
+          height: 300,
+          children: [
+            chart.bar_layout(
+              bar_category_gap: 0.1,
+              bar_gap: 4.0,
+              chart_bar_size: chart.FixedBarSize(size: 30),
+            ),
+            chart.bar(bar.bar_config(data_key: "v1", meta: common.series_meta())),
+            chart.bar(bar.bar_config(data_key: "v2", meta: common.series_meta())),
+          ],
+        )
         |> element.to_string
       // Width attribute should contain "30" for the bar size
       html |> string.contains("30") |> expect.to_be_true
@@ -157,12 +187,18 @@ pub fn bar_data_override_tests() {
       ]
       let override_data = [dict.from_list([#("v", 50.0)])]
       let html =
-        chart.bar_chart(data: chart_data, width: 400, height: 300, children: [
-          chart.bar(
-            bar.bar_config(data_key: "v", meta: common.series_meta())
-            |> bar.bar_data_override(data: override_data),
-          ),
-        ])
+        chart.bar_chart(
+          data: chart_data,
+          width: chart.FixedWidth(pixels: 400),
+          theme: option.None,
+          height: 300,
+          children: [
+            chart.bar(
+              bar.bar_config(data_key: "v", meta: common.series_meta())
+              |> bar.bar_data_override(data: override_data),
+            ),
+          ],
+        )
         |> element.to_string
       html |> string.contains("recharts-bar") |> expect.to_be_true
     }),

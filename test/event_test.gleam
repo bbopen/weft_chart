@@ -147,7 +147,8 @@ pub fn event_tests() {
         let html =
           chart.line_chart(
             data: sample_data(),
-            width: 400,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
             height: 300,
             children: [
               chart.line(line.line_config(
@@ -165,7 +166,8 @@ pub fn event_tests() {
         let html =
           chart.line_chart(
             data: sample_data(),
-            width: 400,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
             height: 300,
             children: [
               chart.line(line.line_config(
@@ -197,7 +199,8 @@ pub fn event_tests() {
         let html =
           chart.line_chart(
             data: sample_data(),
-            width: 400,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
             height: 300,
             children: [
               chart.line(line.line_config(
@@ -216,7 +219,8 @@ pub fn event_tests() {
         let html =
           chart.line_chart(
             data: sample_data(),
-            width: 400,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
             height: 300,
             children: [
               chart.line(line.line_config(
@@ -747,7 +751,8 @@ pub fn event_tests() {
         let html_filtered =
           chart.line_chart(
             data: missing_series_data(),
-            width: 400,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
             height: 300,
             children: [
               chart.line(line.line_config(
@@ -769,7 +774,8 @@ pub fn event_tests() {
         let html_include_missing =
           chart.line_chart(
             data: missing_series_data(),
-            width: 400,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
             height: 300,
             children: [
               chart.line(line.line_config(
@@ -795,7 +801,8 @@ pub fn event_tests() {
         let html =
           chart.line_chart(
             data: sample_data(),
-            width: 400,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
             height: 300,
             children: [
               chart.layout(layout: layout.Vertical),
@@ -827,7 +834,8 @@ pub fn event_tests() {
         let html =
           chart.line_chart(
             data: sample_data(),
-            width: 400,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
             height: 300,
             children: [
               chart.line(line.line_config(
@@ -852,7 +860,8 @@ pub fn event_tests() {
         let html =
           chart.line_chart(
             data: sample_data(),
-            width: 400,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
             height: 300,
             children: [
               chart.line(line.line_config(

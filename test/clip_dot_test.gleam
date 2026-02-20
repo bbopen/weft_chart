@@ -90,7 +90,8 @@ pub fn area_dot_clip_rendering_tests() {
       let html =
         chart.area_chart(
           data: simple_data(),
-          width: 400,
+          width: chart.FixedWidth(pixels: 400),
+          theme: option.None,
           height: 300,
           children: [
             chart.area(
@@ -110,7 +111,8 @@ pub fn area_dot_clip_rendering_tests() {
       let html =
         chart.area_chart(
           data: simple_data(),
-          width: 400,
+          width: chart.FixedWidth(pixels: 400),
+          theme: option.None,
           height: 300,
           children: [
             chart.area(
@@ -135,7 +137,8 @@ pub fn area_dot_clip_rendering_tests() {
       let html =
         chart.area_chart(
           data: simple_data(),
-          width: 400,
+          width: chart.FixedWidth(pixels: 400),
+          theme: option.None,
           height: 300,
           children: [
             chart.area(
@@ -165,7 +168,8 @@ pub fn line_dot_clip_rendering_tests() {
       let html =
         chart.line_chart(
           data: simple_data(),
-          width: 400,
+          width: chart.FixedWidth(pixels: 400),
+          theme: option.None,
           height: 300,
           children: [
             chart.line(line.line_config(
@@ -184,7 +188,8 @@ pub fn line_dot_clip_rendering_tests() {
       let html =
         chart.line_chart(
           data: simple_data(),
-          width: 400,
+          width: chart.FixedWidth(pixels: 400),
+          theme: option.None,
           height: 300,
           children: [
             chart.line(line.line_config(
@@ -206,7 +211,8 @@ pub fn line_dot_clip_rendering_tests() {
       let html =
         chart.line_chart(
           data: simple_data(),
-          width: 400,
+          width: chart.FixedWidth(pixels: 400),
+          theme: option.None,
           height: 300,
           children: [
             chart.line(
@@ -256,3 +262,4 @@ fn count_occurrences(haystack: String, needle: String) -> Int {
 }
 
 import gleam/list
+import gleam/option

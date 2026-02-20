@@ -6,6 +6,7 @@
 //// `Custom` variant for user-defined curve functions are supported.
 
 import gleam/list
+import gleam/string
 import weft_chart/internal/math
 
 // ---------------------------------------------------------------------------
@@ -102,7 +103,7 @@ pub fn area_path(
       let curve = path(curve_type: curve_type, points: points)
       case curve {
         "" -> ""
-        _ -> close_area(curve, points, baseline)
+        _ -> close_area(curve, points, baseline, curve_type)
       }
     }
   }
@@ -672,6 +673,7 @@ fn close_area(
   curve: String,
   points: List(#(Float, Float)),
   baseline: Baseline,
+  curve_type: CurveType,
 ) -> String {
   case baseline {
     FlatBaseline(y:) ->
@@ -688,12 +690,21 @@ fn close_area(
       }
 
     PointBaseline(points: base_points) -> {
-      // Trace baseline in reverse (matching d3 area path winding)
-      let base_path =
-        list.fold(list.reverse(base_points), "", fn(acc, pt) {
-          acc <> "L" <> f2(pt.0, pt.1)
-        })
-      curve <> base_path <> "Z"
+      // Trace the baseline in reverse using the same curve interpolation,
+      // matching the d3-shape area() pattern. This ensures the baseline
+      // curve exactly matches the previous series' top curve, preventing
+      // path overlap and double-shading in stacked area charts.
+      let reversed = list.reverse(base_points)
+      case reversed {
+        [] -> curve <> "Z"
+        _ -> {
+          let base_path = path(curve_type: curve_type, points: reversed)
+          // Replace the leading "M" with "L" to continue the path instead
+          // of starting a new sub-path (same transformation d3 area() uses).
+          let base_continuation = "L" <> string.drop_start(base_path, 1)
+          curve <> base_continuation <> "Z"
+        }
+      }
     }
   }
 }

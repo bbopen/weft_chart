@@ -5,6 +5,7 @@
 //// syncId, compact mode, and reference domain extension.
 
 import gleam/dict
+import gleam/option
 import gleam/string
 import lustre/element
 import startest.{describe, it}
@@ -36,17 +37,23 @@ fn two_series_data() -> List(chart.DataPoint) {
 
 fn stacked_bar_chart(offset: chart.StackOffsetType) -> String {
   let data = two_series_data()
-  chart.bar_chart(data: data, width: 400, height: 300, children: [
-    chart.stack_offset(offset),
-    chart.bar(
-      bar.bar_config(data_key: "s1", meta: common.series_meta())
-      |> bar.bar_stack_id("stack1"),
-    ),
-    chart.bar(
-      bar.bar_config(data_key: "s2", meta: common.series_meta())
-      |> bar.bar_stack_id("stack1"),
-    ),
-  ])
+  chart.bar_chart(
+    data: data,
+    width: chart.FixedWidth(pixels: 400),
+    theme: option.None,
+    height: 300,
+    children: [
+      chart.stack_offset(offset),
+      chart.bar(
+        bar.bar_config(data_key: "s1", meta: common.series_meta())
+        |> bar.bar_stack_id("stack1"),
+      ),
+      chart.bar(
+        bar.bar_config(data_key: "s2", meta: common.series_meta())
+        |> bar.bar_stack_id("stack1"),
+      ),
+    ],
+  )
   |> element.to_string
 }
 
@@ -91,14 +98,23 @@ pub fn container_layout_tests() {
           chart.DataPoint(category: "A", values: dict.from_list([#("v", 10.0)])),
         ]
         let html =
-          chart.bar_chart(data: data, width: 400, height: 300, children: [
-            chart.bar_layout(
-              bar_category_gap: 0.1,
-              bar_gap: 4.0,
-              chart_bar_size: chart.PercentBarSize(percent: 0.5),
-            ),
-            chart.bar(bar.bar_config(data_key: "v", meta: common.series_meta())),
-          ])
+          chart.bar_chart(
+            data: data,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
+            height: 300,
+            children: [
+              chart.bar_layout(
+                bar_category_gap: 0.1,
+                bar_gap: 4.0,
+                chart_bar_size: chart.PercentBarSize(percent: 0.5),
+              ),
+              chart.bar(bar.bar_config(
+                data_key: "v",
+                meta: common.series_meta(),
+              )),
+            ],
+          )
           |> element.to_string
         // Should produce valid SVG with bars
         html |> string.contains("<svg") |> expect.to_be_true
@@ -113,10 +129,19 @@ pub fn container_layout_tests() {
           chart.DataPoint(category: "A", values: dict.from_list([#("v", 10.0)])),
         ]
         let html =
-          chart.bar_chart(data: data, width: 400, height: 300, children: [
-            chart.max_bar_size(size: 20),
-            chart.bar(bar.bar_config(data_key: "v", meta: common.series_meta())),
-          ])
+          chart.bar_chart(
+            data: data,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
+            height: 300,
+            children: [
+              chart.max_bar_size(size: 20),
+              chart.bar(bar.bar_config(
+                data_key: "v",
+                meta: common.series_meta(),
+              )),
+            ],
+          )
           |> element.to_string
         // The bar width should be clamped to 20
         html |> string.contains("width=\"20\"") |> expect.to_be_true
@@ -129,9 +154,18 @@ pub fn container_layout_tests() {
           chart.DataPoint(category: "A", values: dict.from_list([#("v", 10.0)])),
         ]
         let html =
-          chart.bar_chart(data: data, width: 400, height: 300, children: [
-            chart.bar(bar.bar_config(data_key: "v", meta: common.series_meta())),
-          ])
+          chart.bar_chart(
+            data: data,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
+            height: 300,
+            children: [
+              chart.bar(bar.bar_config(
+                data_key: "v",
+                meta: common.series_meta(),
+              )),
+            ],
+          )
           |> element.to_string
         html
         |> string.contains("clip-path=\"url(#weft-chart-clip-")
@@ -145,10 +179,19 @@ pub fn container_layout_tests() {
           chart.DataPoint(category: "A", values: dict.from_list([#("v", 10.0)])),
         ]
         let html =
-          chart.bar_chart(data: data, width: 400, height: 300, children: [
-            chart.role(role: "graphics-document"),
-            chart.bar(bar.bar_config(data_key: "v", meta: common.series_meta())),
-          ])
+          chart.bar_chart(
+            data: data,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
+            height: 300,
+            children: [
+              chart.role(role: "graphics-document"),
+              chart.bar(bar.bar_config(
+                data_key: "v",
+                meta: common.series_meta(),
+              )),
+            ],
+          )
           |> element.to_string
         html
         |> string.contains("role=\"graphics-document\"")
@@ -159,9 +202,18 @@ pub fn container_layout_tests() {
           chart.DataPoint(category: "A", values: dict.from_list([#("v", 10.0)])),
         ]
         let html =
-          chart.bar_chart(data: data, width: 400, height: 300, children: [
-            chart.bar(bar.bar_config(data_key: "v", meta: common.series_meta())),
-          ])
+          chart.bar_chart(
+            data: data,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
+            height: 300,
+            children: [
+              chart.bar(bar.bar_config(
+                data_key: "v",
+                meta: common.series_meta(),
+              )),
+            ],
+          )
           |> element.to_string
         html |> string.contains("role=\"img\"") |> expect.to_be_true
       }),
@@ -173,10 +225,19 @@ pub fn container_layout_tests() {
           chart.DataPoint(category: "A", values: dict.from_list([#("v", 10.0)])),
         ]
         let html =
-          chart.bar_chart(data: data, width: 400, height: 300, children: [
-            chart.class(class: "my-chart"),
-            chart.bar(bar.bar_config(data_key: "v", meta: common.series_meta())),
-          ])
+          chart.bar_chart(
+            data: data,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
+            height: 300,
+            children: [
+              chart.class(class: "my-chart"),
+              chart.bar(bar.bar_config(
+                data_key: "v",
+                meta: common.series_meta(),
+              )),
+            ],
+          )
           |> element.to_string
         html |> string.contains("class=\"my-chart\"") |> expect.to_be_true
       }),
@@ -188,10 +249,19 @@ pub fn container_layout_tests() {
           chart.DataPoint(category: "A", values: dict.from_list([#("v", 10.0)])),
         ]
         let html =
-          chart.bar_chart(data: data, width: 400, height: 300, children: [
-            chart.id(id: "chart-1"),
-            chart.bar(bar.bar_config(data_key: "v", meta: common.series_meta())),
-          ])
+          chart.bar_chart(
+            data: data,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
+            height: 300,
+            children: [
+              chart.id(id: "chart-1"),
+              chart.bar(bar.bar_config(
+                data_key: "v",
+                meta: common.series_meta(),
+              )),
+            ],
+          )
           |> element.to_string
         html |> string.contains("id=\"chart-1\"") |> expect.to_be_true
       }),
@@ -203,10 +273,19 @@ pub fn container_layout_tests() {
           chart.DataPoint(category: "A", values: dict.from_list([#("v", 10.0)])),
         ]
         let html =
-          chart.bar_chart(data: data, width: 400, height: 300, children: [
-            chart.style(style: "background: white"),
-            chart.bar(bar.bar_config(data_key: "v", meta: common.series_meta())),
-          ])
+          chart.bar_chart(
+            data: data,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
+            height: 300,
+            children: [
+              chart.style(style: "background: white"),
+              chart.bar(bar.bar_config(
+                data_key: "v",
+                meta: common.series_meta(),
+              )),
+            ],
+          )
           |> element.to_string
         html
         |> string.contains("style=\"display:block;background: white\"")
@@ -220,10 +299,19 @@ pub fn container_layout_tests() {
           chart.DataPoint(category: "A", values: dict.from_list([#("v", 10.0)])),
         ]
         let html =
-          chart.bar_chart(data: data, width: 400, height: 300, children: [
-            chart.sync_id(id: "sync-group-1"),
-            chart.bar(bar.bar_config(data_key: "v", meta: common.series_meta())),
-          ])
+          chart.bar_chart(
+            data: data,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
+            height: 300,
+            children: [
+              chart.sync_id(id: "sync-group-1"),
+              chart.bar(bar.bar_config(
+                data_key: "v",
+                meta: common.series_meta(),
+              )),
+            ],
+          )
           |> element.to_string
         html
         |> string.contains("data-sync-id=\"sync-group-1\"")
@@ -234,11 +322,20 @@ pub fn container_layout_tests() {
           chart.DataPoint(category: "A", values: dict.from_list([#("v", 10.0)])),
         ]
         let html =
-          chart.bar_chart(data: data, width: 400, height: 300, children: [
-            chart.sync_id(id: "sync-group-1"),
-            chart.sync_method(method: chart.SyncByIndex),
-            chart.bar(bar.bar_config(data_key: "v", meta: common.series_meta())),
-          ])
+          chart.bar_chart(
+            data: data,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
+            height: 300,
+            children: [
+              chart.sync_id(id: "sync-group-1"),
+              chart.sync_method(method: chart.SyncByIndex),
+              chart.bar(bar.bar_config(
+                data_key: "v",
+                meta: common.series_meta(),
+              )),
+            ],
+          )
           |> element.to_string
         html
         |> string.contains("data-sync-method=\"index\"")
@@ -252,15 +349,33 @@ pub fn container_layout_tests() {
           chart.DataPoint(category: "A", values: dict.from_list([#("v", 10.0)])),
         ]
         let compact_html =
-          chart.bar_chart(data: data, width: 400, height: 300, children: [
-            chart.compact(),
-            chart.bar(bar.bar_config(data_key: "v", meta: common.series_meta())),
-          ])
+          chart.bar_chart(
+            data: data,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
+            height: 300,
+            children: [
+              chart.compact(),
+              chart.bar(bar.bar_config(
+                data_key: "v",
+                meta: common.series_meta(),
+              )),
+            ],
+          )
           |> element.to_string
         let normal_html =
-          chart.bar_chart(data: data, width: 400, height: 300, children: [
-            chart.bar(bar.bar_config(data_key: "v", meta: common.series_meta())),
-          ])
+          chart.bar_chart(
+            data: data,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
+            height: 300,
+            children: [
+              chart.bar(bar.bar_config(
+                data_key: "v",
+                meta: common.series_meta(),
+              )),
+            ],
+          )
           |> element.to_string
         // Compact should produce different output (wider plot area)
         { compact_html != normal_html } |> expect.to_be_true

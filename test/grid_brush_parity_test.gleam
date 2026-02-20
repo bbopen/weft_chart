@@ -136,10 +136,16 @@ pub fn polar_grid_parity_tests() {
           chart.DataPoint(category: "F", values: dict.from_list([#("v", 75.0)])),
         ]
         let html =
-          chart.radar_chart(data: data, width: 400, height: 400, children: [
-            chart.polar_grid(grid.polar_grid_config()),
-            chart.radar(radar.radar_config(data_key: "v")),
-          ])
+          chart.radar_chart(
+            data: data,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
+            height: 400,
+            children: [
+              chart.polar_grid(grid.polar_grid_config()),
+              chart.radar(radar.radar_config(data_key: "v")),
+            ],
+          )
           |> element.to_string
 
         // All expected groups are present
@@ -165,10 +171,16 @@ pub fn polar_grid_parity_tests() {
         chart.DataPoint(category: "F", values: dict.from_list([#("v", 75.0)])),
       ]
       let html =
-        chart.radar_chart(data: data, width: 400, height: 400, children: [
-          chart.polar_grid(grid.polar_grid_config()),
-          chart.radar(radar.radar_config(data_key: "v")),
-        ])
+        chart.radar_chart(
+          data: data,
+          width: chart.FixedWidth(pixels: 400),
+          theme: option.None,
+          height: 400,
+          children: [
+            chart.polar_grid(grid.polar_grid_config()),
+            chart.radar(radar.radar_config(data_key: "v")),
+          ],
+        )
         |> element.to_string
 
       // First spoke goes to top: x2=cx (200), y2 near top of chart.

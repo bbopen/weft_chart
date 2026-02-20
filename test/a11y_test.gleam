@@ -339,7 +339,8 @@ pub fn a11y_tests() {
         let html =
           chart.line_chart(
             data: simple_data(),
-            width: 400,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
             height: 300,
             children: [
               chart.accessibility(config: a11y.default()),
@@ -352,7 +353,8 @@ pub fn a11y_tests() {
         let html =
           chart.line_chart(
             data: simple_data(),
-            width: 400,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
             height: 300,
             children: [
               chart.accessibility(config: a11y.default()),
@@ -368,7 +370,8 @@ pub fn a11y_tests() {
         let html =
           chart.line_chart(
             data: simple_data(),
-            width: 400,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
             height: 300,
             children: [
               chart.accessibility(config: config),
@@ -386,7 +389,8 @@ pub fn a11y_tests() {
         let html =
           chart.line_chart(
             data: simple_data(),
-            width: 400,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
             height: 300,
             children: [
               chart.accessibility(config: config),
@@ -399,7 +403,8 @@ pub fn a11y_tests() {
         let html =
           chart.line_chart(
             data: simple_data(),
-            width: 400,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
             height: 300,
             children: [
               chart.role(role: "img"),
@@ -416,7 +421,8 @@ pub fn a11y_tests() {
         let html =
           chart.line_chart(
             data: simple_data(),
-            width: 400,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
             height: 300,
             children: [
               chart.accessibility(config: a11y.disabled()),
@@ -438,7 +444,8 @@ pub fn a11y_tests() {
         let html =
           chart.line_chart(
             data: simple_data(),
-            width: 400,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
             height: 300,
             children: [
               chart.accessibility(config: config),
@@ -452,7 +459,8 @@ pub fn a11y_tests() {
         let html =
           chart.line_chart(
             data: simple_data(),
-            width: 400,
+            width: chart.FixedWidth(pixels: 400),
+            theme: option.None,
             height: 300,
             children: [
               chart.accessibility(config: a11y.default()),

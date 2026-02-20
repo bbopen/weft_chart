@@ -1,6 +1,7 @@
 //// Tests for series custom render callbacks.
 
 import gleam/dict
+import gleam/option
 import gleam/string
 import lustre/element
 import startest.{describe, it}
@@ -132,7 +133,8 @@ pub fn scatter_line_type_render_tests() {
       let joint_html =
         chart.scatter_chart(
           data: scatter_data(),
-          width: 400,
+          width: chart.FixedWidth(pixels: 400),
+          theme: option.None,
           height: 300,
           children: [
             chart.scatter(
@@ -147,7 +149,8 @@ pub fn scatter_line_type_render_tests() {
       let fitting_html =
         chart.scatter_chart(
           data: scatter_data(),
-          width: 400,
+          width: chart.FixedWidth(pixels: 400),
+          theme: option.None,
           height: 300,
           children: [
             chart.scatter(

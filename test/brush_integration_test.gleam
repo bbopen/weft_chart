@@ -5,6 +5,7 @@
 //// creates the correct variant.
 
 import gleam/dict
+import gleam/option
 import gleam/string
 import lustre/element
 import startest.{describe, it}
@@ -51,7 +52,8 @@ pub fn brush_integration_tests() {
       let svg =
         chart.composed_chart(
           data: simple_data(),
-          width: 500,
+          width: chart.FixedWidth(pixels: 500),
+          theme: option.None,
           height: 300,
           children: [
             chart.line(line_series.line_config(
@@ -72,7 +74,8 @@ pub fn brush_integration_tests() {
       let svg_no_brush =
         chart.composed_chart(
           data: simple_data(),
-          width: 500,
+          width: chart.FixedWidth(pixels: 500),
+          theme: option.None,
           height: 300,
           children: [
             chart.line(line_series.line_config(
@@ -92,7 +95,8 @@ pub fn brush_integration_tests() {
       let svg_with_brush =
         chart.composed_chart(
           data: simple_data(),
-          width: 500,
+          width: chart.FixedWidth(pixels: 500),
+          theme: option.None,
           height: 300,
           children: [
             chart.line(line_series.line_config(

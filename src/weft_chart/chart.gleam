@@ -186,6 +186,47 @@ pub type SyncMethod {
   SyncByValue
 }
 
+/// Chart width specification.
+pub type ChartWidth {
+  /// Fixed pixel width — renders SVG with a concrete `width` attribute.
+  FixedWidth(pixels: Int)
+  /// Fill the containing element's width — renders SVG with `width="100%"`.
+  /// Internal coordinate calculations use a nominal width of 800 px;
+  /// a `viewBox` attribute is added so the chart scales proportionally.
+  FillWidth
+}
+
+/// Color theme for chart tooltip rendering.
+/// Provides CSS variable values injected as a scoped `<style>` block.
+pub type ChartTheme {
+  ChartTheme(
+    tooltip_bg: String,
+    tooltip_text: String,
+    tooltip_border: String,
+    tooltip_muted: String,
+  )
+}
+
+/// Default light-mode chart theme.
+pub fn chart_theme_light() -> ChartTheme {
+  ChartTheme(
+    tooltip_bg: "#ffffff",
+    tooltip_text: "#000000",
+    tooltip_border: "#e4e4e7",
+    tooltip_muted: "#71717a",
+  )
+}
+
+/// Default dark-mode chart theme.
+pub fn chart_theme_dark() -> ChartTheme {
+  ChartTheme(
+    tooltip_bg: "#18181b",
+    tooltip_text: "#fafafa",
+    tooltip_border: "#3f3f46",
+    tooltip_muted: "#3f3f46",
+  )
+}
+
 // ---------------------------------------------------------------------------
 // Child constructors
 // ---------------------------------------------------------------------------
@@ -482,14 +523,16 @@ pub fn accessibility(config config: a11y.A11yConfig(msg)) -> ChartChild(msg) {
 /// Render an area chart.
 pub fn area_chart(
   data data: List(DataPoint),
-  width width: Int,
+  width width: ChartWidth,
   height height: Int,
+  theme theme: option.Option(ChartTheme),
   children children: List(ChartChild(msg)),
 ) -> Element(msg) {
   render_cartesian(
     data: data,
     width: width,
     height: height,
+    theme: theme,
     children: children,
     chart_type: AreaChartType,
   )
@@ -500,14 +543,16 @@ pub fn area_chart(
 /// barGap=4px between bars in same category.
 pub fn bar_chart(
   data data: List(DataPoint),
-  width width: Int,
+  width width: ChartWidth,
   height height: Int,
+  theme theme: option.Option(ChartTheme),
   children children: List(ChartChild(msg)),
 ) -> Element(msg) {
   render_cartesian(
     data: data,
     width: width,
     height: height,
+    theme: theme,
     children: children,
     chart_type: BarChartType,
   )
@@ -516,14 +561,16 @@ pub fn bar_chart(
 /// Render a line chart.
 pub fn line_chart(
   data data: List(DataPoint),
-  width width: Int,
+  width width: ChartWidth,
   height height: Int,
+  theme theme: option.Option(ChartTheme),
   children children: List(ChartChild(msg)),
 ) -> Element(msg) {
   render_cartesian(
     data: data,
     width: width,
     height: height,
+    theme: theme,
     children: children,
     chart_type: LineChartType,
   )
@@ -533,14 +580,16 @@ pub fn line_chart(
 /// Matches recharts ScatterChart: uses LinearScale on both axes.
 pub fn scatter_chart(
   data data: List(DataPoint),
-  width width: Int,
+  width width: ChartWidth,
   height height: Int,
+  theme theme: option.Option(ChartTheme),
   children children: List(ChartChild(msg)),
 ) -> Element(msg) {
   render_scatter_chart(
     data: data,
     width: width,
     height: height,
+    theme: theme,
     children: children,
   )
 }
@@ -554,14 +603,16 @@ pub fn scatter_chart(
 /// `axisComponents`.
 pub fn composed_chart(
   data data: List(DataPoint),
-  width width: Int,
+  width width: ChartWidth,
   height height: Int,
+  theme theme: option.Option(ChartTheme),
   children children: List(ChartChild(msg)),
 ) -> Element(msg) {
   render_cartesian(
     data: data,
     width: width,
     height: height,
+    theme: theme,
     children: children,
     chart_type: ComposedChartType,
   )
@@ -574,14 +625,16 @@ pub fn composed_chart(
 /// Render a pie chart.
 pub fn pie_chart(
   data data: List(DataPoint),
-  width width: Int,
+  width width: ChartWidth,
   height height: Int,
+  theme theme: option.Option(ChartTheme),
   children children: List(ChartChild(msg)),
 ) -> Element(msg) {
   render_polar(
     data: data,
     width: width,
     height: height,
+    theme: theme,
     children: children,
     chart_type: PieChartType,
   )
@@ -590,14 +643,16 @@ pub fn pie_chart(
 /// Render a radar chart.
 pub fn radar_chart(
   data data: List(DataPoint),
-  width width: Int,
+  width width: ChartWidth,
   height height: Int,
+  theme theme: option.Option(ChartTheme),
   children children: List(ChartChild(msg)),
 ) -> Element(msg) {
   render_polar(
     data: data,
     width: width,
     height: height,
+    theme: theme,
     children: children,
     chart_type: RadarChartType,
   )
@@ -606,14 +661,16 @@ pub fn radar_chart(
 /// Render a radial bar chart.
 pub fn radial_bar_chart(
   data data: List(DataPoint),
-  width width: Int,
+  width width: ChartWidth,
   height height: Int,
+  theme theme: option.Option(ChartTheme),
   children children: List(ChartChild(msg)),
 ) -> Element(msg) {
   render_polar(
     data: data,
     width: width,
     height: height,
+    theme: theme,
     children: children,
     chart_type: RadialBarChartType,
   )
@@ -623,43 +680,63 @@ pub fn radial_bar_chart(
 /// Matches recharts FunnelChart: renders funnel children within an SVG.
 pub fn funnel_chart(
   data data: List(DataPoint),
-  width width: Int,
+  width width: ChartWidth,
   height height: Int,
+  theme theme: option.Option(ChartTheme),
   children children: List(ChartChild(msg)),
 ) -> Element(msg) {
   render_funnel_chart(
     data: data,
     width: width,
     height: height,
+    theme: theme,
     children: children,
   )
 }
 
 /// Render a treemap chart.
 pub fn treemap_chart(
-  width width: Int,
+  width width: ChartWidth,
   height height: Int,
+  theme theme: option.Option(ChartTheme),
   children children: List(ChartChild(msg)),
 ) -> Element(msg) {
-  render_treemap_chart(width: width, height: height, children: children)
+  render_treemap_chart(
+    width: width,
+    height: height,
+    theme: theme,
+    children: children,
+  )
 }
 
 /// Render a sunburst chart.
 pub fn sunburst_chart(
-  width width: Int,
+  width width: ChartWidth,
   height height: Int,
+  theme theme: option.Option(ChartTheme),
   children children: List(ChartChild(msg)),
 ) -> Element(msg) {
-  render_sunburst_chart(width: width, height: height, children: children)
+  render_sunburst_chart(
+    width: width,
+    height: height,
+    theme: theme,
+    children: children,
+  )
 }
 
 /// Render a sankey chart.
 pub fn sankey_chart(
-  width width: Int,
+  width width: ChartWidth,
   height height: Int,
+  theme theme: option.Option(ChartTheme),
   children children: List(ChartChild(msg)),
 ) -> Element(msg) {
-  render_sankey_chart(width: width, height: height, children: children)
+  render_sankey_chart(
+    width: width,
+    height: height,
+    theme: theme,
+    children: children,
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -675,11 +752,13 @@ type CartesianChartType {
 
 fn render_cartesian(
   data data: List(DataPoint),
-  width width: Int,
+  width width: ChartWidth,
   height height: Int,
+  theme theme: option.Option(ChartTheme),
   children children: List(ChartChild(msg)),
   chart_type chart_type: CartesianChartType,
 ) -> Element(msg) {
+  let nominal_width = chart_nominal_width(width)
   // Extract margin, adjust for axis dimensions, reserve legend space,
   // and compute plot area.
   let chart_margin =
@@ -688,7 +767,7 @@ fn render_cartesian(
     |> adjust_margin_for_legend(children)
     |> adjust_margin_for_brush(children)
   let plot =
-    layout.plot_area(width: width, height: height, margin: chart_margin)
+    layout.plot_area(width: nominal_width, height: height, margin: chart_margin)
 
   // Extract categories and values
   let categories = list.map(data, fn(dp) { dp.category })
@@ -924,7 +1003,7 @@ fn render_cartesian(
     chart_clip_path_id(
       children: children,
       chart_kind: "cartesian",
-      width: width,
+      width: nominal_width,
       height: height,
       data: data,
     )
@@ -1180,7 +1259,7 @@ fn render_cartesian(
           Ok(legend.render_legend(
             config: config,
             payload: legend_payload,
-            chart_width: int.to_float(width),
+            chart_width: int.to_float(nominal_width),
             chart_height: int.to_float(height),
           ))
 
@@ -1453,6 +1532,7 @@ fn render_cartesian(
   build_svg(
     width: width,
     height: height,
+    theme: theme,
     svg_children: list.flatten([
       [clip_defs, style_el],
       rendered_children,
@@ -1475,12 +1555,14 @@ type PolarChartType {
 
 fn render_polar(
   data data: List(DataPoint),
-  width width: Int,
+  width width: ChartWidth,
   height height: Int,
+  theme theme: option.Option(ChartTheme),
   children children: List(ChartChild(msg)),
   chart_type _chart_type: PolarChartType,
 ) -> Element(msg) {
-  let w = int.to_float(width)
+  let nominal_width = chart_nominal_width(width)
+  let w = int.to_float(nominal_width)
   let h = int.to_float(height)
   // Reserve vertical space for a bottom- or top-aligned legend so the
   // polar chart does not overlap it.
@@ -1847,6 +1929,7 @@ fn render_polar(
   build_svg(
     width: width,
     height: height,
+    theme: theme,
     svg_children: list.flatten([
       polar_style_els,
       rendered_children,
@@ -2043,17 +2126,19 @@ fn radial_bar_cycle_fill(fills: List(String), index: Int) -> String {
 
 fn render_scatter_chart(
   data data: List(DataPoint),
-  width width: Int,
+  width width: ChartWidth,
   height height: Int,
+  theme theme: option.Option(ChartTheme),
   children children: List(ChartChild(msg)),
 ) -> Element(msg) {
+  let nominal_width = chart_nominal_width(width)
   let chart_margin =
     find_margin(children)
     |> adjust_margin_for_axes(children)
     |> adjust_margin_for_legend(children)
     |> adjust_margin_for_brush(children)
   let plot =
-    layout.plot_area(width: width, height: height, margin: chart_margin)
+    layout.plot_area(width: nominal_width, height: height, margin: chart_margin)
 
   let _categories = list.map(data, fn(dp) { dp.category })
   let values_list = list.map(data, fn(dp) { dp.values })
@@ -2208,7 +2293,7 @@ fn render_scatter_chart(
     chart_clip_path_id(
       children: children,
       chart_kind: "scatter",
-      width: width,
+      width: nominal_width,
       height: height,
       data: data,
     )
@@ -2291,7 +2376,7 @@ fn render_scatter_chart(
           Ok(legend.render_legend(
             config: config,
             payload: legend_payload,
-            chart_width: int.to_float(width),
+            chart_width: int.to_float(nominal_width),
             chart_height: int.to_float(height),
           ))
 
@@ -2431,6 +2516,7 @@ fn render_scatter_chart(
   build_svg(
     width: width,
     height: height,
+    theme: theme,
     svg_children: list.flatten([
       [clip_defs, style_el],
       rendered_children,
@@ -2539,11 +2625,13 @@ fn build_scatter_tooltip_payloads(
 
 fn render_funnel_chart(
   data data: List(DataPoint),
-  width width: Int,
+  width width: ChartWidth,
   height height: Int,
+  theme theme: option.Option(ChartTheme),
   children children: List(ChartChild(msg)),
 ) -> Element(msg) {
-  let w = int.to_float(width)
+  let nominal_width = chart_nominal_width(width)
+  let w = int.to_float(nominal_width)
   let h = int.to_float(height)
   let values_list = list.map(data, fn(dp) { dp.values })
 
@@ -2630,6 +2718,7 @@ fn render_funnel_chart(
   build_svg(
     width: width,
     height: height,
+    theme: theme,
     svg_children: list.flatten([
       [style_el],
       rendered_children,
@@ -2747,10 +2836,12 @@ fn funnel_find_at(items: List(String), target: Int, current: Int) -> String {
 }
 
 fn render_treemap_chart(
-  width width: Int,
+  width width: ChartWidth,
   height height: Int,
+  theme theme: option.Option(ChartTheme),
   children children: List(ChartChild(msg)),
 ) -> Element(msg) {
+  let nominal_width = chart_nominal_width(width)
   let legend_payload = build_legend_payload(children)
 
   // Find the first treemap config for building tooltip payloads
@@ -2768,7 +2859,7 @@ fn render_treemap_chart(
         TreemapChild(config:) ->
           Ok(treemap.render_treemap(
             config: config,
-            width: width,
+            width: nominal_width,
             height: height,
           ))
 
@@ -2776,7 +2867,7 @@ fn render_treemap_chart(
           Ok(legend.render_legend(
             config: config,
             payload: legend_payload,
-            chart_width: int.to_float(width),
+            chart_width: int.to_float(nominal_width),
             chart_height: int.to_float(height),
           ))
 
@@ -2784,7 +2875,7 @@ fn render_treemap_chart(
       }
     })
 
-  let w = int.to_float(width)
+  let w = int.to_float(nominal_width)
   let h = int.to_float(height)
 
   let rendered_tooltips =
@@ -2804,7 +2895,7 @@ fn render_treemap_chart(
               let payloads =
                 treemap.build_treemap_tooltip_payloads(
                   config: tm_config,
-                  width: width,
+                  width: nominal_width,
                   height: height,
                 )
               // Build per-zone click attrs when treemap has on_click.
@@ -2814,7 +2905,7 @@ fn render_treemap_chart(
               let click_attrs =
                 build_treemap_zone_click_attrs(
                   config: tm_config,
-                  width: width,
+                  width: nominal_width,
                   height: height,
                 )
               Ok(tooltip.render_tooltips(
@@ -2843,6 +2934,7 @@ fn render_treemap_chart(
   build_svg(
     width: width,
     height: height,
+    theme: theme,
     svg_children: list.flatten([
       [style_el],
       rendered_children,
@@ -2882,11 +2974,13 @@ fn build_treemap_zone_click_attrs(
 }
 
 fn render_sunburst_chart(
-  width width: Int,
+  width width: ChartWidth,
   height height: Int,
+  theme theme: option.Option(ChartTheme),
   children children: List(ChartChild(msg)),
 ) -> Element(msg) {
-  let w = int.to_float(width)
+  let nominal_width = chart_nominal_width(width)
+  let w = int.to_float(nominal_width)
   let h = int.to_float(height)
   let legend_payload = build_legend_payload(children)
 
@@ -2898,7 +2992,7 @@ fn render_sunburst_chart(
           list.map(
             sunburst.sunburst_sector_infos(
               config: config,
-              width: width,
+              width: nominal_width,
               height: height,
             ),
             fn(info) {
@@ -2987,7 +3081,7 @@ fn render_sunburst_chart(
         SunburstChild(config:) ->
           Ok(sunburst.render_sunburst(
             config: config,
-            width: width,
+            width: nominal_width,
             height: height,
           ))
 
@@ -3006,6 +3100,7 @@ fn render_sunburst_chart(
   build_svg(
     width: width,
     height: height,
+    theme: theme,
     svg_children: list.flatten([
       sunburst_style_els,
       rendered_children,
@@ -3016,12 +3111,14 @@ fn render_sunburst_chart(
 }
 
 fn render_sankey_chart(
-  width width: Int,
+  width width: ChartWidth,
   height height: Int,
+  theme theme: option.Option(ChartTheme),
   children children: List(ChartChild(msg)),
 ) -> Element(msg) {
+  let nominal_width = chart_nominal_width(width)
   let legend_payload = build_legend_payload(children)
-  let w = int.to_float(width)
+  let w = int.to_float(nominal_width)
   let h = int.to_float(height)
 
   // Build PointZone tooltip payloads from node centroids and link midpoints.
@@ -3054,7 +3151,7 @@ fn render_sankey_chart(
             list.map(
               sankey.sankey_hit_infos(
                 config: config,
-                width: width,
+                width: nominal_width,
                 height: height,
               ),
               to_payload,
@@ -3063,7 +3160,7 @@ fn render_sankey_chart(
             list.map(
               sankey.sankey_link_hit_infos(
                 config: config,
-                width: width,
+                width: nominal_width,
                 height: height,
               ),
               to_payload,
@@ -3120,7 +3217,11 @@ fn render_sankey_chart(
     list.filter_map(children, fn(child) {
       case child {
         SankeyChild(config:) ->
-          Ok(sankey.render_sankey(config: config, width: width, height: height))
+          Ok(sankey.render_sankey(
+            config: config,
+            width: nominal_width,
+            height: height,
+          ))
 
         LegendChild(config:) ->
           Ok(legend.render_legend(
@@ -3137,6 +3238,7 @@ fn render_sankey_chart(
   build_svg(
     width: width,
     height: height,
+    theme: theme,
     svg_children: list.flatten([
       sankey_style_els,
       rendered_children,
@@ -3393,13 +3495,61 @@ fn build_clip_defs(
   )
 }
 
+/// Extract the nominal (pixel) width used for internal coordinate calculations.
+/// For `FillWidth`, returns 800 as the standard reference width.
+fn chart_nominal_width(width: ChartWidth) -> Int {
+  case width {
+    FixedWidth(pixels:) -> pixels
+    FillWidth -> 800
+  }
+}
+
+/// Build the SVG `width` attribute string for a given `ChartWidth`.
+/// `FixedWidth` produces a pixel value; `FillWidth` produces `"100%"`.
+fn chart_svg_width_str(width: ChartWidth) -> String {
+  case width {
+    FixedWidth(pixels:) -> int.to_string(pixels)
+    FillWidth -> "100%"
+  }
+}
+
+/// Render a `<style>` element scoping CSS variables for the chart theme.
+/// Returns an empty list when `theme` is `None`.
+fn render_theme_style(
+  theme: option.Option(ChartTheme),
+  nominal_width: Int,
+  height: Int,
+) -> List(Element(msg)) {
+  case theme {
+    None -> []
+    Some(t) -> {
+      let scope =
+        ".wc-" <> int.to_string(nominal_width) <> "-" <> int.to_string(height)
+      let css =
+        scope
+        <> " { --chart-tooltip-bg: "
+        <> t.tooltip_bg
+        <> "; --chart-tooltip-text: "
+        <> t.tooltip_text
+        <> "; --chart-tooltip-border: "
+        <> t.tooltip_border
+        <> "; --chart-tooltip-muted: "
+        <> t.tooltip_muted
+        <> "; }"
+      [svg.el(tag: "style", attrs: [], children: [element.text(css)])]
+    }
+  }
+}
+
 /// Build the outer SVG wrapper using attributes extracted from children.
 fn build_svg(
-  width width: Int,
+  width width: ChartWidth,
   height height: Int,
+  theme theme: option.Option(ChartTheme),
   svg_children svg_children: List(Element(msg)),
   children children: List(ChartChild(msg)),
 ) -> Element(msg) {
+  let nominal_width = chart_nominal_width(width)
   let a11y_config = find_a11y(children)
   let #(a11y_attrs, a11y_children, a11y_role) = case a11y_config {
     None -> #([], [], "")
@@ -3417,10 +3567,11 @@ fn build_svg(
     "" -> find_role(children)
     r -> r
   }
+  let theme_els = render_theme_style(theme, nominal_width, height)
   wrap_svg(
     width: width,
     height: height,
-    children: svg_children,
+    children: list.append(theme_els, svg_children),
     title: find_title(children),
     desc: find_desc(children),
     svg_role: effective_role,
@@ -3437,7 +3588,7 @@ fn build_svg(
 }
 
 fn wrap_svg(
-  width width: Int,
+  width width: ChartWidth,
   height height: Int,
   children children: List(Element(msg)),
   title title: String,
@@ -3453,8 +3604,10 @@ fn wrap_svg(
   a11y_attrs a11y_attrs: List(Attribute(msg)),
   a11y_children a11y_children: List(Element(msg)),
 ) -> Element(msg) {
-  let w = int.to_string(width)
+  let nominal_width = chart_nominal_width(width)
+  let svg_width = chart_svg_width_str(width)
   let h = int.to_string(height)
+  let view_box = "0 0 " <> int.to_string(nominal_width) <> " " <> h
   let title_els = case title {
     "" -> []
     t -> [svg.el(tag: "title", attrs: [], children: [element.text(t)])]
@@ -3472,8 +3625,8 @@ fn wrap_svg(
     s -> "display:block;" <> s
   }
   let base_attrs = [
-    svg.attr("viewBox", "0 0 " <> w <> " " <> h),
-    svg.attr("width", w),
+    svg.attr("viewBox", view_box),
+    svg.attr("width", svg_width),
     svg.attr("height", h),
     svg.attr("overflow", "visible"),
     svg.attr("preserveAspectRatio", "xMidYMid meet"),
