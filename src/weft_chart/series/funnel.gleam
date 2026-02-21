@@ -12,6 +12,7 @@ import gleam/list
 import gleam/option.{type Option, None, Some}
 import lustre/element.{type Element}
 import lustre/event
+import weft
 import weft_chart/animation.{type AnimationConfig}
 import weft_chart/internal/math
 import weft_chart/internal/svg
@@ -766,7 +767,7 @@ fn build_labels(
             value: content,
             offset: 0.0,
             position: pos_str,
-            fill: "var(--weft-chart-label, currentColor)",
+            fill: weft.css_color(value: "var(--weft-chart-label, currentColor)"),
           ))
         None ->
           svg.text(x: math.fmt(lx), y: math.fmt(cy), content: content, attrs: [

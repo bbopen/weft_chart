@@ -13,6 +13,7 @@ import gleam/option.{type Option, None, Some}
 import lustre/attribute
 import lustre/element.{type Element}
 import lustre/event
+import weft
 import weft_chart/internal/math
 import weft_chart/internal/svg
 import weft_chart/shape
@@ -30,7 +31,7 @@ pub type LegendConfig(msg) {
     icon_size: Int,
     icon_type: shape.LegendIconType,
     show_icon: Bool,
-    inactive_color: String,
+    inactive_color: weft.Color,
     formatter: fn(String, LegendPayload, Int) -> String,
     width: Float,
     height: Float,
@@ -82,7 +83,7 @@ pub type LegendVerticalAlign {
 pub type LegendPayload {
   LegendPayload(
     value: String,
-    color: String,
+    color: weft.Color,
     icon_type: shape.LegendIconType,
     inactive: Bool,
   )
@@ -101,7 +102,7 @@ pub fn legend_config() -> LegendConfig(msg) {
     icon_size: 14,
     icon_type: shape.RectIcon,
     show_icon: True,
-    inactive_color: "#ccc",
+    inactive_color: weft.hex(value: "#ccc"),
     formatter: fn(v, _entry, _i) { v },
     width: 0.0,
     height: 0.0,
@@ -228,7 +229,7 @@ pub fn legend_dedup_payload(
 /// Set the color used for inactive legend entries.
 pub fn legend_inactive_color(
   config config: LegendConfig(msg),
-  color color: String,
+  color color: weft.Color,
 ) -> LegendConfig(msg) {
   LegendConfig(..config, inactive_color: color)
 }
@@ -436,6 +437,7 @@ fn render_default_legend(
         True -> config.inactive_color
         False -> entry.color
       }
+      let color_css = weft.color_to_css(color: color)
 
       let icon_el = case config.show_icon {
         False -> element.none()
@@ -456,7 +458,7 @@ fn render_default_legend(
                 x: 0.0,
                 y: 0.0,
                 size: 32.0,
-                color: color,
+                color: color_css,
               ),
             ],
           )
@@ -466,7 +468,7 @@ fn render_default_legend(
         svg.xhtml(
           tag: "span",
           attrs: [
-            attribute.style("color", color),
+            attribute.style("color", color_css),
             attribute.style("font-size", "12px"),
             attribute.style("vertical-align", "middle"),
           ],

@@ -11,6 +11,7 @@ import gleam/list
 import gleam/option.{type Option, None, Some}
 import lustre/attribute.{type Attribute}
 import lustre/element.{type Element}
+import weft
 import weft_chart/animation.{type AnimationConfig}
 import weft_chart/internal/math
 import weft_chart/internal/polar
@@ -49,7 +50,7 @@ pub type RadialBarConfig(msg) {
     custom_shape: Option(fn(render.SectorProps) -> Element(msg)),
     active_shape: Option(fn(render.SectorProps) -> Element(msg)),
     active_index: Int,
-    stroke: String,
+    stroke: weft.Color,
     stroke_width: Float,
     css_class: String,
     animation: AnimationConfig,
@@ -93,7 +94,7 @@ pub fn radial_bar_config(data_key data_key: String) -> RadialBarConfig(msg) {
     custom_shape: None,
     active_shape: None,
     active_index: -1,
-    stroke: "none",
+    stroke: weft.css_color(value: "none"),
     stroke_width: 0.0,
     css_class: "",
     animation: animation.line_default(),
@@ -309,7 +310,7 @@ pub fn radial_bar_active_index(
 /// Matches recharts RadialBar `stroke` prop (default: "none").
 pub fn radial_bar_stroke(
   config config: RadialBarConfig(msg),
-  stroke_value stroke_value: String,
+  stroke_value stroke_value: weft.Color,
 ) -> RadialBarConfig(msg) {
   RadialBarConfig(..config, stroke: stroke_value)
 }
@@ -433,7 +434,7 @@ pub fn render_radial_bars(
                   start_angle: config.start_angle,
                   end_angle: data_angle,
                   index: index,
-                  fill: fill_color,
+                  fill: weft.css_color(value: fill_color),
                   stroke: config.stroke,
                 )
               let is_active =
@@ -530,7 +531,9 @@ pub fn render_radial_bars(
                         value: float.to_string(value),
                         offset: 0.0,
                         position: "center",
-                        fill: "var(--weft-chart-label, currentColor)",
+                        fill: weft.css_color(
+                          value: "var(--weft-chart-label, currentColor)",
+                        ),
                       ))
                     None ->
                       svg.text(
@@ -600,9 +603,10 @@ fn make_sector_path(
 }
 
 fn stroke_attributes(config: RadialBarConfig(msg)) -> List(Attribute(msg)) {
-  case config.stroke != "none" && config.stroke_width >. 0.0 {
+  let stroke_css = weft.color_to_css(color: config.stroke)
+  case stroke_css != "none" && config.stroke_width >. 0.0 {
     True -> [
-      svg.attr("stroke", config.stroke),
+      svg.attr("stroke", stroke_css),
       svg.attr("stroke-width", float.to_string(config.stroke_width)),
     ]
     False -> []

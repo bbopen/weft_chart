@@ -13,6 +13,7 @@ import gleam/option.{type Option, None, Some}
 import lustre/attribute.{type Attribute}
 import lustre/element.{type Element}
 import lustre/event
+import weft
 import weft_chart/internal/math
 import weft_chart/internal/svg
 
@@ -146,7 +147,7 @@ pub type TooltipEntry {
   TooltipEntry(
     name: String,
     value: Float,
-    color: String,
+    color: weft.Color,
     unit: String,
     /// When true, this entry is hidden from the tooltip unless include_hidden is set.
     hidden: Bool,
@@ -470,7 +471,7 @@ pub fn tooltip_wrapper_style(
 pub fn tooltip_entry(
   name name: String,
   value value: Float,
-  color color: String,
+  color color: weft.Color,
   unit unit: String,
 ) -> TooltipEntry {
   TooltipEntry(
@@ -896,7 +897,7 @@ fn render_single_tooltip(
                   cy: math.fmt(payload.y),
                   r: "4",
                   attrs: [
-                    svg.attr("fill", entry.color),
+                    svg.attr("fill", weft.color_to_css(color: entry.color)),
                     svg.attr("stroke", "white"),
                     svg.attr("stroke-width", "2"),
                     svg.attr("class", "chart-tooltip-dot"),
@@ -908,7 +909,7 @@ fn render_single_tooltip(
                   cy: math.fmt(dot_y),
                   r: "4",
                   attrs: [
-                    svg.attr("fill", entry.color),
+                    svg.attr("fill", weft.color_to_css(color: entry.color)),
                     svg.attr("stroke", "white"),
                     svg.attr("stroke-width", "2"),
                     svg.attr("class", "chart-tooltip-dot"),
@@ -1030,7 +1031,11 @@ fn render_default_tooltip_content(
     list.map(deduped_entries, fn(entry) {
       let indicator_el = case config.hide_indicator {
         True -> element.none()
-        False -> render_indicator(config.indicator, entry.color)
+        False ->
+          render_indicator(
+            config.indicator,
+            weft.color_to_css(color: entry.color),
+          )
       }
 
       let item_attrs = [
@@ -1038,7 +1043,7 @@ fn render_default_tooltip_content(
         attribute.style("align-items", "center"),
         attribute.style("font-size", "11px"),
         attribute.style("line-height", "1.4"),
-        attribute.style("color", entry.color),
+        attribute.style("color", weft.color_to_css(color: entry.color)),
         ..style_attrs(config.item_style)
       ]
 

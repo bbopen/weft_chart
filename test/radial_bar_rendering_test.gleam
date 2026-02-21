@@ -5,6 +5,7 @@ import gleam/string
 import lustre/element
 import startest.{describe, it}
 import startest/expect
+import weft
 import weft_chart/animation
 import weft_chart/series/radial_bar
 
@@ -21,7 +22,9 @@ pub fn stroke_tests() {
       ]
       let config =
         radial_bar.radial_bar_config(data_key: "value")
-        |> radial_bar.radial_bar_stroke(stroke_value: "#ff0000")
+        |> radial_bar.radial_bar_stroke(stroke_value: weft.css_color(
+          value: "#ff0000",
+        ))
         |> radial_bar.radial_bar_stroke_width(width: 2.0)
         |> radial_bar.radial_bar_animation(anim: animation.with_active(
           animation.line_default(),

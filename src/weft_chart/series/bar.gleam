@@ -12,6 +12,7 @@ import gleam/int
 import gleam/list
 import gleam/option.{type Option, None, Some}
 import lustre/element.{type Element}
+import weft
 import weft_chart/animation.{type AnimationConfig}
 import weft_chart/internal/layout
 import weft_chart/internal/math
@@ -39,8 +40,8 @@ pub type MinPointSize {
 /// Matches recharts Cell component behavior.
 pub type CellConfig {
   CellConfig(
-    fill: String,
-    stroke: String,
+    fill: weft.Color,
+    stroke: weft.Color,
     fill_opacity: Float,
     stroke_width: Float,
   )
@@ -51,7 +52,7 @@ pub type BarConfig(msg) {
   BarConfig(
     data_key: String,
     name: String,
-    fill: String,
+    fill: weft.Color,
     radius: Float,
     radius_corners: #(Float, Float, Float, Float),
     has_custom_corners: Bool,
@@ -60,9 +61,9 @@ pub type BarConfig(msg) {
     max_bar_size: Int,
     min_point_size: MinPointSize,
     show_background: Bool,
-    background_fill: String,
+    background_fill: weft.Color,
     show_label: Bool,
-    stroke: String,
+    stroke: weft.Color,
     stroke_width: Float,
     hide: Bool,
     legend_type: shape.LegendIconType,
@@ -101,7 +102,7 @@ pub fn bar_config(
     config: BarConfig(
       data_key: data_key,
       name: "",
-      fill: "var(--weft-chart-bar-fill, currentColor)",
+      fill: weft.css_color(value: "var(--weft-chart-bar-fill, currentColor)"),
       radius: 0.0,
       radius_corners: #(0.0, 0.0, 0.0, 0.0),
       has_custom_corners: False,
@@ -110,9 +111,9 @@ pub fn bar_config(
       max_bar_size: 0,
       min_point_size: FixedMinPointSize(0.0),
       show_background: False,
-      background_fill: "var(--weft-chart-bar-bg, #eee)",
+      background_fill: weft.css_color(value: "var(--weft-chart-bar-bg, #eee)"),
       show_label: False,
-      stroke: "",
+      stroke: weft.css_color(value: ""),
       stroke_width: 0.0,
       hide: False,
       legend_type: shape.RectIcon,
@@ -174,15 +175,20 @@ pub fn bar_meta(
 /// Create a cell configuration for per-item bar customization.
 /// The stroke defaults to empty (inherits from config).
 /// Matches recharts Cell component.
-pub fn cell_config(fill fill: String) -> CellConfig {
-  CellConfig(fill: fill, stroke: "", fill_opacity: 1.0, stroke_width: 1.0)
+pub fn cell_config(fill fill: weft.Color) -> CellConfig {
+  CellConfig(
+    fill: fill,
+    stroke: weft.css_color(value: ""),
+    fill_opacity: 1.0,
+    stroke_width: 1.0,
+  )
 }
 
 /// Create a cell configuration with full customization options.
 /// Matches recharts Cell component with fillOpacity and strokeWidth.
 pub fn cell_config_full(
-  fill fill: String,
-  stroke stroke: String,
+  fill fill: weft.Color,
+  stroke stroke: weft.Color,
   fill_opacity fill_opacity: Float,
   stroke_width stroke_width: Float,
 ) -> CellConfig {
@@ -199,7 +205,10 @@ pub fn cell_config_full(
 // ---------------------------------------------------------------------------
 
 /// Set the fill color.
-pub fn bar_fill(config: BarConfig(msg), fill_value: String) -> BarConfig(msg) {
+pub fn bar_fill(
+  config: BarConfig(msg),
+  fill_value: weft.Color,
+) -> BarConfig(msg) {
   BarConfig(..config, fill: fill_value)
 }
 
@@ -267,7 +276,7 @@ pub fn bar_background(config: BarConfig(msg), show: Bool) -> BarConfig(msg) {
 /// Matches recharts default: #eee.
 pub fn bar_background_fill(
   config: BarConfig(msg),
-  fill_value: String,
+  fill_value: weft.Color,
 ) -> BarConfig(msg) {
   BarConfig(..config, background_fill: fill_value)
 }
@@ -288,7 +297,7 @@ pub fn bar_legend_type(
 
 /// Set the bar border stroke color.
 /// Matches recharts Bar `stroke` prop (default: none).
-pub fn bar_stroke(config: BarConfig(msg), stroke: String) -> BarConfig(msg) {
+pub fn bar_stroke(config: BarConfig(msg), stroke: weft.Color) -> BarConfig(msg) {
   BarConfig(..config, stroke: stroke)
 }
 
@@ -556,9 +565,9 @@ fn render_bars_positioned_visible(
           {
             Ok(cell) -> {
               let f = cell.fill
-              let s = case cell.stroke {
+              let s = case weft.color_to_css(color: cell.stroke) {
                 "" -> config.stroke
-                cs -> cs
+                _ -> cell.stroke
               }
               #(f, s, cell.fill_opacity, cell.stroke_width)
             }
@@ -579,7 +588,7 @@ fn render_bars_positioned_visible(
                     0.0,
                     #(0.0, 0.0, 0.0, 0.0),
                     False,
-                    config.background_fill,
+                    weft.color_to_css(color: config.background_fill),
                     "",
                     0.0,
                     1.0,
@@ -593,7 +602,7 @@ fn render_bars_positioned_visible(
                     0.0,
                     #(0.0, 0.0, 0.0, 0.0),
                     False,
-                    config.background_fill,
+                    weft.color_to_css(color: config.background_fill),
                     "",
                     0.0,
                     1.0,
@@ -668,8 +677,8 @@ fn render_bars_positioned_visible(
                         bar_y,
                         final_w,
                         final_h,
-                        bar_fill,
-                        bar_stroke_color,
+                        weft.color_to_css(color: bar_fill),
+                        weft.color_to_css(color: bar_stroke_color),
                         cell_stroke_w,
                         cell_fill_opacity,
                         bar_layout,
@@ -688,8 +697,8 @@ fn render_bars_positioned_visible(
                         },
                         effective_corners,
                         effective_has_custom,
-                        bar_fill,
-                        bar_stroke_color,
+                        weft.color_to_css(color: bar_fill),
+                        weft.color_to_css(color: bar_stroke_color),
                         cell_stroke_w,
                         cell_fill_opacity,
                       )
@@ -725,7 +734,9 @@ fn render_bars_positioned_visible(
                     value: format_bar_value(value),
                     offset: 4.0,
                     position: position,
-                    fill: "var(--weft-chart-label, currentColor)",
+                    fill: weft.css_color(
+                      value: "var(--weft-chart-label, currentColor)",
+                    ),
                   ))
                 }
                 None ->

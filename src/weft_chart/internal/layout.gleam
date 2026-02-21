@@ -103,7 +103,7 @@ pub fn category_scale(
         categories: categories,
         range_start: range_start,
         range_end: range_end,
-        padding: 0.05,
+        padding: 0.0,
       )
   }
 }

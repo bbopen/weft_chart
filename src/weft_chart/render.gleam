@@ -4,6 +4,8 @@
 //// render functions.  Each type mirrors the props object that recharts
 //// passes to its corresponding custom renderer.
 
+import weft
+
 /// Data passed to a custom tick render function.
 ///
 /// Contains the computed position, value, and styling information
@@ -16,7 +18,7 @@ pub type TickProps {
     value: String,
     text_anchor: String,
     vertical_anchor: String,
-    fill: String,
+    fill: weft.Color,
     visible_ticks_count: Int,
   )
 }
@@ -33,8 +35,8 @@ pub type DotProps {
     index: Int,
     value: Float,
     data_key: String,
-    fill: String,
-    stroke: String,
+    fill: weft.Color,
+    stroke: weft.Color,
   )
 }
 
@@ -52,7 +54,7 @@ pub type LabelProps {
     value: String,
     offset: Float,
     position: String,
-    fill: String,
+    fill: weft.Color,
   )
 }
 
@@ -71,7 +73,7 @@ pub type PieLabelProps {
     value: String,
     offset: Float,
     position: String,
-    fill: String,
+    fill: weft.Color,
     percent: Float,
     mid_angle: Float,
     middle_radius: Float,
@@ -94,8 +96,8 @@ pub type LabelLineProps {
     end_x: Float,
     end_y: Float,
     index: Int,
-    fill: String,
-    stroke: String,
+    fill: weft.Color,
+    stroke: weft.Color,
   )
 }
 
@@ -112,8 +114,8 @@ pub type BarShapeProps {
     index: Int,
     value: Float,
     data_key: String,
-    fill: String,
-    stroke: String,
+    fill: weft.Color,
+    stroke: weft.Color,
     radius: Float,
   )
 }
@@ -132,8 +134,8 @@ pub type SectorProps {
     start_angle: Float,
     end_angle: Float,
     index: Int,
-    fill: String,
-    stroke: String,
+    fill: weft.Color,
+    stroke: weft.Color,
   )
 }
 

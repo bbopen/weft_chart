@@ -11,6 +11,7 @@ import gleam/list
 import gleam/option.{type Option, None, Some}
 import gleam/string
 import lustre/element.{type Element}
+import weft
 import weft_chart/animation.{type AnimationConfig}
 import weft_chart/internal/math
 import weft_chart/internal/svg
@@ -416,7 +417,7 @@ pub fn build_treemap_tooltip_payloads(
             tooltip.TooltipEntry(
               name: lr.node.name,
               value: node_effective_value(lr.node),
-              color: "",
+              color: weft.css_color(value: ""),
               unit: "",
               hidden: False,
               entry_type: tooltip.VisibleEntry,

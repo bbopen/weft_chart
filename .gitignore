@@ -15,6 +15,10 @@ SKILLS.md
 .codex/
 
 # Reference implementations (local clones)
-_refs/*
-!_refs/refs.toml
-!_refs/refs.lock.toml
+_refs/
+
+# Internal specification (not published)
+SPEC.md
+
+# Development scratch
+scratch/

@@ -2,17 +2,13 @@ name = "weft_chart"
 version = "0.2.0"
 description = "SVG chart rendering for weft_lustre — area charts with natural cubic spline interpolation and gradient fills."
 licences = ["Apache-2.0"]
-repository = { type = "github", user = "brettbonner", repo = "weft_chart" }
+repository = { type = "github", user = "bbopen", repo = "weft_chart" }
 gleam = ">= 1.14.0"
 
 [dependencies]
 gleam_stdlib = ">= 0.69.0"
 lustre = ">= 5.0.0 and < 6.0.0"
+weft = { path = "../weft" }
 
 [dev-dependencies]
 startest = ">= 0.8.0"
-
-[documentation]
-pages = [
-  { title = "Technical Specification", path = "SPEC.md", source = "SPEC.md" },
-]

@@ -3,43 +3,40 @@
 [![Package Version](https://img.shields.io/hexpm/v/weft_chart)](https://hex.pm/packages/weft_chart)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/weft_chart/)
 
-Type-safe SVG chart rendering for Lustre, written in pure Gleam.
+SVG chart rendering for [Lustre](https://hexdocs.pm/lustre/) applications,
+written in pure Gleam. It runs on both Erlang and JavaScript targets.
 
-`weft_chart` provides a compositional API for building cartesian and polar charts
-that render deterministic SVG output across Erlang and JavaScript targets.
-
-## Why `weft_chart`
-
-- Pure Gleam implementation (no FFI)
-- Cross-target support (Erlang + JavaScript)
-- Compositional chart API via typed child elements
-- Recharts-style chart/series primitives adapted to Gleam idioms
-- Strong regression suite and explicit spec-driven architecture
-
-## Supported Charts
-
-- `chart.area_chart`
-- `chart.bar_chart`
-- `chart.line_chart`
-- `chart.composed_chart`
-- `chart.pie_chart`
-- `chart.radar_chart`
-- `chart.radial_bar_chart`
-- `chart.scatter_chart`
-- `chart.funnel_chart`
-- `chart.treemap_chart`
-- `chart.sunburst_chart`
-- `chart.sankey_chart`
+`weft_chart` gives you typed, composable chart primitives that produce
+deterministic SVG output. The API follows Recharts conventions adapted to
+Gleam idioms: you pick a chart container, add series and decoration children,
+and get back a Lustre `Element(msg)`.
 
 ## Installation
 
-```sh
-gleam add weft_chart
+`weft_chart` isn't on Hex yet. Use a git dependency:
+
+```toml
+[dependencies]
+weft_chart = { git = "https://github.com/bbopen/weft_chart", branch = "main" }
 ```
 
-## Quick Start
+It depends on [`weft`](https://github.com/bbopen/weft) and
+[`lustre`](https://hexdocs.pm/lustre/).
+
+## Chart types
+
+Cartesian charts: `area_chart`, `bar_chart`, `line_chart`, `scatter_chart`,
+`composed_chart` (mixed series on shared axes).
+
+Polar charts: `pie_chart`, `radar_chart`, `radial_bar_chart`.
+
+Hierarchical/flow charts: `treemap_chart`, `sunburst_chart`, `sankey_chart`,
+`funnel_chart`.
+
+## Quick start
 
 ```gleam
+import gleam/option.{None}
 import weft_chart.{data_point}
 import weft_chart/axis
 import weft_chart/chart
@@ -55,73 +52,66 @@ let data = [
   data_point("Mar", [#("desktop", 237.0), #("mobile", 120.0)]),
 ]
 
-chart.area_chart(data: data, width: 700, height: 320, children: [
-  chart.margin(top: 10, right: 16, bottom: 10, left: 8),
-  chart.cartesian_grid(
-    grid.cartesian_grid_config()
-    |> grid.grid_vertical(False),
-  ),
-  chart.x_axis(
-    axis.x_axis_config()
-    |> axis.axis_data_key("category")
-    |> axis.axis_tick_line(False)
-    |> axis.axis_axis_line(False),
-  ),
-  chart.y_axis(
-    axis.y_axis_config()
-    |> axis.axis_axis_line(False),
-  ),
-  chart.tooltip(tooltip.tooltip_config()),
-  chart.area(
-    area.area_config(
-      data_key: "desktop",
-      meta: common.series_meta(),
-    )
-    |> area.area_curve_type(curve.Natural)
-    |> area.area_fill_opacity(0.3),
-  ),
-  chart.area(
-    area.area_config(
-      data_key: "mobile",
-      meta: common.series_meta(),
-    )
-    |> area.area_curve_type(curve.Natural)
-    |> area.area_fill_opacity(0.3),
-  ),
-])
+chart.area_chart(
+  data: data,
+  width: chart.FixedWidth(pixels: 700),
+  height: 320,
+  theme: None,
+  children: [
+    chart.cartesian_grid(
+      grid.cartesian_grid_config()
+      |> grid.grid_vertical(False),
+    ),
+    chart.x_axis(
+      axis.x_axis_config()
+      |> axis.axis_data_key("category")
+      |> axis.axis_tick_line(False),
+    ),
+    chart.tooltip(tooltip.tooltip_config()),
+    chart.area(
+      area.area_config(data_key: "desktop", meta: common.series_meta())
+      |> area.area_curve_type(curve.Natural)
+      |> area.area_fill_opacity(0.3),
+    ),
+    chart.area(
+      area.area_config(data_key: "mobile", meta: common.series_meta())
+      |> area.area_curve_type(curve.Natural)
+      |> area.area_fill_opacity(0.3),
+    ),
+  ],
+)
 ```
 
-## API Overview
+## Notable features
 
-- Axis API:
-  - `axis.x_axis_config()` and `axis.y_axis_config()` return `axis.AxisBaseConfig(msg)`
-  - configure via shared `axis.axis_*` builders
-  - attach with `chart.x_axis(...)` and `chart.y_axis(...)`
-- Cartesian series constructors:
-  - `line.line_config(data_key:, meta:)`
-  - `area.area_config(data_key:, meta:)`
-  - `bar.bar_config(data_key:, meta:)`
-  - shared metadata in `weft_chart/series/common`
-- Normalized chart child names:
-  - `chart.pie`, `chart.radar`, `chart.radial_bar`, `chart.scatter`
-  - `chart.funnel`, `chart.treemap`, `chart.sunburst`, `chart.sankey`
-  - `chart.tooltip`, `chart.legend`, `chart.brush`, `chart.reference_dot`
-  - `chart.error_bar`, `chart.title`, `chart.desc`, `chart.event`, `chart.layout`
+Curves use natural cubic spline interpolation (`curve.Natural`), which
+produces smooth lines without the wobble artifacts you get from Catmull-Rom.
+Linear, step, and monotone-x interpolation are also available.
+
+Area and bar series support gradient fills. Define gradient stops on the
+series config and the chart renders an SVG `<linearGradient>` automatically.
+
+Sizing is handled through `ChartWidth`: `FixedWidth(pixels: 700)` renders a
+fixed-size SVG, while `FillWidth` adds a `viewBox` so the chart scales to
+fill its container.
+
+Tooltip styling uses CSS custom properties. You can pass
+`chart.chart_theme_light()` or `chart.chart_theme_dark()` to the chart's
+`theme` parameter, and it'll inject a scoped `<style>` block with the right
+colors.
+
+Stacking works by assigning matching `stack_id` values to series in the
+same chart. The library handles offset calculation and rendering order.
 
 ## Development
 
-Run the full local verification chain:
-
 ```sh
-bash scripts/grep-gates.sh
-gleam format --check src test
-gleam build --target erlang --warnings-as-errors
-gleam build --target javascript --warnings-as-errors
-gleam test
-gleam docs build
+bash scripts/check.sh
 ```
 
-## Documentation
+This runs grep gates, formatting, dual-target builds with warnings-as-errors,
+tests, and doc generation.
 
-- Full technical specification: [`SPEC.md`](SPEC.md)
-- Generated docs: [`hexdocs.pm/weft_chart`](https://hexdocs.pm/weft_chart/)
+## License
+
+Apache-2.0

@@ -12,6 +12,7 @@ import gleam/int
 import gleam/list
 import gleam/option.{type Option, None, Some}
 import lustre/element.{type Element}
+import weft
 import weft_chart/animation.{type AnimationConfig}
 import weft_chart/curve
 import weft_chart/internal/layout
@@ -32,9 +33,9 @@ pub type AreaConfig(msg) {
     data_key: String,
     name: String,
     curve_type: curve.CurveType,
-    fill: String,
+    fill: weft.Color,
     fill_opacity: Float,
-    stroke: String,
+    stroke: weft.Color,
     stroke_width: Float,
     stack_id: String,
     connect_nulls: Bool,
@@ -78,7 +79,7 @@ pub type AreaBaseValue {
 
 /// A gradient stop for area fill.
 pub type GradientStop {
-  GradientStop(offset: String, color: String, opacity: Float)
+  GradientStop(offset: String, color: weft.Color, opacity: Float)
 }
 
 /// Internal type for data points that may be missing.
@@ -102,9 +103,11 @@ pub fn area_config(
       data_key: data_key,
       name: "",
       curve_type: curve.Linear,
-      fill: "var(--weft-chart-area-fill, currentColor)",
+      fill: weft.css_color(value: "var(--weft-chart-area-fill, currentColor)"),
       fill_opacity: 0.6,
-      stroke: "var(--weft-chart-area-stroke, currentColor)",
+      stroke: weft.css_color(
+        value: "var(--weft-chart-area-stroke, currentColor)",
+      ),
       stroke_width: 2.0,
       stack_id: "",
       connect_nulls: False,
@@ -188,7 +191,10 @@ pub fn area_curve_type(
 }
 
 /// Set the fill color or gradient reference.
-pub fn area_fill(config: AreaConfig(msg), fill_value: String) -> AreaConfig(msg) {
+pub fn area_fill(
+  config: AreaConfig(msg),
+  fill_value: weft.Color,
+) -> AreaConfig(msg) {
   AreaConfig(..config, fill: fill_value)
 }
 
@@ -203,7 +209,7 @@ pub fn area_fill_opacity(
 /// Set the stroke color.
 pub fn area_stroke(
   config: AreaConfig(msg),
-  stroke_value: String,
+  stroke_value: weft.Color,
 ) -> AreaConfig(msg) {
   AreaConfig(..config, stroke: stroke_value)
 }
@@ -451,7 +457,7 @@ fn render_area_visible(
                 )
               let area_el =
                 svg.path(d: area_d, attrs: [
-                  svg.attr("fill", config.fill),
+                  svg.attr("fill", weft.color_to_css(color: config.fill)),
                   svg.attr("fill-opacity", float.to_string(config.fill_opacity)),
                 ])
 
@@ -459,7 +465,7 @@ fn render_area_visible(
                 curve.path(curve_type: config.curve_type, points: seg)
               let stroke_el =
                 svg.path(d: stroke_d, attrs: [
-                  svg.attr("stroke", config.stroke),
+                  svg.attr("stroke", weft.color_to_css(color: config.stroke)),
                   svg.attr("fill", "none"),
                   svg.attr("stroke-width", float.to_string(config.stroke_width)),
                 ])
@@ -488,7 +494,7 @@ fn render_area_visible(
                   value: value,
                   data_key: config.data_key,
                   fill: config.stroke,
-                  stroke: "var(--weft-chart-bg, #ffffff)",
+                  stroke: weft.css_color(value: "var(--weft-chart-bg, #ffffff)"),
                 )
               // Check if this dot is active
               let is_active = case config.active_index {
@@ -506,7 +512,10 @@ fn render_area_visible(
                         cy: math.fmt(py),
                         r: math.fmt(config.dot_radius),
                         attrs: [
-                          svg.attr("fill", config.stroke),
+                          svg.attr(
+                            "fill",
+                            weft.color_to_css(color: config.stroke),
+                          ),
                           svg.attr("stroke", "var(--weft-chart-bg, #ffffff)"),
                           svg.attr("stroke-width", "2"),
                         ],
@@ -538,7 +547,9 @@ fn render_area_visible(
                     value: format_area_value(value),
                     offset: 10.0,
                     position: "top",
-                    fill: "var(--weft-chart-label, currentColor)",
+                    fill: weft.css_color(
+                      value: "var(--weft-chart-label, currentColor)",
+                    ),
                   ))
                 },
               )
@@ -687,7 +698,7 @@ fn render_gradient(config: AreaConfig(msg)) -> Element(msg) {
           stops: list.map(config.gradient_stops, fn(stop) {
             svg.gradient_stop(
               offset: stop.offset,
-              color: stop.color,
+              color: weft.color_to_css(color: stop.color),
               opacity: float.to_string(stop.opacity),
             )
           }),

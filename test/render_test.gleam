@@ -2,6 +2,7 @@
 
 import startest.{describe, it}
 import startest/expect
+import weft
 import weft_chart/render
 
 pub fn main() {
@@ -19,7 +20,7 @@ pub fn tick_props_tests() {
           value: "Jan",
           text_anchor: "middle",
           vertical_anchor: "end",
-          fill: "#333",
+          fill: weft.css_color(value: "#333"),
           visible_ticks_count: 5,
         )
       props.x |> expect.to_equal(expected: 100.0)
@@ -43,8 +44,8 @@ pub fn dot_props_tests() {
           index: 1,
           value: 186.0,
           data_key: "revenue",
-          fill: "#fff",
-          stroke: "#8884d8",
+          fill: weft.css_color(value: "#fff"),
+          stroke: weft.css_color(value: "#8884d8"),
         )
       props.cx |> expect.to_equal(expected: 150.0)
       props.value |> expect.to_equal(expected: 186.0)
@@ -66,7 +67,7 @@ pub fn label_props_tests() {
           value: "186",
           offset: 10.0,
           position: "top",
-          fill: "currentColor",
+          fill: weft.css_color(value: "currentColor"),
         )
       props.x |> expect.to_equal(expected: 50.0)
       props.position |> expect.to_equal(expected: "top")
@@ -90,7 +91,7 @@ pub fn pie_label_props_tests() {
             value: "A (25.0)",
             offset: 20.0,
             position: "right",
-            fill: "currentColor",
+            fill: weft.css_color(value: "currentColor"),
             percent: 0.25,
             mid_angle: 45.0,
             middle_radius: 40.0,
@@ -119,13 +120,14 @@ pub fn label_line_props_tests() {
           end_x: 270.71,
           end_y: 129.29,
           index: 0,
-          fill: "#2563eb",
-          stroke: "#2563eb",
+          fill: weft.css_color(value: "#2563eb"),
+          stroke: weft.css_color(value: "#2563eb"),
         )
       props.mid_angle |> expect.to_equal(expected: 45.0)
       props.outer_radius |> expect.to_equal(expected: 80.0)
       props.start_x |> expect.to_equal(expected: 256.57)
-      props.stroke |> expect.to_equal(expected: "#2563eb")
+      props.stroke
+      |> expect.to_equal(expected: weft.css_color(value: "#2563eb"))
     }),
   ])
 }
@@ -142,8 +144,8 @@ pub fn bar_shape_props_tests() {
           index: 3,
           value: 305.0,
           data_key: "revenue",
-          fill: "#8884d8",
-          stroke: "",
+          fill: weft.css_color(value: "#8884d8"),
+          stroke: weft.css_color(value: ""),
           radius: 4.0,
         )
       props.width |> expect.to_equal(expected: 20.0)

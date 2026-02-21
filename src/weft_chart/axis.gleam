@@ -10,6 +10,7 @@ import gleam/list
 import gleam/option.{type Option, None, Some}
 import gleam/string
 import lustre/element.{type Element}
+import weft
 import weft_chart/internal/math
 import weft_chart/internal/svg
 import weft_chart/render
@@ -153,9 +154,9 @@ pub type AxisBaseConfig(msg) {
     height: Int,
     name: String,
     allow_duplicated_category: Bool,
-    axis_line_stroke: String,
+    axis_line_stroke: weft.Color,
     axis_line_stroke_width: Float,
-    tick_line_stroke: String,
+    tick_line_stroke: weft.Color,
     tick_line_stroke_width: Float,
     axis_line_stroke_dasharray: String,
     tick_line_stroke_dasharray: String,
@@ -198,9 +199,9 @@ pub type XAxisConfig(msg) {
     height: Int,
     name: String,
     allow_duplicated_category: Bool,
-    axis_line_stroke: String,
+    axis_line_stroke: weft.Color,
     axis_line_stroke_width: Float,
-    tick_line_stroke: String,
+    tick_line_stroke: weft.Color,
     tick_line_stroke_width: Float,
     axis_line_stroke_dasharray: String,
     tick_line_stroke_dasharray: String,
@@ -242,9 +243,9 @@ pub type YAxisConfig(msg) {
     width: Int,
     name: String,
     allow_duplicated_category: Bool,
-    axis_line_stroke: String,
+    axis_line_stroke: weft.Color,
     axis_line_stroke_width: Float,
-    tick_line_stroke: String,
+    tick_line_stroke: weft.Color,
     tick_line_stroke_width: Float,
     axis_line_stroke_dasharray: String,
     tick_line_stroke_dasharray: String,
@@ -310,9 +311,13 @@ pub fn axis_base_config(role role: AxisRole) -> AxisBaseConfig(msg) {
         height: 30,
         name: "",
         allow_duplicated_category: True,
-        axis_line_stroke: "",
+        axis_line_stroke: weft.css_color(
+          value: "var(--weft-chart-axis, currentColor)",
+        ),
         axis_line_stroke_width: 0.0,
-        tick_line_stroke: "",
+        tick_line_stroke: weft.css_color(
+          value: "var(--weft-chart-tick, currentColor)",
+        ),
         tick_line_stroke_width: 0.0,
         axis_line_stroke_dasharray: "",
         tick_line_stroke_dasharray: "",
@@ -356,9 +361,13 @@ pub fn axis_base_config(role role: AxisRole) -> AxisBaseConfig(msg) {
         height: 30,
         name: "",
         allow_duplicated_category: True,
-        axis_line_stroke: "",
+        axis_line_stroke: weft.css_color(
+          value: "var(--weft-chart-axis, currentColor)",
+        ),
         axis_line_stroke_width: 0.0,
-        tick_line_stroke: "",
+        tick_line_stroke: weft.css_color(
+          value: "var(--weft-chart-tick, currentColor)",
+        ),
         tick_line_stroke_width: 0.0,
         axis_line_stroke_dasharray: "",
         tick_line_stroke_dasharray: "",
@@ -754,7 +763,7 @@ pub fn axis_allow_duplicated_category(
 /// Set custom axis line stroke color.
 pub fn axis_axis_line_stroke(
   config config: AxisBaseConfig(msg),
-  stroke stroke: String,
+  stroke stroke: weft.Color,
 ) -> AxisBaseConfig(msg) {
   AxisBaseConfig(..config, axis_line_stroke: stroke)
 }
@@ -770,7 +779,7 @@ pub fn axis_axis_line_stroke_width(
 /// Set custom tick line stroke color.
 pub fn axis_tick_line_stroke(
   config config: AxisBaseConfig(msg),
-  stroke stroke: String,
+  stroke stroke: weft.Color,
 ) -> AxisBaseConfig(msg) {
   AxisBaseConfig(..config, tick_line_stroke: stroke)
 }
@@ -898,10 +907,7 @@ pub fn render_x_axis(
             Ok(last) -> last.coordinate
             Error(_) -> 0.0
           }
-          let al_stroke = case config.axis_line_stroke {
-            "" -> "var(--weft-chart-axis, currentColor)"
-            s -> s
-          }
+          let al_stroke = weft.color_to_css(color: config.axis_line_stroke)
           let al_stroke_width = case config.axis_line_stroke_width >. 0.0 {
             True -> math.fmt(config.axis_line_stroke_width)
             False -> "1"
@@ -988,10 +994,7 @@ fn render_x_tick(
     False -> tick_dir
   }
   let tick_size_f = int.to_float(config.tick_size)
-  let tl_stroke = case config.tick_line_stroke {
-    "" -> "var(--weft-chart-tick, currentColor)"
-    s -> s
-  }
+  let tl_stroke = weft.color_to_css(color: config.tick_line_stroke)
   let tl_stroke_width = case config.tick_line_stroke_width >. 0.0 {
     True -> math.fmt(config.tick_line_stroke_width)
     False -> "1"
@@ -1034,7 +1037,9 @@ fn render_x_tick(
             Bottom -> "start"
             _ -> "end"
           },
-          fill: "var(--weft-chart-tick-text, currentColor)",
+          fill: weft.css_color(
+            value: "var(--weft-chart-tick-text, currentColor)",
+          ),
           visible_ticks_count: visible_count,
         )
       renderer(props)
@@ -1129,10 +1134,7 @@ pub fn render_y_axis(
             Ok(last) -> last.coordinate
             Error(_) -> 0.0
           }
-          let al_stroke = case config.axis_line_stroke {
-            "" -> "var(--weft-chart-axis, currentColor)"
-            s -> s
-          }
+          let al_stroke = weft.color_to_css(color: config.axis_line_stroke)
           let al_stroke_width = case config.axis_line_stroke_width >. 0.0 {
             True -> math.fmt(config.axis_line_stroke_width)
             False -> "1"
@@ -1228,10 +1230,7 @@ fn render_y_tick(
     False -> tick_dir
   }
   let tick_size_f = int.to_float(config.tick_size)
-  let tl_stroke = case config.tick_line_stroke {
-    "" -> "var(--weft-chart-tick, currentColor)"
-    s -> s
-  }
+  let tl_stroke = weft.color_to_css(color: config.tick_line_stroke)
   let tl_stroke_width = case config.tick_line_stroke_width >. 0.0 {
     True -> math.fmt(config.tick_line_stroke_width)
     False -> "1"
@@ -1277,7 +1276,9 @@ fn render_y_tick(
           value: label,
           text_anchor: anchor,
           vertical_anchor: "middle",
-          fill: "var(--weft-chart-tick-text, currentColor)",
+          fill: weft.css_color(
+            value: "var(--weft-chart-tick-text, currentColor)",
+          ),
           visible_ticks_count: visible_count,
         )
       renderer(props)

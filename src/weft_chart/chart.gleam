@@ -17,6 +17,7 @@ import gleam/string
 import lustre/attribute.{type Attribute}
 import lustre/element.{type Element}
 import lustre/event as lustre_event
+import weft
 import weft_chart/a11y
 import weft_chart/axis
 import weft_chart/brush
@@ -200,30 +201,30 @@ pub type ChartWidth {
 /// Provides CSS variable values injected as a scoped `<style>` block.
 pub type ChartTheme {
   ChartTheme(
-    tooltip_bg: String,
-    tooltip_text: String,
-    tooltip_border: String,
-    tooltip_muted: String,
+    tooltip_bg: weft.Color,
+    tooltip_text: weft.Color,
+    tooltip_border: weft.Color,
+    tooltip_muted: weft.Color,
   )
 }
 
 /// Default light-mode chart theme.
 pub fn chart_theme_light() -> ChartTheme {
   ChartTheme(
-    tooltip_bg: "#ffffff",
-    tooltip_text: "#000000",
-    tooltip_border: "#e4e4e7",
-    tooltip_muted: "#71717a",
+    tooltip_bg: weft.hex(value: "#ffffff"),
+    tooltip_text: weft.hex(value: "#000000"),
+    tooltip_border: weft.hex(value: "#e4e4e7"),
+    tooltip_muted: weft.hex(value: "#71717a"),
   )
 }
 
 /// Default dark-mode chart theme.
 pub fn chart_theme_dark() -> ChartTheme {
   ChartTheme(
-    tooltip_bg: "#18181b",
-    tooltip_text: "#fafafa",
-    tooltip_border: "#3f3f46",
-    tooltip_muted: "#3f3f46",
+    tooltip_bg: weft.hex(value: "#18181b"),
+    tooltip_text: weft.hex(value: "#fafafa"),
+    tooltip_border: weft.hex(value: "#3f3f46"),
+    tooltip_muted: weft.hex(value: "#3f3f46"),
   )
 }
 
@@ -1412,6 +1413,7 @@ fn render_cartesian(
               config.include_hidden,
               config.filter_null,
               y_unit,
+              stacked_data,
             )
           let #(zone_w, zone_mode) = case chart_layout {
             layout.Horizontal -> {
@@ -1651,7 +1653,7 @@ fn render_polar(
                   tooltip.TooltipEntry(
                     name: info.category,
                     value: info.value,
-                    color: info.fill,
+                    color: weft.css_color(value: info.fill),
                     unit: "",
                     hidden: False,
                     entry_type: tooltip.VisibleEntry,
@@ -2089,7 +2091,7 @@ fn build_radial_bar_tooltip_payloads(
                 tooltip.TooltipEntry(
                   name: config.data_key,
                   value: value,
-                  color: fill,
+                  color: weft.css_color(value: fill),
                   unit: "",
                   hidden: False,
                   entry_type: tooltip.VisibleEntry,
@@ -2791,7 +2793,7 @@ fn build_funnel_tooltip_payloads(
                 tooltip.TooltipEntry(
                   name: config.data_key,
                   value: value,
-                  color: fill_color,
+                  color: weft.css_color(value: fill_color),
                   unit: "",
                   hidden: False,
                   entry_type: tooltip.VisibleEntry,
@@ -3005,7 +3007,7 @@ fn render_sunburst_chart(
                   tooltip.TooltipEntry(
                     name: info.name,
                     value: info.value,
-                    color: info.fill,
+                    color: weft.css_color(value: info.fill),
                     unit: "",
                     hidden: False,
                     entry_type: tooltip.VisibleEntry,
@@ -3137,7 +3139,7 @@ fn render_sankey_chart(
                 tooltip.TooltipEntry(
                   name: info.name,
                   value: info.value,
-                  color: info.fill,
+                  color: weft.css_color(value: info.fill),
                   unit: "",
                   hidden: False,
                   entry_type: tooltip.VisibleEntry,
@@ -3527,14 +3529,14 @@ fn render_theme_style(
         ".wc-" <> int.to_string(nominal_width) <> "-" <> int.to_string(height)
       let css =
         scope
-        <> " { --chart-tooltip-bg: "
-        <> t.tooltip_bg
-        <> "; --chart-tooltip-text: "
-        <> t.tooltip_text
-        <> "; --chart-tooltip-border: "
-        <> t.tooltip_border
-        <> "; --chart-tooltip-muted: "
-        <> t.tooltip_muted
+        <> " { --weft-chart-tooltip-bg: "
+        <> weft.color_to_css(color: t.tooltip_bg)
+        <> "; --weft-chart-tooltip-fg: "
+        <> weft.color_to_css(color: t.tooltip_text)
+        <> "; --weft-chart-tooltip-border: "
+        <> weft.color_to_css(color: t.tooltip_border)
+        <> "; --weft-chart-tooltip-muted: "
+        <> weft.color_to_css(color: t.tooltip_muted)
         <> "; }"
       [svg.el(tag: "style", attrs: [], children: [element.text(css)])]
     }
@@ -3624,15 +3626,26 @@ fn wrap_svg(
     "" -> "display:block;"
     s -> "display:block;" <> s
   }
+  // For FillWidth, omit the height attribute so the browser computes intrinsic
+  // height from the viewBox aspect ratio (800:height).  The SVG element ends up
+  // at the same AR as the viewBox, so the default preserveAspectRatio meet
+  // scales uniformly — no distortion.  For FixedWidth, an explicit pixel height
+  // is required so the SVG element is exactly the nominal size.
+  let height_attrs = case width {
+    FillWidth -> []
+    FixedWidth(..) -> [svg.attr("height", h)]
+  }
   let base_attrs = [
     svg.attr("viewBox", view_box),
     svg.attr("width", svg_width),
-    svg.attr("height", h),
-    svg.attr("overflow", "visible"),
-    svg.attr("preserveAspectRatio", "xMidYMid meet"),
-    svg.attr("role", effective_role),
-    svg.attr("style", effective_style),
+    ..height_attrs
   ]
+  let base_attrs =
+    list.append(base_attrs, [
+      svg.attr("overflow", "visible"),
+      svg.attr("role", effective_role),
+      svg.attr("style", effective_style),
+    ])
   let attrs_with_class = case svg_class {
     "" -> base_attrs
     c -> list.append(base_attrs, [svg.attr("class", c)])
@@ -4264,7 +4277,7 @@ fn render_area_with_baseline(
               stops: list.map(config.gradient_stops, fn(stop) {
                 svg.gradient_stop(
                   offset: stop.offset,
-                  color: stop.color,
+                  color: weft.color_to_css(color: stop.color),
                   opacity: math.fmt(stop.opacity),
                 )
               }),
@@ -4286,7 +4299,7 @@ fn render_area_with_baseline(
                 )
               let area_el =
                 svg.path(d: area_d, attrs: [
-                  svg.attr("fill", config.fill),
+                  svg.attr("fill", weft.color_to_css(color: config.fill)),
                   svg.attr("fill-opacity", math.fmt(config.fill_opacity)),
                 ])
 
@@ -4294,7 +4307,7 @@ fn render_area_with_baseline(
                 curve.path(curve_type: config.curve_type, points: seg)
               let stroke_el =
                 svg.path(d: stroke_d, attrs: [
-                  svg.attr("stroke", config.stroke),
+                  svg.attr("stroke", weft.color_to_css(color: config.stroke)),
                   svg.attr("fill", "none"),
                   svg.attr("stroke-width", math.fmt(config.stroke_width)),
                 ])
@@ -4310,7 +4323,7 @@ fn render_area_with_baseline(
         True ->
           list.map(all_valid, fn(pt) {
             svg.circle(cx: math.fmt(pt.0), cy: math.fmt(pt.1), r: "3", attrs: [
-              svg.attr("fill", config.stroke),
+              svg.attr("fill", weft.color_to_css(color: config.stroke)),
               svg.attr("stroke", "var(--weft-chart-bg, #ffffff)"),
               svg.attr("stroke-width", "2"),
             ])
@@ -4421,7 +4434,7 @@ fn adjust_margin_for_axes(
   list.fold(children, margin, fn(acc, child) {
     case child {
       XAxisChild(config:) ->
-        case config.height > 0 {
+        case !config.hidden && config.height > 0 {
           True ->
             case config.orientation {
               axis.Bottom ->
@@ -4432,7 +4445,7 @@ fn adjust_margin_for_axes(
           False -> acc
         }
       YAxisChild(config:) ->
-        case config.width > 0 {
+        case !config.hidden && config.width > 0 {
           True ->
             case config.orientation {
               axis.Left -> layout.Margin(..acc, left: acc.left + config.width)
@@ -5098,7 +5111,7 @@ fn collect_data_keys(children: List(ChartChild(msg))) -> List(String) {
 /// Matches recharts series `name` prop fallback behavior.
 fn collect_series_display_info(
   children: List(ChartChild(msg)),
-) -> List(#(String, String, String, Bool, Bool, String)) {
+) -> List(#(String, String, weft.Color, Bool, Bool, String)) {
   list.filter_map(children, fn(child) {
     case child {
       AreaChild(config:) ->
@@ -5132,7 +5145,9 @@ fn collect_series_display_info(
         include(#(
           config.data_key,
           series_display_name("", config.data_key),
-          "var(--color-" <> config.data_key <> ", currentColor)",
+          weft.css_color(
+            value: "var(--color-" <> config.data_key <> ", currentColor)",
+          ),
           config.hide,
           is_no_tooltip(config.tooltip_type),
           "",
@@ -5150,7 +5165,9 @@ fn collect_series_display_info(
         include(#(
           config.data_key,
           series_display_name("", config.data_key),
-          "var(--color-" <> config.data_key <> ", currentColor)",
+          weft.css_color(
+            value: "var(--color-" <> config.data_key <> ", currentColor)",
+          ),
           config.hide,
           is_no_tooltip(config.tooltip_type),
           "",
@@ -5195,7 +5212,7 @@ fn skip() -> Result(a, Nil) {
 
 fn build_tooltip_payloads(
   data: List(DataPoint),
-  series_info: List(#(String, String, String, Bool, Bool, String)),
+  series_info: List(#(String, String, weft.Color, Bool, Bool, String)),
   x_scale: scale.Scale,
   y_scale: scale.Scale,
   categories: List(String),
@@ -5203,6 +5220,7 @@ fn build_tooltip_payloads(
   include_hidden: Bool,
   filter_null: Bool,
   y_unit: String,
+  stacked_data: Dict(String, Dict(String, List(#(Float, Float)))),
 ) -> List(tooltip.TooltipPayload) {
   let rows =
     list.zip(categories, data)
@@ -5228,6 +5246,23 @@ fn build_tooltip_payloads(
       )
     })
 
+  // Build data_key -> (category -> stacked_top) for active-dot positioning.
+  // Stacked area series use the cumulative top value rather than the raw
+  // series value so dots appear on the visible top edge of each area band.
+  let stacked_tops =
+    dict.fold(stacked_data, dict.new(), fn(acc, _sid, per_key) {
+      dict.fold(per_key, acc, fn(acc2, data_key, baselines) {
+        let cat_to_top =
+          list.zip(categories, baselines)
+          |> list.map(fn(pair) {
+            let #(cat, #(_base, top)) = pair
+            #(cat, top)
+          })
+          |> dict.from_list
+        dict.insert(acc2, data_key, cat_to_top)
+      })
+    })
+
   cartesian_tooltip_payload.build_payloads(
     data: rows,
     series_info: series,
@@ -5237,6 +5272,7 @@ fn build_tooltip_payloads(
     include_hidden: include_hidden,
     filter_null: filter_null,
     y_unit: y_unit,
+    stacked_tops: stacked_tops,
   )
 }
 
@@ -5278,7 +5314,9 @@ fn build_legend_payload(
           [] -> [
             legend.LegendPayload(
               value: config.data_key,
-              color: "var(--color-" <> config.data_key <> ", currentColor)",
+              color: weft.css_color(
+                value: "var(--color-" <> config.data_key <> ", currentColor)",
+              ),
               icon_type: config.legend_type,
               inactive: False,
             ),
@@ -5296,7 +5334,7 @@ fn build_legend_payload(
               }
               legend.LegendPayload(
                 value: name,
-                color: fill,
+                color: weft.css_color(value: fill),
                 icon_type: config.legend_type,
                 inactive: False,
               )
@@ -5313,7 +5351,9 @@ fn build_legend_payload(
       RadialBarChild(config:) -> [
         legend.LegendPayload(
           value: config.data_key,
-          color: "var(--color-" <> config.data_key <> ", currentColor)",
+          color: weft.css_color(
+            value: "var(--color-" <> config.data_key <> ", currentColor)",
+          ),
           icon_type: config.legend_type,
           inactive: False,
         ),
@@ -5329,7 +5369,9 @@ fn build_legend_payload(
       FunnelChild(config:) -> [
         legend.LegendPayload(
           value: config.data_key,
-          color: "var(--color-" <> config.data_key <> ", currentColor)",
+          color: weft.css_color(
+            value: "var(--color-" <> config.data_key <> ", currentColor)",
+          ),
           icon_type: config.legend_type,
           inactive: False,
         ),
@@ -5337,7 +5379,7 @@ fn build_legend_payload(
       TreemapChild(config:) -> [
         legend.LegendPayload(
           value: config.data_key,
-          color: config.fill,
+          color: weft.css_color(value: config.fill),
           icon_type: config.legend_type,
           inactive: False,
         ),
@@ -5345,7 +5387,7 @@ fn build_legend_payload(
       SunburstChild(config:) -> [
         legend.LegendPayload(
           value: "sunburst",
-          color: config.fill,
+          color: weft.css_color(value: config.fill),
           icon_type: config.legend_type,
           inactive: False,
         ),
@@ -5353,7 +5395,7 @@ fn build_legend_payload(
       SankeyChild(..) -> [
         legend.LegendPayload(
           value: "sankey",
-          color: "#2563eb",
+          color: weft.css_color(value: "#2563eb"),
           icon_type: shape.RectIcon,
           inactive: False,
         ),

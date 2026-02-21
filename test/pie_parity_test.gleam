@@ -8,6 +8,7 @@ import gleam/string
 import lustre/element
 import startest.{describe, it}
 import startest/expect
+import weft
 import weft_chart/render
 import weft_chart/series/pie
 
@@ -121,10 +122,11 @@ pub fn pie_label_line_stroke_tests() {
           end_x: 270.0,
           end_y: 129.0,
           index: 0,
-          fill: "#2563eb",
-          stroke: "#2563eb",
+          fill: weft.css_color(value: "#2563eb"),
+          stroke: weft.css_color(value: "#2563eb"),
         )
-      props.stroke |> expect.to_equal(expected: "#2563eb")
+      props.stroke
+      |> expect.to_equal(expected: weft.css_color(value: "#2563eb"))
     }),
   ])
 }

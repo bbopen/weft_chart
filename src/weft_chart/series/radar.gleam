@@ -10,6 +10,7 @@ import gleam/int
 import gleam/list
 import gleam/option.{type Option, None, Some}
 import lustre/element.{type Element}
+import weft
 import weft_chart/animation.{type AnimationConfig}
 import weft_chart/internal/math
 import weft_chart/internal/polar
@@ -26,9 +27,9 @@ pub type RadarConfig(msg) {
   RadarConfig(
     data_key: String,
     name: String,
-    fill: String,
+    fill: weft.Color,
     fill_opacity: Float,
-    stroke: String,
+    stroke: weft.Color,
     stroke_width: Float,
     show_dot: Bool,
     dot_radius: Float,
@@ -61,9 +62,11 @@ pub fn radar_config(data_key data_key: String) -> RadarConfig(msg) {
   RadarConfig(
     data_key: data_key,
     name: "",
-    fill: "var(--weft-chart-radar-fill, currentColor)",
+    fill: weft.css_color(value: "var(--weft-chart-radar-fill, currentColor)"),
     fill_opacity: 0.3,
-    stroke: "var(--weft-chart-radar-stroke, currentColor)",
+    stroke: weft.css_color(
+      value: "var(--weft-chart-radar-stroke, currentColor)",
+    ),
     stroke_width: 2.0,
     show_dot: False,
     dot_radius: 3.0,
@@ -94,7 +97,7 @@ pub fn radar_config(data_key data_key: String) -> RadarConfig(msg) {
 /// Set the fill color.
 pub fn radar_fill(
   config: RadarConfig(msg),
-  fill_value: String,
+  fill_value: weft.Color,
 ) -> RadarConfig(msg) {
   RadarConfig(..config, fill: fill_value)
 }
@@ -110,7 +113,7 @@ pub fn radar_fill_opacity(
 /// Set the stroke color.
 pub fn radar_stroke(
   config: RadarConfig(msg),
-  stroke_value: String,
+  stroke_value: weft.Color,
 ) -> RadarConfig(msg) {
   RadarConfig(..config, stroke: stroke_value)
 }
@@ -397,9 +400,9 @@ fn render_radar_visible(
           case config.animation.active {
             False ->
               svg.path(d: polygon_d, attrs: [
-                svg.attr("fill", config.fill),
+                svg.attr("fill", weft.color_to_css(color: config.fill)),
                 svg.attr("fill-opacity", float.to_string(config.fill_opacity)),
-                svg.attr("stroke", config.stroke),
+                svg.attr("stroke", weft.color_to_css(color: config.stroke)),
                 svg.attr("stroke-width", float.to_string(config.stroke_width)),
               ])
             True -> {
@@ -424,9 +427,9 @@ fn render_radar_visible(
               svg.path_with_children(
                 d: initial_d,
                 attrs: [
-                  svg.attr("fill", config.fill),
+                  svg.attr("fill", weft.color_to_css(color: config.fill)),
                   svg.attr("fill-opacity", float.to_string(config.fill_opacity)),
-                  svg.attr("stroke", config.stroke),
+                  svg.attr("stroke", weft.color_to_css(color: config.stroke)),
                   svg.attr("stroke-width", float.to_string(config.stroke_width)),
                 ],
                 children: [animate_el],
@@ -449,7 +452,7 @@ fn render_radar_visible(
                 value: 0.0,
                 data_key: config.data_key,
                 fill: config.stroke,
-                stroke: "var(--weft-chart-bg, #ffffff)",
+                stroke: weft.css_color(value: "var(--weft-chart-bg, #ffffff)"),
               )
             let is_active = case config.active_index {
               Some(active_idx) -> active_idx == idx
@@ -466,7 +469,10 @@ fn render_radar_visible(
                       cy: math.fmt(pt.1),
                       r: float.to_string(config.dot_radius),
                       attrs: [
-                        svg.attr("fill", config.stroke),
+                        svg.attr(
+                          "fill",
+                          weft.color_to_css(color: config.stroke),
+                        ),
                         svg.attr("stroke", "var(--weft-chart-bg, #ffffff)"),
                         svg.attr("stroke-width", "2"),
                       ],
@@ -498,7 +504,9 @@ fn render_radar_visible(
                   value: format_radar_value(value),
                   offset: 8.0,
                   position: "top",
-                  fill: "var(--weft-chart-label, currentColor)",
+                  fill: weft.css_color(
+                    value: "var(--weft-chart-label, currentColor)",
+                  ),
                 ))
               })
             None ->

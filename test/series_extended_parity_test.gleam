@@ -9,6 +9,7 @@ import gleam/string
 import lustre/element
 import startest.{describe, it}
 import startest/expect
+import weft
 import weft_chart/render
 import weft_chart/series/funnel
 import weft_chart/series/pie
@@ -366,14 +367,16 @@ pub fn radial_bar_stroke_tests() {
     it("defaults to none", fn() {
       let config = radial_bar.radial_bar_config(data_key: "v")
       config.stroke
-      |> expect.to_equal("none")
+      |> expect.to_equal(weft.css_color(value: "none"))
     }),
     it("sets via builder", fn() {
       let config =
         radial_bar.radial_bar_config(data_key: "v")
-        |> radial_bar.radial_bar_stroke(stroke_value: "#ff0000")
+        |> radial_bar.radial_bar_stroke(stroke_value: weft.css_color(
+          value: "#ff0000",
+        ))
       config.stroke
-      |> expect.to_equal("#ff0000")
+      |> expect.to_equal(weft.css_color(value: "#ff0000"))
     }),
   ])
 }
@@ -849,8 +852,8 @@ pub fn sector_props_tests() {
           start_angle: 0.0,
           end_angle: 90.0,
           index: 0,
-          fill: "#ff0000",
-          stroke: "#fff",
+          fill: weft.css_color(value: "#ff0000"),
+          stroke: weft.css_color(value: "#fff"),
         )
       props.cx
       |> expect.to_equal(100.0)

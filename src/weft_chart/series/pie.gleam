@@ -11,6 +11,7 @@ import gleam/int
 import gleam/list
 import gleam/option.{type Option, None, Some}
 import lustre/element.{type Element}
+import weft
 import weft_chart/animation.{type AnimationConfig}
 import weft_chart/internal/math
 import weft_chart/internal/polar
@@ -669,8 +670,8 @@ fn render_pie_visible(
           start_angle: sa,
           end_angle: ea,
           index: index,
-          fill: fill_color,
-          stroke: sector_stroke,
+          fill: weft.css_color(value: fill_color),
+          stroke: weft.css_color(value: sector_stroke),
         )
       let final_sector_el = case is_active, config.active_shape {
         True, Some(renderer) -> renderer(sector_props)
@@ -735,8 +736,8 @@ fn render_pie_visible(
               end_x: lx,
               end_y: ly,
               index: idx,
-              fill: sector_fill,
-              stroke: sector_fill,
+              fill: weft.css_color(value: sector_fill),
+              stroke: weft.css_color(value: sector_fill),
             ))
           None ->
             svg.line(
@@ -823,7 +824,9 @@ fn render_pie_visible(
                   True -> "right"
                   False -> "left"
                 },
-                fill: "var(--weft-chart-label, currentColor)",
+                fill: weft.css_color(
+                  value: "var(--weft-chart-label, currentColor)",
+                ),
                 percent: percent,
                 mid_angle: mid_angle,
                 middle_radius: middle_radius,

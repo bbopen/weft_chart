@@ -6,6 +6,7 @@ import gleam/float
 import gleam/list
 import startest.{describe, it}
 import startest/expect
+import weft
 import weft_chart/color
 import weft_chart/scale
 
@@ -383,44 +384,52 @@ pub fn color_palette_tests() {
   describe("color", [
     describe("recharts_palette", [
       it("has 26 colors", fn() {
-        list.length(color.recharts_palette)
+        list.length(color.recharts_palette())
         |> expect.to_equal(expected: 26)
       }),
       it("first color is #0088FE", fn() {
-        case color.recharts_palette {
-          [first, ..] -> first |> expect.to_equal(expected: "#0088FE")
+        case color.recharts_palette() {
+          [first, ..] ->
+            first |> expect.to_equal(expected: weft.css_color(value: "#0088FE"))
           [] -> expect.to_be_true(False)
         }
       }),
     ]),
     describe("cycle_color", [
       it("returns first color at index 0", fn() {
-        color.cycle_color(palette: color.recharts_palette, index: 0)
-        |> expect.to_equal(expected: "#0088FE")
+        color.cycle_color(palette: color.recharts_palette(), index: 0)
+        |> expect.to_equal(expected: weft.css_color(value: "#0088FE"))
       }),
       it("returns second color at index 1", fn() {
-        color.cycle_color(palette: color.recharts_palette, index: 1)
-        |> expect.to_equal(expected: "#00C49F")
+        color.cycle_color(palette: color.recharts_palette(), index: 1)
+        |> expect.to_equal(expected: weft.css_color(value: "#00C49F"))
       }),
       it("wraps around at palette length", fn() {
-        color.cycle_color(palette: color.recharts_palette, index: 26)
-        |> expect.to_equal(expected: "#0088FE")
+        color.cycle_color(palette: color.recharts_palette(), index: 26)
+        |> expect.to_equal(expected: weft.css_color(value: "#0088FE"))
       }),
       it("wraps around at twice palette length", fn() {
-        color.cycle_color(palette: color.recharts_palette, index: 52)
-        |> expect.to_equal(expected: "#0088FE")
+        color.cycle_color(palette: color.recharts_palette(), index: 52)
+        |> expect.to_equal(expected: weft.css_color(value: "#0088FE"))
       }),
       it("wraps correctly for index 27", fn() {
-        color.cycle_color(palette: color.recharts_palette, index: 27)
-        |> expect.to_equal(expected: "#00C49F")
+        color.cycle_color(palette: color.recharts_palette(), index: 27)
+        |> expect.to_equal(expected: weft.css_color(value: "#00C49F"))
       }),
       it("returns fallback for empty palette", fn() {
         color.cycle_color(palette: [], index: 0)
-        |> expect.to_equal(expected: "#000000")
+        |> expect.to_equal(expected: weft.rgb(red: 0, green: 0, blue: 0))
       }),
       it("works with custom palette", fn() {
-        color.cycle_color(palette: ["red", "green", "blue"], index: 4)
-        |> expect.to_equal(expected: "green")
+        color.cycle_color(
+          palette: [
+            weft.css_color(value: "red"),
+            weft.css_color(value: "green"),
+            weft.css_color(value: "blue"),
+          ],
+          index: 4,
+        )
+        |> expect.to_equal(expected: weft.css_color(value: "green"))
       }),
     ]),
   ])

@@ -9,6 +9,7 @@ import gleam/string
 import lustre/element
 import startest.{describe, it}
 import startest/expect
+import weft
 import weft_chart
 import weft_chart/axis
 import weft_chart/chart
@@ -463,7 +464,9 @@ pub fn bar_tests() {
         config.min_point_size
         |> expect.to_equal(expected: bar.FixedMinPointSize(0.0))
         config.background_fill
-        |> expect.to_equal(expected: "var(--weft-chart-bar-bg, #eee)")
+        |> expect.to_equal(expected: weft.css_color(
+          value: "var(--weft-chart-bar-bg, #eee)",
+        ))
       }),
       it("applies corner radius builders", fn() {
         let config =
@@ -480,9 +483,10 @@ pub fn bar_tests() {
         let config =
           bar.bar_config(data_key: "sales", meta: common.series_meta())
           |> bar.bar_background(True)
-          |> bar.bar_background_fill("#f0f0f0")
+          |> bar.bar_background_fill(weft.css_color(value: "#f0f0f0"))
         config.show_background |> expect.to_be_true
-        config.background_fill |> expect.to_equal(expected: "#f0f0f0")
+        config.background_fill
+        |> expect.to_equal(expected: weft.css_color(value: "#f0f0f0"))
       }),
     ]),
     describe("multi_bar_chart", [
@@ -506,11 +510,11 @@ pub fn bar_tests() {
             children: [
               chart.bar(
                 bar.bar_config(data_key: "sales", meta: common.series_meta())
-                |> bar.bar_fill("#8884d8"),
+                |> bar.bar_fill(weft.css_color(value: "#8884d8")),
               ),
               chart.bar(
                 bar.bar_config(data_key: "profit", meta: common.series_meta())
-                |> bar.bar_fill("#82ca9d"),
+                |> bar.bar_fill(weft.css_color(value: "#82ca9d")),
               ),
             ],
           )
@@ -871,7 +875,7 @@ pub fn chart_tests() {
               chart.polar_radius_axis(polar_axis.radius_axis_config()),
               chart.radar(
                 radar.radar_config(data_key: "score")
-                |> radar.radar_fill("#8884d8")
+                |> radar.radar_fill(weft.css_color(value: "#8884d8"))
                 |> radar.radar_fill_opacity(0.6),
               ),
             ],
@@ -921,12 +925,12 @@ pub fn chart_tests() {
               chart.polar_grid(grid.polar_grid_config()),
               chart.radar(
                 radar.radar_config(data_key: "student_a")
-                |> radar.radar_fill("#8884d8")
+                |> radar.radar_fill(weft.css_color(value: "#8884d8"))
                 |> radar.radar_fill_opacity(0.6),
               ),
               chart.radar(
                 radar.radar_config(data_key: "student_b")
-                |> radar.radar_fill("#82ca9d")
+                |> radar.radar_fill(weft.css_color(value: "#82ca9d"))
                 |> radar.radar_fill_opacity(0.6),
               ),
             ],
@@ -1099,25 +1103,43 @@ pub fn chart_tests() {
                   meta: common.series_meta(),
                 )
                 |> area.area_curve_type(curve.Natural)
-                |> area.area_fill("url(#fillDesktop)")
+                |> area.area_fill(weft.css_color(value: "url(#fillDesktop)"))
                 |> area.area_fill_opacity(0.4)
-                |> area.area_stroke("var(--color-desktop)")
+                |> area.area_stroke(weft.css_color(
+                  value: "var(--color-desktop)",
+                ))
                 |> area.area_stack_id("a")
                 |> area.area_gradient_fill("fillDesktop", [
-                  area.GradientStop("5%", "var(--color-desktop)", 0.8),
-                  area.GradientStop("95%", "var(--color-desktop)", 0.1),
+                  area.GradientStop(
+                    "5%",
+                    weft.css_color(value: "var(--color-desktop)"),
+                    0.8,
+                  ),
+                  area.GradientStop(
+                    "95%",
+                    weft.css_color(value: "var(--color-desktop)"),
+                    0.1,
+                  ),
                 ]),
               ),
               chart.area(
                 area.area_config(data_key: "mobile", meta: common.series_meta())
                 |> area.area_curve_type(curve.Natural)
-                |> area.area_fill("url(#fillMobile)")
+                |> area.area_fill(weft.css_color(value: "url(#fillMobile)"))
                 |> area.area_fill_opacity(0.4)
-                |> area.area_stroke("var(--color-mobile)")
+                |> area.area_stroke(weft.css_color(value: "var(--color-mobile)"))
                 |> area.area_stack_id("a")
                 |> area.area_gradient_fill("fillMobile", [
-                  area.GradientStop("5%", "var(--color-mobile)", 0.8),
-                  area.GradientStop("95%", "var(--color-mobile)", 0.1),
+                  area.GradientStop(
+                    "5%",
+                    weft.css_color(value: "var(--color-mobile)"),
+                    0.8,
+                  ),
+                  area.GradientStop(
+                    "95%",
+                    weft.css_color(value: "var(--color-mobile)"),
+                    0.1,
+                  ),
                 ]),
               ),
             ],
@@ -2303,7 +2325,7 @@ pub fn composed_chart_tests() {
           children: [
             chart.area(
               area.area_config(data_key: "visitors", meta: common.series_meta())
-              |> area.area_fill("#10b981")
+              |> area.area_fill(weft.css_color(value: "#10b981"))
               |> area.area_fill_opacity(0.15),
             ),
             chart.bar(bar.bar_config(
@@ -2867,15 +2889,15 @@ pub fn bar_stroke_tests() {
   describe("bar_stroke", [
     it("default stroke is empty", fn() {
       let config = bar.bar_config(data_key: "v", meta: common.series_meta())
-      config.stroke |> expect.to_equal(expected: "")
+      config.stroke |> expect.to_equal(expected: weft.css_color(value: ""))
       config.stroke_width
       |> expect.to_equal(expected: 0.0)
     }),
     it("bar_stroke builder sets stroke color", fn() {
       let config =
         bar.bar_config(data_key: "v", meta: common.series_meta())
-        |> bar.bar_stroke("#333")
-      config.stroke |> expect.to_equal(expected: "#333")
+        |> bar.bar_stroke(weft.css_color(value: "#333"))
+      config.stroke |> expect.to_equal(expected: weft.css_color(value: "#333"))
     }),
     it("bar_stroke_width builder sets width", fn() {
       let config =
@@ -2897,7 +2919,7 @@ pub fn bar_stroke_tests() {
           children: [
             chart.bar(
               bar.bar_config(data_key: "v", meta: common.series_meta())
-              |> bar.bar_stroke("#333")
+              |> bar.bar_stroke(weft.css_color(value: "#333"))
               |> bar.bar_stroke_width(2.0),
             ),
           ],
@@ -3174,7 +3196,7 @@ pub fn tooltip_unit_tests() {
             tooltip.TooltipEntry(
               name: "Weight",
               value: 42.0,
-              color: "#8884d8",
+              color: weft.css_color(value: "#8884d8"),
               unit: "kg",
               hidden: False,
               entry_type: tooltip.VisibleEntry,
@@ -3211,7 +3233,7 @@ pub fn tooltip_unit_tests() {
             tooltip.TooltipEntry(
               name: "Sales",
               value: 100.0,
-              color: "#8884d8",
+              color: weft.css_color(value: "#8884d8"),
               unit: "",
               hidden: False,
               entry_type: tooltip.VisibleEntry,
@@ -3284,7 +3306,7 @@ pub fn tooltip_item_sorter_tests() {
         tooltip.TooltipEntry(
           name: "Test",
           value: 42.0,
-          color: "#000",
+          color: weft.css_color(value: "#000"),
           unit: "",
           hidden: False,
           entry_type: tooltip.VisibleEntry,
@@ -3303,7 +3325,7 @@ pub fn tooltip_item_sorter_tests() {
             tooltip.TooltipEntry(
               name: "High",
               value: 100.0,
-              color: "#ff0000",
+              color: weft.css_color(value: "#ff0000"),
               unit: "",
               hidden: False,
               entry_type: tooltip.VisibleEntry,
@@ -3311,7 +3333,7 @@ pub fn tooltip_item_sorter_tests() {
             tooltip.TooltipEntry(
               name: "Low",
               value: 10.0,
-              color: "#00ff00",
+              color: weft.css_color(value: "#00ff00"),
               unit: "",
               hidden: False,
               entry_type: tooltip.VisibleEntry,
@@ -3319,7 +3341,7 @@ pub fn tooltip_item_sorter_tests() {
             tooltip.TooltipEntry(
               name: "Mid",
               value: 50.0,
-              color: "#0000ff",
+              color: weft.css_color(value: "#0000ff"),
               unit: "",
               hidden: False,
               entry_type: tooltip.VisibleEntry,
@@ -3378,7 +3400,7 @@ pub fn tooltip_include_hidden_tests() {
             tooltip.TooltipEntry(
               name: "visible",
               value: 50.0,
-              color: "#8884d8",
+              color: weft.css_color(value: "#8884d8"),
               unit: "",
               hidden: False,
               entry_type: tooltip.VisibleEntry,
@@ -3419,7 +3441,7 @@ pub fn tooltip_include_hidden_tests() {
             tooltip.TooltipEntry(
               name: "vis",
               value: 50.0,
-              color: "#8884d8",
+              color: weft.css_color(value: "#8884d8"),
               unit: "",
               hidden: False,
               entry_type: tooltip.VisibleEntry,
@@ -3427,7 +3449,7 @@ pub fn tooltip_include_hidden_tests() {
             tooltip.TooltipEntry(
               name: "hid",
               value: 30.0,
-              color: "#82ca9d",
+              color: weft.css_color(value: "#82ca9d"),
               unit: "",
               hidden: False,
               entry_type: tooltip.VisibleEntry,
@@ -3787,8 +3809,8 @@ pub fn scatter_config_tests() {
     it("fill builder sets fill color", fn() {
       let config =
         scatter.scatter_config(x_data_key: "x", y_data_key: "y")
-        |> scatter.scatter_fill(fill: "#ff0000")
-      config.fill |> expect.to_equal(expected: "#ff0000")
+        |> scatter.scatter_fill(fill: weft.css_color(value: "#ff0000"))
+      config.fill |> expect.to_equal(expected: weft.css_color(value: "#ff0000"))
     }),
     it("name builder sets display name", fn() {
       let config =
@@ -4101,7 +4123,7 @@ pub fn scatter_chart_tests() {
             chart.y_axis(axis.y_axis_config()),
             chart.scatter(
               scatter.scatter_config(x_data_key: "x", y_data_key: "y")
-              |> scatter.scatter_fill(fill: "#8884d8"),
+              |> scatter.scatter_fill(fill: weft.css_color(value: "#8884d8")),
             ),
           ],
         )
@@ -4879,13 +4901,13 @@ pub fn line_fill_tests() {
   describe("line_fill", [
     it("default fill is #fff", fn() {
       let config = line.line_config(data_key: "val", meta: common.series_meta())
-      config.fill |> expect.to_equal(expected: "#fff")
+      config.fill |> expect.to_equal(expected: weft.css_color(value: "#fff"))
     }),
     it("line_fill builder sets custom fill", fn() {
       let config =
         line.line_config(data_key: "val", meta: common.series_meta())
-        |> line.line_fill(fill: "#ff0000")
-      config.fill |> expect.to_equal(expected: "#ff0000")
+        |> line.line_fill(fill: weft.css_color(value: "#ff0000"))
+      config.fill |> expect.to_equal(expected: weft.css_color(value: "#ff0000"))
     }),
     it("custom fill appears in rendered dot SVG", fn() {
       let data = [
@@ -4903,7 +4925,7 @@ pub fn line_fill_tests() {
           children: [
             chart.line(
               line.line_config(data_key: "val", meta: common.series_meta())
-              |> line.line_fill(fill: "#00ff00"),
+              |> line.line_fill(fill: weft.css_color(value: "#00ff00")),
             ),
           ],
         )
@@ -5585,42 +5607,52 @@ pub fn axis_enhancement_tests() {
         |> axis.axis_allow_duplicated_category(False)
       config.allow_duplicated_category |> expect.to_be_false
     }),
-    it("axis_line_stroke defaults to empty for x-axis", fn() {
+    it("axis_line_stroke defaults to CSS var for x-axis", fn() {
       let config = axis.x_axis_config()
-      config.axis_line_stroke |> expect.to_equal(expected: "")
+      config.axis_line_stroke
+      |> expect.to_equal(expected: weft.css_color(
+        value: "var(--weft-chart-axis, currentColor)",
+      ))
       config.axis_line_stroke_width |> expect.to_equal(expected: 0.0)
     }),
     it("x_axis_line_stroke and x_axis_line_stroke_width set values", fn() {
       let config =
         axis.x_axis_config()
-        |> axis.axis_axis_line_stroke("#ff0000")
+        |> axis.axis_axis_line_stroke(weft.css_color(value: "#ff0000"))
         |> axis.axis_axis_line_stroke_width(2.0)
-      config.axis_line_stroke |> expect.to_equal(expected: "#ff0000")
+      config.axis_line_stroke
+      |> expect.to_equal(expected: weft.css_color(value: "#ff0000"))
       config.axis_line_stroke_width |> expect.to_equal(expected: 2.0)
     }),
-    it("tick_line_stroke defaults to empty for x-axis", fn() {
+    it("tick_line_stroke defaults to CSS var for x-axis", fn() {
       let config = axis.x_axis_config()
-      config.tick_line_stroke |> expect.to_equal(expected: "")
+      config.tick_line_stroke
+      |> expect.to_equal(expected: weft.css_color(
+        value: "var(--weft-chart-tick, currentColor)",
+      ))
       config.tick_line_stroke_width |> expect.to_equal(expected: 0.0)
     }),
     it("x_tick_line_stroke and x_tick_line_stroke_width set values", fn() {
       let config =
         axis.x_axis_config()
-        |> axis.axis_tick_line_stroke("#00ff00")
+        |> axis.axis_tick_line_stroke(weft.css_color(value: "#00ff00"))
         |> axis.axis_tick_line_stroke_width(1.5)
-      config.tick_line_stroke |> expect.to_equal(expected: "#00ff00")
+      config.tick_line_stroke
+      |> expect.to_equal(expected: weft.css_color(value: "#00ff00"))
       config.tick_line_stroke_width |> expect.to_equal(expected: 1.5)
     }),
     it("y_axis_line_stroke and y_tick_line_stroke set values", fn() {
       let config =
         axis.y_axis_config()
-        |> axis.axis_axis_line_stroke("#0000ff")
+        |> axis.axis_axis_line_stroke(weft.css_color(value: "#0000ff"))
         |> axis.axis_axis_line_stroke_width(3.0)
-        |> axis.axis_tick_line_stroke("#333")
+        |> axis.axis_tick_line_stroke(weft.css_color(value: "#333"))
         |> axis.axis_tick_line_stroke_width(0.5)
-      config.axis_line_stroke |> expect.to_equal(expected: "#0000ff")
+      config.axis_line_stroke
+      |> expect.to_equal(expected: weft.css_color(value: "#0000ff"))
       config.axis_line_stroke_width |> expect.to_equal(expected: 3.0)
-      config.tick_line_stroke |> expect.to_equal(expected: "#333")
+      config.tick_line_stroke
+      |> expect.to_equal(expected: weft.css_color(value: "#333"))
       config.tick_line_stroke_width |> expect.to_equal(expected: 0.5)
     }),
   ])
@@ -6554,17 +6586,17 @@ pub fn funnel_render_tests() {
 pub fn cell_tests() {
   describe("cell", [
     it("bar cell_config defaults stroke to empty", fn() {
-      let cell = bar.cell_config(fill: "#ff0000")
-      cell.fill |> expect.to_equal(expected: "#ff0000")
-      cell.stroke |> expect.to_equal(expected: "")
+      let cell = bar.cell_config(fill: weft.css_color(value: "#ff0000"))
+      cell.fill |> expect.to_equal(expected: weft.css_color(value: "#ff0000"))
+      cell.stroke |> expect.to_equal(expected: weft.css_color(value: ""))
     }),
     it("bar_cells applies per-bar fill colors", fn() {
       let config =
         bar.bar_config(data_key: "value", meta: common.series_meta())
         |> bar.bar_cells(cells: [
-          bar.cell_config(fill: "#ff0000"),
-          bar.cell_config(fill: "#00ff00"),
-          bar.cell_config(fill: "#0000ff"),
+          bar.cell_config(fill: weft.css_color(value: "#ff0000")),
+          bar.cell_config(fill: weft.css_color(value: "#00ff00")),
+          bar.cell_config(fill: weft.css_color(value: "#0000ff")),
         ])
       let chart_data = [
         chart.DataPoint(
@@ -6598,8 +6630,10 @@ pub fn cell_tests() {
     it("bar_cells partial list falls back to config fill", fn() {
       let config =
         bar.bar_config(data_key: "value", meta: common.series_meta())
-        |> bar.bar_fill("defaultFill")
-        |> bar.bar_cells(cells: [bar.cell_config(fill: "#ff0000")])
+        |> bar.bar_fill(weft.css_color(value: "defaultFill"))
+        |> bar.bar_cells(cells: [
+          bar.cell_config(fill: weft.css_color(value: "#ff0000")),
+        ])
       let chart_data = [
         chart.DataPoint(
           category: "A",
@@ -7133,20 +7167,20 @@ pub fn cell_enhancement_tests() {
     it("bar cell_config_full sets all fields", fn() {
       let cell =
         bar.cell_config_full(
-          fill: "#f00",
-          stroke: "#0f0",
+          fill: weft.css_color(value: "#f00"),
+          stroke: weft.css_color(value: "#0f0"),
           fill_opacity: 0.5,
           stroke_width: 2.0,
         )
-      cell.fill |> expect.to_equal(expected: "#f00")
-      cell.stroke |> expect.to_equal(expected: "#0f0")
+      cell.fill |> expect.to_equal(expected: weft.css_color(value: "#f00"))
+      cell.stroke |> expect.to_equal(expected: weft.css_color(value: "#0f0"))
       cell.fill_opacity
       |> expect.to_equal(expected: 0.5)
       cell.stroke_width
       |> expect.to_equal(expected: 2.0)
     }),
     it("bar cell_config defaults fill_opacity and stroke_width", fn() {
-      let cell = bar.cell_config(fill: "#abc")
+      let cell = bar.cell_config(fill: weft.css_color(value: "#abc"))
       cell.fill_opacity
       |> expect.to_equal(expected: 1.0)
       cell.stroke_width
@@ -7402,13 +7436,13 @@ pub fn legend_none_icon_tests() {
       let payload = [
         legend.LegendPayload(
           value: "visible",
-          color: "#f00",
+          color: weft.css_color(value: "#f00"),
           icon_type: shape.RectIcon,
           inactive: False,
         ),
         legend.LegendPayload(
           value: "hidden",
-          color: "#0f0",
+          color: weft.css_color(value: "#0f0"),
           icon_type: shape.NoneIcon,
           inactive: False,
         ),
@@ -7428,7 +7462,7 @@ pub fn legend_none_icon_tests() {
       let payload = [
         legend.LegendPayload(
           value: "a",
-          color: "#f00",
+          color: weft.css_color(value: "#f00"),
           icon_type: shape.NoneIcon,
           inactive: False,
         ),
@@ -7455,7 +7489,7 @@ pub fn legend_formatter_arity_tests() {
       let entry =
         legend.LegendPayload(
           value: "test",
-          color: "#f00",
+          color: weft.css_color(value: "#f00"),
           icon_type: shape.RectIcon,
           inactive: False,
         )
@@ -7471,7 +7505,7 @@ pub fn legend_formatter_arity_tests() {
       let entry =
         legend.LegendPayload(
           value: "sales",
-          color: "#f00",
+          color: weft.css_color(value: "#f00"),
           icon_type: shape.RectIcon,
           inactive: False,
         )
@@ -7497,7 +7531,7 @@ pub fn legend_wrapper_style_tests() {
       let payload = [
         legend.LegendPayload(
           value: "a",
-          color: "#f00",
+          color: weft.css_color(value: "#f00"),
           icon_type: shape.RectIcon,
           inactive: False,
         ),
@@ -7526,7 +7560,7 @@ pub fn legend_payload_override_tests() {
       let entries = [
         legend.LegendPayload(
           value: "custom",
-          color: "#0f0",
+          color: weft.css_color(value: "#0f0"),
           icon_type: shape.CircleIcon,
           inactive: False,
         ),
@@ -7540,7 +7574,7 @@ pub fn legend_payload_override_tests() {
       let auto_payload = [
         legend.LegendPayload(
           value: "auto",
-          color: "#f00",
+          color: weft.css_color(value: "#f00"),
           icon_type: shape.RectIcon,
           inactive: False,
         ),
@@ -7548,7 +7582,7 @@ pub fn legend_payload_override_tests() {
       let override_entries = [
         legend.LegendPayload(
           value: "custom",
-          color: "#0f0",
+          color: weft.css_color(value: "#0f0"),
           icon_type: shape.CircleIcon,
           inactive: False,
         ),
@@ -9310,7 +9344,7 @@ pub fn layout_direction_tests() {
             chart.layout(layout: layout.Vertical),
             chart.bar(
               bar.bar_config(data_key: "desktop", meta: common.series_meta())
-              |> bar.bar_fill("#ff0000"),
+              |> bar.bar_fill(weft.css_color(value: "#ff0000")),
             ),
           ],
         )
@@ -9333,7 +9367,7 @@ pub fn layout_direction_tests() {
             chart.layout(layout: layout.Vertical),
             chart.line(
               line.line_config(data_key: "desktop", meta: common.series_meta())
-              |> line.line_stroke("#ff0000"),
+              |> line.line_stroke(weft.css_color(value: "#ff0000")),
             ),
           ],
         )
@@ -9356,7 +9390,7 @@ pub fn layout_direction_tests() {
             chart.layout(layout: layout.Vertical),
             chart.area(
               area.area_config(data_key: "desktop", meta: common.series_meta())
-              |> area.area_fill("#ff0000"),
+              |> area.area_fill(weft.css_color(value: "#ff0000")),
             ),
           ],
         )
@@ -9496,11 +9530,11 @@ pub fn layout_direction_tests() {
             chart.layout(layout: layout.Vertical),
             chart.bar(
               bar.bar_config(data_key: "desktop", meta: common.series_meta())
-              |> bar.bar_fill("#ff0000"),
+              |> bar.bar_fill(weft.css_color(value: "#ff0000")),
             ),
             chart.bar(
               bar.bar_config(data_key: "mobile", meta: common.series_meta())
-              |> bar.bar_fill("#0000ff"),
+              |> bar.bar_fill(weft.css_color(value: "#0000ff")),
             ),
           ],
         )
@@ -9666,7 +9700,7 @@ pub fn tooltip_enhancement_tests() {
             tooltip.TooltipEntry(
               name: "sales",
               value: 100.0,
-              color: "#8884d8",
+              color: weft.css_color(value: "#8884d8"),
               unit: "",
               hidden: False,
               entry_type: tooltip.VisibleEntry,
@@ -9706,7 +9740,7 @@ pub fn tooltip_enhancement_tests() {
             tooltip.TooltipEntry(
               name: "sales",
               value: 100.0,
-              color: "#8884d8",
+              color: weft.css_color(value: "#8884d8"),
               unit: "",
               hidden: False,
               entry_type: tooltip.VisibleEntry,
@@ -9753,7 +9787,7 @@ pub fn tooltip_enhancement_tests() {
               tooltip.TooltipEntry(
                 name: "sales",
                 value: 100.0,
-                color: "#8884d8",
+                color: weft.css_color(value: "#8884d8"),
                 unit: "",
                 hidden: False,
                 entry_type: tooltip.VisibleEntry,
@@ -9793,7 +9827,7 @@ pub fn tooltip_enhancement_tests() {
               tooltip.TooltipEntry(
                 name: "sales",
                 value: 100.0,
-                color: "#8884d8",
+                color: weft.css_color(value: "#8884d8"),
                 unit: "",
                 hidden: False,
                 entry_type: tooltip.VisibleEntry,
@@ -9838,7 +9872,7 @@ pub fn tooltip_enhancement_tests() {
               tooltip.TooltipEntry(
                 name: "sales",
                 value: 100.0,
-                color: "#8884d8",
+                color: weft.css_color(value: "#8884d8"),
                 unit: "",
                 hidden: False,
                 entry_type: tooltip.VisibleEntry,
@@ -9875,12 +9909,22 @@ pub fn tooltip_entry_fields_tests() {
     describe("hidden field", [
       it("tooltip_entry constructor defaults hidden to False", fn() {
         let entry =
-          tooltip.tooltip_entry(name: "A", value: 10.0, color: "#f00", unit: "")
+          tooltip.tooltip_entry(
+            name: "A",
+            value: 10.0,
+            color: weft.css_color(value: "#f00"),
+            unit: "",
+          )
         entry.hidden |> expect.to_be_false
       }),
       it("tooltip_entry_hidden sets hidden flag", fn() {
         let entry =
-          tooltip.tooltip_entry(name: "A", value: 10.0, color: "#f00", unit: "")
+          tooltip.tooltip_entry(
+            name: "A",
+            value: 10.0,
+            color: weft.css_color(value: "#f00"),
+            unit: "",
+          )
           |> tooltip.tooltip_entry_hidden(hidden: True)
         entry.hidden |> expect.to_be_true
       }),
@@ -9893,7 +9937,7 @@ pub fn tooltip_entry_fields_tests() {
               tooltip.TooltipEntry(
                 name: "visible",
                 value: 50.0,
-                color: "#f00",
+                color: weft.css_color(value: "#f00"),
                 unit: "",
                 hidden: False,
                 entry_type: tooltip.VisibleEntry,
@@ -9901,7 +9945,7 @@ pub fn tooltip_entry_fields_tests() {
               tooltip.TooltipEntry(
                 name: "hidden-one",
                 value: 30.0,
-                color: "#0f0",
+                color: weft.css_color(value: "#0f0"),
                 unit: "",
                 hidden: True,
                 entry_type: tooltip.VisibleEntry,
@@ -9940,7 +9984,7 @@ pub fn tooltip_entry_fields_tests() {
               tooltip.TooltipEntry(
                 name: "visible",
                 value: 50.0,
-                color: "#f00",
+                color: weft.css_color(value: "#f00"),
                 unit: "",
                 hidden: False,
                 entry_type: tooltip.VisibleEntry,
@@ -9948,7 +9992,7 @@ pub fn tooltip_entry_fields_tests() {
               tooltip.TooltipEntry(
                 name: "hidden-one",
                 value: 30.0,
-                color: "#0f0",
+                color: weft.css_color(value: "#0f0"),
                 unit: "",
                 hidden: True,
                 entry_type: tooltip.VisibleEntry,
@@ -9980,12 +10024,22 @@ pub fn tooltip_entry_fields_tests() {
     describe("entry_type field", [
       it("tooltip_entry constructor defaults to VisibleEntry", fn() {
         let entry =
-          tooltip.tooltip_entry(name: "A", value: 10.0, color: "#f00", unit: "")
+          tooltip.tooltip_entry(
+            name: "A",
+            value: 10.0,
+            color: weft.css_color(value: "#f00"),
+            unit: "",
+          )
         entry.entry_type |> expect.to_equal(expected: tooltip.VisibleEntry)
       }),
       it("tooltip_entry_suppress sets NoneEntry", fn() {
         let entry =
-          tooltip.tooltip_entry(name: "A", value: 10.0, color: "#f00", unit: "")
+          tooltip.tooltip_entry(
+            name: "A",
+            value: 10.0,
+            color: weft.css_color(value: "#f00"),
+            unit: "",
+          )
           |> tooltip.tooltip_entry_suppress
         entry.entry_type |> expect.to_equal(expected: tooltip.NoneEntry)
       }),
@@ -9998,7 +10052,7 @@ pub fn tooltip_entry_fields_tests() {
               tooltip.TooltipEntry(
                 name: "visible",
                 value: 50.0,
-                color: "#f00",
+                color: weft.css_color(value: "#f00"),
                 unit: "",
                 hidden: False,
                 entry_type: tooltip.VisibleEntry,
@@ -10006,7 +10060,7 @@ pub fn tooltip_entry_fields_tests() {
               tooltip.TooltipEntry(
                 name: "suppressed",
                 value: 30.0,
-                color: "#0f0",
+                color: weft.css_color(value: "#0f0"),
                 unit: "",
                 hidden: False,
                 entry_type: tooltip.NoneEntry,
@@ -10045,7 +10099,7 @@ pub fn tooltip_entry_fields_tests() {
               tooltip.TooltipEntry(
                 name: "suppressed",
                 value: 30.0,
-                color: "#0f0",
+                color: weft.css_color(value: "#0f0"),
                 unit: "",
                 hidden: False,
                 entry_type: tooltip.NoneEntry,
@@ -10095,7 +10149,7 @@ pub fn tooltip_entry_fields_tests() {
               tooltip.TooltipEntry(
                 name: "sales",
                 value: 100.0,
-                color: "#f00",
+                color: weft.css_color(value: "#f00"),
                 unit: "",
                 hidden: False,
                 entry_type: tooltip.VisibleEntry,
@@ -10131,7 +10185,7 @@ pub fn tooltip_entry_fields_tests() {
               tooltip.TooltipEntry(
                 name: "sales",
                 value: 100.0,
-                color: "#f00",
+                color: weft.css_color(value: "#f00"),
                 unit: "",
                 hidden: False,
                 entry_type: tooltip.VisibleEntry,
@@ -10175,7 +10229,7 @@ pub fn tooltip_entry_fields_tests() {
               tooltip.TooltipEntry(
                 name: "sales",
                 value: 100.0,
-                color: "#f00",
+                color: weft.css_color(value: "#f00"),
                 unit: "",
                 hidden: False,
                 entry_type: tooltip.VisibleEntry,
@@ -10183,7 +10237,7 @@ pub fn tooltip_entry_fields_tests() {
               tooltip.TooltipEntry(
                 name: "profit",
                 value: 50.0,
-                color: "#0f0",
+                color: weft.css_color(value: "#0f0"),
                 unit: "",
                 hidden: False,
                 entry_type: tooltip.VisibleEntry,
@@ -10223,7 +10277,7 @@ pub fn tooltip_entry_fields_tests() {
               tooltip.TooltipEntry(
                 name: "sales",
                 value: 100.0,
-                color: "#f00",
+                color: weft.css_color(value: "#f00"),
                 unit: "",
                 hidden: False,
                 entry_type: tooltip.VisibleEntry,
@@ -10231,7 +10285,7 @@ pub fn tooltip_entry_fields_tests() {
               tooltip.TooltipEntry(
                 name: "hidden",
                 value: 50.0,
-                color: "#0f0",
+                color: weft.css_color(value: "#0f0"),
                 unit: "",
                 hidden: True,
                 entry_type: tooltip.VisibleEntry,
@@ -10239,7 +10293,7 @@ pub fn tooltip_entry_fields_tests() {
               tooltip.TooltipEntry(
                 name: "none",
                 value: 25.0,
-                color: "#00f",
+                color: weft.css_color(value: "#00f"),
                 unit: "",
                 hidden: False,
                 entry_type: tooltip.NoneEntry,
@@ -10322,7 +10376,7 @@ pub fn legend_event_tests() {
       let payload = [
         legend.LegendPayload(
           value: "sales",
-          color: "#8884d8",
+          color: weft.css_color(value: "#8884d8"),
           icon_type: shape.RectIcon,
           inactive: False,
         ),
@@ -10347,7 +10401,7 @@ pub fn legend_event_tests() {
       let payload = [
         legend.LegendPayload(
           value: "sales",
-          color: "#8884d8",
+          color: weft.css_color(value: "#8884d8"),
           icon_type: shape.RectIcon,
           inactive: False,
         ),
@@ -10373,12 +10427,12 @@ pub fn legend_event_tests() {
       let p =
         legend.LegendPayload(
           value: "revenue",
-          color: "#ff0000",
+          color: weft.css_color(value: "#ff0000"),
           icon_type: shape.CircleIcon,
           inactive: False,
         )
       p.value |> expect.to_equal(expected: "revenue")
-      p.color |> expect.to_equal(expected: "#ff0000")
+      p.color |> expect.to_equal(expected: weft.css_color(value: "#ff0000"))
       p.inactive |> expect.to_be_false
     }),
   ])

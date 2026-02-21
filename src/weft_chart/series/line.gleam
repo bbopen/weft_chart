@@ -12,6 +12,7 @@ import gleam/int
 import gleam/list
 import gleam/option.{type Option, None, Some}
 import lustre/element.{type Element}
+import weft
 import weft_chart/animation.{type AnimationConfig}
 import weft_chart/curve
 import weft_chart/internal/layout
@@ -32,13 +33,13 @@ pub type LineConfig(msg) {
     data_key: String,
     name: String,
     curve_type: curve.CurveType,
-    stroke: String,
+    stroke: weft.Color,
     stroke_width: Float,
     stroke_dasharray: String,
     connect_nulls: Bool,
     show_dot: Bool,
     dot_radius: Float,
-    fill: String,
+    fill: weft.Color,
     hide: Bool,
     legend_type: shape.LegendIconType,
     tooltip_type: shape.TooltipType,
@@ -78,13 +79,15 @@ pub fn line_config(
       data_key: data_key,
       name: "",
       curve_type: curve.Linear,
-      stroke: "var(--weft-chart-line-stroke, currentColor)",
+      stroke: weft.css_color(
+        value: "var(--weft-chart-line-stroke, currentColor)",
+      ),
       stroke_width: 2.0,
       stroke_dasharray: "",
       connect_nulls: False,
       show_dot: True,
       dot_radius: 3.0,
-      fill: "#fff",
+      fill: weft.css_color(value: "#fff"),
       hide: False,
       legend_type: shape.LineIcon,
       tooltip_type: shape.DefaultTooltip,
@@ -154,7 +157,7 @@ pub fn line_curve_type(
 /// Set the stroke color.
 pub fn line_stroke(
   config: LineConfig(msg),
-  stroke_value: String,
+  stroke_value: weft.Color,
 ) -> LineConfig(msg) {
   LineConfig(..config, stroke: stroke_value)
 }
@@ -206,7 +209,7 @@ pub fn line_legend_type(
 /// Matches recharts Line `fill` prop (default: "#fff").
 pub fn line_fill(
   config config: LineConfig(msg),
-  fill fill: String,
+  fill fill: weft.Color,
 ) -> LineConfig(msg) {
   LineConfig(..config, fill: fill)
 }
@@ -425,7 +428,7 @@ fn render_line_parts_visible(
       let stroke_attrs =
         list.append(
           [
-            svg.attr("stroke", config.stroke),
+            svg.attr("stroke", weft.color_to_css(color: config.stroke)),
             svg.attr("fill", "none"),
             svg.attr("stroke-width", float.to_string(config.stroke_width)),
           ],
@@ -501,8 +504,11 @@ fn render_line_parts_visible(
                       cy: math.fmt(py),
                       r: float.to_string(config.dot_radius),
                       attrs: [
-                        svg.attr("fill", config.fill),
-                        svg.attr("stroke", config.stroke),
+                        svg.attr("fill", weft.color_to_css(color: config.fill)),
+                        svg.attr(
+                          "stroke",
+                          weft.color_to_css(color: config.stroke),
+                        ),
                         svg.attr("stroke-width", "2"),
                       ],
                     )
@@ -528,7 +534,9 @@ fn render_line_parts_visible(
                   value: format_line_value(value),
                   offset: 10.0,
                   position: "top",
-                  fill: "var(--weft-chart-label, currentColor)",
+                  fill: weft.css_color(
+                    value: "var(--weft-chart-label, currentColor)",
+                  ),
                 ))
               })
             None ->

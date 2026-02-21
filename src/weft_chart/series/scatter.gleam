@@ -12,6 +12,7 @@ import gleam/list
 import gleam/option.{type Option, None, Some}
 import gleam/string
 import lustre/element.{type Element}
+import weft
 import weft_chart/animation.{type AnimationConfig}
 import weft_chart/internal/math
 import weft_chart/internal/svg
@@ -56,8 +57,8 @@ pub type ScatterConfig(msg) {
     y_data_key: String,
     z_data_key: String,
     name: String,
-    fill: String,
-    stroke: String,
+    fill: weft.Color,
+    stroke: weft.Color,
     stroke_width: Float,
     symbol_type: SymbolType,
     default_size: Float,
@@ -95,8 +96,8 @@ pub fn scatter_config(
     y_data_key: y_data_key,
     z_data_key: "",
     name: "",
-    fill: "var(--weft-chart-scatter-fill, #8884d8)",
-    stroke: "",
+    fill: weft.css_color(value: "var(--weft-chart-scatter-fill, #8884d8)"),
+    stroke: weft.css_color(value: ""),
     stroke_width: 0.0,
     symbol_type: CircleSymbol,
     default_size: 64.0,
@@ -126,7 +127,7 @@ pub fn scatter_config(
 /// Set the fill color.
 pub fn scatter_fill(
   config config: ScatterConfig(msg),
-  fill fill: String,
+  fill fill: weft.Color,
 ) -> ScatterConfig(msg) {
   ScatterConfig(..config, fill: fill)
 }
@@ -134,7 +135,7 @@ pub fn scatter_fill(
 /// Set the stroke color.
 pub fn scatter_stroke(
   config config: ScatterConfig(msg),
-  stroke stroke: String,
+  stroke stroke: weft.Color,
 ) -> ScatterConfig(msg) {
   ScatterConfig(..config, stroke: stroke)
 }
@@ -439,8 +440,8 @@ pub fn render_scatter_with_z(
                     cx: cx,
                     cy: cy,
                     radius: radius,
-                    fill: config.fill,
-                    stroke: config.stroke,
+                    fill: weft.color_to_css(color: config.fill),
+                    stroke: weft.color_to_css(color: config.stroke),
                     stroke_width: config.stroke_width,
                   )
               }
@@ -472,7 +473,7 @@ pub fn render_scatter_with_z(
                     attrs: [
                       svg.attr("d", d),
                       svg.attr("fill", "none"),
-                      svg.attr("stroke", config.fill),
+                      svg.attr("stroke", weft.color_to_css(color: config.fill)),
                       svg.attr("stroke-width", "1"),
                       svg.attr("class", "recharts-scatter-line"),
                     ],
@@ -501,7 +502,9 @@ pub fn render_scatter_with_z(
                   value: format_scatter_value(y_val),
                   offset: radius +. 4.0,
                   position: "top",
-                  fill: "var(--weft-chart-label, currentColor)",
+                  fill: weft.css_color(
+                    value: "var(--weft-chart-label, currentColor)",
+                  ),
                 ))
               })
             None ->

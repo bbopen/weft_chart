@@ -10,6 +10,7 @@ import gleam/string
 import lustre/element
 import startest.{describe, it}
 import startest/expect
+import weft
 import weft_chart/chart
 import weft_chart/event
 import weft_chart/internal/layout
@@ -301,7 +302,7 @@ pub fn event_tests() {
               tooltip.TooltipEntry(
                 name: "val",
                 value: 10.0,
-                color: "#ff0000",
+                color: weft.css_color(value: "#ff0000"),
                 unit: "",
                 hidden: False,
                 entry_type: tooltip.VisibleEntry,
@@ -319,7 +320,7 @@ pub fn event_tests() {
               tooltip.TooltipEntry(
                 name: "val",
                 value: 20.0,
-                color: "#00ff00",
+                color: weft.css_color(value: "#00ff00"),
                 unit: "",
                 hidden: False,
                 entry_type: tooltip.VisibleEntry,
@@ -363,7 +364,7 @@ pub fn event_tests() {
               tooltip.TooltipEntry(
                 name: "val",
                 value: 10.0,
-                color: "#ff0000",
+                color: weft.css_color(value: "#ff0000"),
                 unit: "",
                 hidden: False,
                 entry_type: tooltip.VisibleEntry,
@@ -381,7 +382,7 @@ pub fn event_tests() {
               tooltip.TooltipEntry(
                 name: "val",
                 value: 20.0,
-                color: "#00ff00",
+                color: weft.css_color(value: "#00ff00"),
                 unit: "",
                 hidden: False,
                 entry_type: tooltip.VisibleEntry,
@@ -423,7 +424,7 @@ pub fn event_tests() {
               tooltip.TooltipEntry(
                 name: "val",
                 value: 10.0,
-                color: "#ff0000",
+                color: weft.css_color(value: "#ff0000"),
                 unit: "",
                 hidden: False,
                 entry_type: tooltip.VisibleEntry,
@@ -441,7 +442,7 @@ pub fn event_tests() {
               tooltip.TooltipEntry(
                 name: "val",
                 value: 20.0,
-                color: "#00ff00",
+                color: weft.css_color(value: "#00ff00"),
                 unit: "",
                 hidden: False,
                 entry_type: tooltip.VisibleEntry,
@@ -483,7 +484,7 @@ pub fn event_tests() {
               tooltip.TooltipEntry(
                 name: "val",
                 value: 10.0,
-                color: "#ff0000",
+                color: weft.css_color(value: "#ff0000"),
                 unit: "",
                 hidden: False,
                 entry_type: tooltip.VisibleEntry,
@@ -524,7 +525,7 @@ pub fn event_tests() {
                 tooltip.TooltipEntry(
                   name: "val",
                   value: 10.0,
-                  color: "#ff0000",
+                  color: weft.css_color(value: "#ff0000"),
                   unit: "",
                   hidden: False,
                   entry_type: tooltip.VisibleEntry,
@@ -564,7 +565,7 @@ pub fn event_tests() {
               tooltip.TooltipEntry(
                 name: "val",
                 value: 10.0,
-                color: "#ff0000",
+                color: weft.css_color(value: "#ff0000"),
                 unit: "",
                 hidden: False,
                 entry_type: tooltip.VisibleEntry,
@@ -608,7 +609,7 @@ pub fn event_tests() {
               tooltip.TooltipEntry(
                 name: "val",
                 value: 10.0,
-                color: "#ff0000",
+                color: weft.css_color(value: "#ff0000"),
                 unit: "",
                 hidden: False,
                 entry_type: tooltip.VisibleEntry,
@@ -626,7 +627,7 @@ pub fn event_tests() {
               tooltip.TooltipEntry(
                 name: "val",
                 value: 20.0,
-                color: "#00ff00",
+                color: weft.css_color(value: "#00ff00"),
                 unit: "",
                 hidden: False,
                 entry_type: tooltip.VisibleEntry,
@@ -668,7 +669,7 @@ pub fn event_tests() {
               tooltip.TooltipEntry(
                 name: "val",
                 value: 10.0,
-                color: "#ff0000",
+                color: weft.css_color(value: "#ff0000"),
                 unit: "",
                 hidden: False,
                 entry_type: tooltip.VisibleEntry,
@@ -710,7 +711,7 @@ pub fn event_tests() {
               tooltip.TooltipEntry(
                 name: "v1",
                 value: 10.0,
-                color: "#ff0000",
+                color: weft.css_color(value: "#ff0000"),
                 unit: "",
                 hidden: False,
                 entry_type: tooltip.VisibleEntry,
@@ -718,7 +719,7 @@ pub fn event_tests() {
               tooltip.TooltipEntry(
                 name: "v2",
                 value: 20.0,
-                color: "#00ff00",
+                color: weft.css_color(value: "#00ff00"),
                 unit: "",
                 hidden: False,
                 entry_type: tooltip.VisibleEntry,
