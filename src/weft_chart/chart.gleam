@@ -1006,6 +1006,10 @@ fn render_cartesian(
       chart_kind: "cartesian",
       width: nominal_width,
       height: height,
+      plot_x: plot.x,
+      plot_y: plot.y,
+      plot_width: plot.width,
+      plot_height: plot.height,
       data: data,
     )
   let cartesian_ctx =
@@ -2297,6 +2301,10 @@ fn render_scatter_chart(
       chart_kind: "scatter",
       width: nominal_width,
       height: height,
+      plot_x: plot.x,
+      plot_y: plot.y,
+      plot_width: plot.width,
+      plot_height: plot.height,
       data: data,
     )
 
@@ -3308,6 +3316,10 @@ fn chart_clip_path_id(
   chart_kind chart_kind: String,
   width width: Int,
   height height: Int,
+  plot_x plot_x: Float,
+  plot_y plot_y: Float,
+  plot_width plot_width: Float,
+  plot_height plot_height: Float,
   data data: List(DataPoint),
 ) -> String {
   let explicit_id = find_id(children)
@@ -3318,6 +3330,10 @@ fn chart_clip_path_id(
     chart_kind: chart_kind,
     width: width,
     height: height,
+    plot_x: plot_x,
+    plot_y: plot_y,
+    plot_width: plot_width,
+    plot_height: plot_height,
     categories: categories,
     values: values,
   )
@@ -3448,29 +3464,18 @@ fn collect_event_attrs(children: List(ChartChild(msg))) -> List(Attribute(msg)) 
 }
 
 fn chart_event_to_attrs(evt: ChartEvent(msg)) -> List(Attribute(msg)) {
-  // Build a default ChartEventData (0, "", 0.0, 0.0) since we cannot
-  // decode DOM mouse coordinates in pure Gleam without FFI.
-  // The handler receives a zero-valued payload; client-side code can
-  // enrich it via data attributes or JavaScript interop.
-  let default_data =
-    event.ChartEventData(
-      active_index: 0,
-      active_data_key: "",
-      chart_x: 0.0,
-      chart_y: 0.0,
-    )
   case evt {
     event.OnClick(handler:) -> [
-      lustre_event.on("click", decode.success(handler(default_data))),
+      lustre_event.on("click", decode.success(handler())),
     ]
     event.OnMouseEnter(handler:) -> [
-      lustre_event.on("mouseenter", decode.success(handler(default_data))),
+      lustre_event.on("mouseenter", decode.success(handler())),
     ]
     event.OnMouseLeave(handler:) -> [
       lustre_event.on("mouseleave", decode.success(handler())),
     ]
     event.OnMouseMove(handler:) -> [
-      lustre_event.on("mousemove", decode.success(handler(default_data))),
+      lustre_event.on("mousemove", decode.success(handler())),
     ]
   }
 }

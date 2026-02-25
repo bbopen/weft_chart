@@ -13,14 +13,23 @@ and get back a Lustre `Element(msg)`.
 
 ## Installation
 
-`weft_chart` isn't on Hex yet. Use a git dependency:
+Before the first Hex release, use local path dependencies from a checked-out
+stack:
 
 ```toml
 [dependencies]
-weft_chart = { git = "https://github.com/bbopen/weft_chart", branch = "main" }
+weft = { path = "../weft" }
+weft_chart = { path = "../weft_chart" }
 ```
 
-It depends on [`weft`](https://github.com/bbopen/weft) and
+After Hex publish, install with:
+
+```toml
+[dependencies]
+weft_chart = ">= 0.2.0 and < 1.0.0"
+```
+
+`weft_chart` depends on [`weft`](https://github.com/bbopen/weft) and
 [`lustre`](https://hexdocs.pm/lustre/).
 
 ## Chart types

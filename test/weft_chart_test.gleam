@@ -49,12 +49,12 @@ pub fn main() {
 pub fn data_point_tests() {
   describe("data_point", [
     it("constructs a category-values pair", fn() {
-      let #(cat, values) =
+      let point =
         weft_chart.data_point("Jan", [#("desktop", 186.0), #("mobile", 80.0)])
-      cat |> expect.to_equal(expected: "Jan")
-      dict.get(values, "desktop")
+      point.category |> expect.to_equal(expected: "Jan")
+      dict.get(point.values, "desktop")
       |> expect.to_equal(expected: Ok(186.0))
-      dict.get(values, "mobile")
+      dict.get(point.values, "mobile")
       |> expect.to_equal(expected: Ok(80.0))
     }),
   ])

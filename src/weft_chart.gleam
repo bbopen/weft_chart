@@ -8,6 +8,7 @@
 //// ## Quick start
 ////
 //// ```gleam
+//// import gleam/option.{None}
 //// import weft_chart.{data_point}
 //// import weft_chart/chart
 //// import weft_chart/series/area
@@ -19,15 +20,22 @@
 ////   data_point("Feb", [#("revenue", 305.0)]),
 //// ]
 ////
-//// chart.area_chart(data: data, width: 500, height: 300, children: [
-////   chart.area(
-////     area.area_config(data_key: "revenue", meta: common.series_meta())
-////     |> area.area_curve_type(curve.Natural),
-////   ),
-//// ])
+//// chart.area_chart(
+////   data: data,
+////   width: chart.FixedWidth(pixels: 500),
+////   height: 300,
+////   theme: None,
+////   children: [
+////     chart.area(
+////       area.area_config(data_key: "revenue", meta: common.series_meta())
+////       |> area.area_curve_type(curve.Natural),
+////     ),
+////   ],
+//// )
 //// ```
 
 import gleam/dict
+import weft_chart/chart
 
 /// A data point with a category label and named numeric values.
 ///
@@ -36,7 +44,7 @@ import gleam/dict
 /// The `values` dict holds one entry per series, keyed by the series
 /// `data_key`.
 pub type DataPoint =
-  dict.Dict(String, Float)
+  chart.DataPoint
 
 /// Construct a data point from a category label and key-value pairs.
 ///
@@ -46,6 +54,6 @@ pub type DataPoint =
 pub fn data_point(
   category category: String,
   values values: List(#(String, Float)),
-) -> #(String, DataPoint) {
-  #(category, dict.from_list(values))
+) -> DataPoint {
+  chart.DataPoint(category: category, values: dict.from_list(values))
 }

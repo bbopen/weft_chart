@@ -23,10 +23,10 @@ import weft_chart/tooltip
 // ---------------------------------------------------------------------------
 
 type Msg {
-  Clicked(event.ChartEventData)
-  MouseEntered(event.ChartEventData)
+  Clicked
+  MouseEntered
   MouseLeft
-  MouseMoved(event.ChartEventData)
+  MouseMoved
   TooltipEnter(Int)
   TooltipLeave
 }
@@ -58,37 +58,10 @@ fn missing_series_data() -> List(chart.DataPoint) {
 
 pub fn event_tests() {
   describe("event", [
-    // ----- ChartEventData construction -----
-    describe("ChartEventData", [
-      it("constructs with named fields", fn() {
-        let data =
-          event.chart_event_data(
-            active_index: 2,
-            active_data_key: "revenue",
-            chart_x: 100.5,
-            chart_y: 200.0,
-          )
-        data.active_index |> expect.to_equal(expected: 2)
-        data.active_data_key |> expect.to_equal(expected: "revenue")
-        data.chart_x |> expect.to_equal(expected: 100.5)
-        data.chart_y |> expect.to_equal(expected: 200.0)
-      }),
-      it("constructs with zero values", fn() {
-        let data =
-          event.chart_event_data(
-            active_index: 0,
-            active_data_key: "",
-            chart_x: 0.0,
-            chart_y: 0.0,
-          )
-        data.active_index |> expect.to_equal(expected: 0)
-        data.active_data_key |> expect.to_equal(expected: "")
-      }),
-    ]),
     // ----- ChartEvent variants -----
     describe("ChartEvent variants", [
       it("creates OnClick variant", fn() {
-        let evt = event.on_click(handler: Clicked)
+        let evt = event.on_click(handler: fn() { Clicked })
         case evt {
           event.OnClick(..) -> True
           _ -> False
@@ -96,7 +69,7 @@ pub fn event_tests() {
         |> expect.to_be_true
       }),
       it("creates OnMouseEnter variant", fn() {
-        let evt = event.on_mouse_enter(handler: MouseEntered)
+        let evt = event.on_mouse_enter(handler: fn() { MouseEntered })
         case evt {
           event.OnMouseEnter(..) -> True
           _ -> False
@@ -112,7 +85,7 @@ pub fn event_tests() {
         |> expect.to_be_true
       }),
       it("creates OnMouseMove variant", fn() {
-        let evt = event.on_mouse_move(handler: MouseMoved)
+        let evt = event.on_mouse_move(handler: fn() { MouseMoved })
         case evt {
           event.OnMouseMove(..) -> True
           _ -> False
@@ -123,7 +96,8 @@ pub fn event_tests() {
     // ----- Event builders on chart produce correct ChartChild -----
     describe("chart_event builder", [
       it("produces EventChild for on_click", fn() {
-        let child = chart.event(handler: event.on_click(handler: Clicked))
+        let child =
+          chart.event(handler: event.on_click(handler: fn() { Clicked }))
         case child {
           chart.EventChild(..) -> True
           _ -> False
@@ -156,7 +130,7 @@ pub fn event_tests() {
                 data_key: "val",
                 meta: common.series_meta(),
               )),
-              chart.event(handler: event.on_click(handler: Clicked)),
+              chart.event(handler: event.on_click(handler: fn() { Clicked })),
             ],
           )
           |> element.to_string
@@ -175,8 +149,10 @@ pub fn event_tests() {
                 data_key: "val",
                 meta: common.series_meta(),
               )),
-              chart.event(handler: event.on_click(handler: Clicked)),
-              chart.event(handler: event.on_mouse_enter(handler: MouseEntered)),
+              chart.event(handler: event.on_click(handler: fn() { Clicked })),
+              chart.event(
+                handler: event.on_mouse_enter(handler: fn() { MouseEntered }),
+              ),
               chart.event(
                 handler: event.on_mouse_leave(handler: fn() { MouseLeft }),
               ),
@@ -844,7 +820,7 @@ pub fn event_tests() {
                 meta: common.series_meta(),
               )),
               chart.tooltip(config: tooltip_config),
-              chart.event(handler: event.on_click(handler: Clicked)),
+              chart.event(handler: event.on_click(handler: fn() { Clicked })),
               chart.throttle(delay_ms: 200),
             ],
           )

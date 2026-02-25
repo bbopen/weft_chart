@@ -31,6 +31,13 @@ fn sample_data_b() -> List(chart.DataPoint) {
   ]
 }
 
+fn sample_data_c() -> List(chart.DataPoint) {
+  [
+    chart.DataPoint(category: "Q", values: dict.from_list([#("w", 30.0)])),
+    chart.DataPoint(category: "R", values: dict.from_list([#("w", 40.0)])),
+  ]
+}
+
 pub fn clip_path_id_tests() {
   describe("clip_path_id", [
     it("uses chart id to scope clip-path ids", fn() {
@@ -110,6 +117,82 @@ pub fn clip_path_id_tests() {
       { id_a != "" } |> expect.to_be_true
       { id_b != "" } |> expect.to_be_true
       { id_a != id_b } |> expect.to_be_true
+    }),
+    it("fallback clip-path id avoids old equal-length collisions", fn() {
+      let html_a =
+        chart.line_chart(
+          data: sample_data_a(),
+          width: chart.FixedWidth(pixels: 400),
+          theme: option.None,
+          height: 300,
+          children: [
+            chart.line(line.line_config(
+              data_key: "v",
+              meta: common.series_meta(),
+            )),
+          ],
+        )
+        |> element.to_string
+
+      let html_c =
+        chart.line_chart(
+          data: sample_data_c(),
+          width: chart.FixedWidth(pixels: 400),
+          theme: option.None,
+          height: 300,
+          children: [
+            chart.line(line.line_config(
+              data_key: "w",
+              meta: common.series_meta(),
+            )),
+          ],
+        )
+        |> element.to_string
+
+      let id_a = first_clip_path_id(html_a)
+      let id_c = first_clip_path_id(html_c)
+
+      { id_a != "" } |> expect.to_be_true
+      { id_c != "" } |> expect.to_be_true
+      { id_a != id_c } |> expect.to_be_true
+    }),
+    it("fallback clip-path id changes with plot geometry", fn() {
+      let html_default =
+        chart.line_chart(
+          data: sample_data_a(),
+          width: chart.FixedWidth(pixels: 400),
+          theme: option.None,
+          height: 300,
+          children: [
+            chart.line(line.line_config(
+              data_key: "v",
+              meta: common.series_meta(),
+            )),
+          ],
+        )
+        |> element.to_string
+
+      let html_taller =
+        chart.line_chart(
+          data: sample_data_a(),
+          width: chart.FixedWidth(pixels: 400),
+          theme: option.None,
+          height: 420,
+          children: [
+            chart.line(line.line_config(
+              data_key: "v",
+              meta: common.series_meta(),
+            )),
+          ],
+        )
+        |> element.to_string
+
+      let id_default = first_clip_path_id(html_default)
+      let id_taller = first_clip_path_id(html_taller)
+
+      { id_default != "" } |> expect.to_be_true
+      { id_taller != "" } |> expect.to_be_true
+      { id_default != id_taller } |> expect.to_be_true
     }),
   ])
 }
