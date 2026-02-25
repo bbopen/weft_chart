@@ -22,12 +22,24 @@ jobs:
         working-directory: weft_chart
         run: |
           set -euo pipefail
-          if python3 scripts/ci/check_hex_constraints.py \
-            --require "weft|>= 0.1.0 and < 1.0.0"; then
-            echo "deps_ready=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "deps_ready=false" >> "$GITHUB_OUTPUT"
-          fi
+          set +e
+          python3 scripts/ci/check_hex_constraints.py \
+            --require "weft|>= 0.1.0 and < 1.0.0"
+          status=$?
+          set -e
+
+          case "$status" in
+            0)
+              echo "deps_ready=true" >> "$GITHUB_OUTPUT"
+              ;;
+            10|20)
+              echo "deps_ready=false" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "FAIL: check_hex_constraints.py exited unexpectedly with status $status" >&2
+              exit "$status"
+              ;;
+          esac
       - if: steps.hex_deps.outputs.deps_ready != 'true'
         uses: actions/checkout@v4
         with:

@@ -8,13 +8,14 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import functools
 import json
 import re
 import sys
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
-from typing import Iterable, List, Tuple
+from typing import Iterable
 
 
 @dataclass
@@ -29,6 +30,12 @@ class CheckResult:
     constraint: str
     state: str
     detail: str
+
+
+SEMVER_RE = re.compile(
+    r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
+    r"(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$",
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -48,37 +55,79 @@ def parse_requirement(raw: str) -> Requirement:
     return Requirement(package=package, constraint=constraint)
 
 
-def parse_version(version: str) -> Tuple[Tuple[int, ...], bool]:
-    core, _, _pre = version.partition("-")
-    parts: List[int] = []
-    for token in core.split("."):
-        match = re.match(r"^(\d+)", token)
-        parts.append(int(match.group(1)) if match else 0)
-    return tuple(parts), bool(_pre)
+def parse_prerelease(prerelease: str) -> tuple[tuple[int, int | str], ...]:
+    parts: list[tuple[int, int | str]] = []
+    for token in prerelease.split("."):
+        if token == "":
+            raise ValueError(f"invalid prerelease segment in version: {prerelease!r}")
+
+        if token.isdigit():
+            if len(token) > 1 and token.startswith("0"):
+                raise ValueError(f"numeric prerelease segment has leading zeros: {token!r}")
+            parts.append((0, int(token)))
+        else:
+            parts.append((1, token))
+
+    return tuple(parts)
+
+
+def parse_version(
+    version: str,
+) -> tuple[tuple[int, int, int], tuple[tuple[int, int | str], ...] | None]:
+    match = SEMVER_RE.fullmatch(version)
+    if match is None:
+        raise ValueError(f"invalid semver version: {version!r}")
+
+    core = (int(match.group(1)), int(match.group(2)), int(match.group(3)))
+    prerelease = match.group(4)
+    if prerelease is None:
+        return core, None
+
+    return core, parse_prerelease(prerelease)
 
 
 def compare_versions(left: str, right: str) -> int:
-    left_nums, left_pre = parse_version(left)
-    right_nums, right_pre = parse_version(right)
+    left_core, left_pre = parse_version(left)
+    right_core, right_pre = parse_version(right)
 
-    width = max(len(left_nums), len(right_nums))
-    left_padded = left_nums + (0,) * (width - len(left_nums))
-    right_padded = right_nums + (0,) * (width - len(right_nums))
-
-    if left_padded < right_padded:
+    if left_core < right_core:
         return -1
-    if left_padded > right_padded:
+    if left_core > right_core:
         return 1
 
-    if left_pre == right_pre:
+    if left_pre is None and right_pre is None:
         return 0
-    # Stable release is considered newer than prerelease for the same core.
-    return -1 if left_pre else 1
+    if left_pre is None:
+        # Stable release is newer than prerelease for the same core.
+        return 1
+    if right_pre is None:
+        return -1
+
+    for left_identifier, right_identifier in zip(left_pre, right_pre):
+        if left_identifier == right_identifier:
+            continue
+
+        left_kind, left_value = left_identifier
+        right_kind, right_value = right_identifier
+
+        if left_kind != right_kind:
+            # Numeric prerelease segments have lower precedence than non-numeric.
+            return -1 if left_kind < right_kind else 1
+
+        if left_value < right_value:
+            return -1
+        return 1
+
+    if len(left_pre) < len(right_pre):
+        return -1
+    if len(left_pre) > len(right_pre):
+        return 1
+    return 0
 
 
-def parse_constraints(constraint: str) -> List[Tuple[str, str]]:
+def parse_constraints(constraint: str) -> list[tuple[str, str]]:
     terms = [term.strip() for term in constraint.split("and") if term.strip()]
-    parsed: List[Tuple[str, str]] = []
+    parsed: list[tuple[str, str]] = []
     for term in terms:
         match = re.match(r"^(>=|<=|>|<|==|=)\s*([A-Za-z0-9.+-]+)$", term)
         if not match:
@@ -111,7 +160,7 @@ def max_version(versions: Iterable[str]) -> str:
     versions = list(versions)
     if not versions:
         return ""
-    return max(versions, key=lambda version: parse_version(version))
+    return max(versions, key=functools.cmp_to_key(compare_versions))
 
 
 def fetch_versions(package: str) -> Tuple[str, List[str]]:
@@ -181,7 +230,11 @@ def main() -> int:
         print(f"FAIL: {error}", file=sys.stderr)
         return 2
 
-    results = [evaluate(requirement) for requirement in requirements]
+    try:
+        results = [evaluate(requirement) for requirement in requirements]
+    except ValueError as error:
+        print(f"FAIL: {error}", file=sys.stderr)
+        return 2
 
     has_network = False
     has_unsatisfied = False
