@@ -98,14 +98,16 @@ fn serialize_row(row: dict.Dict(String, Float)) -> String {
     }
   })
   |> list.map(fn(item) {
-    case item {
-      #(key, value) -> encode_part(key) <> "=" <> encode_part(math.fmt(value))
-    }
+    let #(key, value) = item
+    encode_part(key) <> "=" <> encode_part(math.fmt(value))
   })
   |> string.join(with: "|")
 }
 
 fn fnv1a_32(value: String) -> Int {
+  // NOTE: `fnv1a_32` folds over `string.to_utf_codepoints` and
+  // `string.utf_codepoint_to_int`, so this is codepoint-based rather than
+  // canonical byte-wise UTF-8 FNV-1a for multibyte characters.
   let offset_basis = 2_166_136_261
   let prime = 16_777_619
 
@@ -157,6 +159,9 @@ fn to_lower_hex_8(value: Int) -> String {
 }
 
 fn hex_digit(nibble: Int) -> String {
+  let assert True = nibble >= 0 && nibble <= 15
+    as "hex_digit: nibble out of range [0, 15]"
+
   case nibble {
     0 -> "0"
     1 -> "1"
@@ -173,6 +178,7 @@ fn hex_digit(nibble: Int) -> String {
     12 -> "c"
     13 -> "d"
     14 -> "e"
+    15 -> "f"
     _ -> "f"
   }
 }
