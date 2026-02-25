@@ -14,8 +14,8 @@ import re
 import sys
 import urllib.error
 import urllib.request
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 
 
 @dataclass
@@ -126,7 +126,11 @@ def compare_versions(left: str, right: str) -> int:
 
 
 def parse_constraints(constraint: str) -> list[tuple[str, str]]:
-    terms = [term.strip() for term in constraint.split("and") if term.strip()]
+    terms = [
+        term.strip()
+        for term in re.split(r"\s+and\s+", constraint, flags=re.IGNORECASE)
+        if term.strip()
+    ]
     parsed: list[tuple[str, str]] = []
     for term in terms:
         match = re.match(r"^(>=|<=|>|<|==|=)\s*([A-Za-z0-9.+-]+)$", term)
@@ -163,7 +167,7 @@ def max_version(versions: Iterable[str]) -> str:
     return max(versions, key=functools.cmp_to_key(compare_versions))
 
 
-def fetch_versions(package: str) -> Tuple[str, List[str]]:
+def fetch_versions(package: str) -> tuple[str, list[str]]:
     url = f"https://hex.pm/api/packages/{package}"
     try:
         with urllib.request.urlopen(url, timeout=15) as response:
