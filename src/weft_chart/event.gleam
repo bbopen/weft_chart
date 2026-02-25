@@ -12,6 +12,7 @@
 
 /// Chart-level event handler variants.
 /// Each variant wraps a handler function that produces a Lustre message.
+/// Handlers should be pure message constructors.
 pub type ChartEvent(msg) {
   /// Fires when the chart area is clicked.
   OnClick(handler: fn() -> msg)

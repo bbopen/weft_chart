@@ -4,7 +4,6 @@
 //// for cartesian chart rendering.
 
 import gleam/dict
-import gleam/float
 import gleam/int
 import gleam/list
 import gleam/string
@@ -100,8 +99,7 @@ fn serialize_row(row: dict.Dict(String, Float)) -> String {
   })
   |> list.map(fn(item) {
     case item {
-      #(key, value) ->
-        encode_part(key) <> "=" <> encode_part(float.to_string(value))
+      #(key, value) -> encode_part(key) <> "=" <> encode_part(math.fmt(value))
     }
   })
   |> string.join(with: "|")
@@ -114,10 +112,33 @@ fn fnv1a_32(value: String) -> Int {
   value
   |> string.to_utf_codepoints
   |> list.fold(offset_basis, fn(hash, codepoint) {
-    let byte = string.utf_codepoint_to_int(codepoint)
-    let next = int.bitwise_exclusive_or(hash, byte)
-    int.bitwise_and(next * prime, 4_294_967_295)
+    let codepoint = string.utf_codepoint_to_int(codepoint)
+    let next = int.bitwise_exclusive_or(hash, codepoint)
+    mul_mod_u32(a: next, b: prime)
   })
+}
+
+fn mul_mod_u32(a a: Int, b b: Int) -> Int {
+  mul_mod_u32_loop(a: mask_u32(a), b: mask_u32(b), acc: 0)
+}
+
+fn mul_mod_u32_loop(a a: Int, b b: Int, acc acc: Int) -> Int {
+  case b {
+    0 -> acc
+    _ -> {
+      let next_acc = case int.bitwise_and(b, 1) {
+        1 -> mask_u32(acc + a)
+        _ -> acc
+      }
+      let next_a = mask_u32(a * 2)
+      let next_b = int.bitwise_shift_right(b, 1)
+      mul_mod_u32_loop(a: next_a, b: next_b, acc: next_acc)
+    }
+  }
+}
+
+fn mask_u32(value: Int) -> Int {
+  int.bitwise_and(value, 4_294_967_295)
 }
 
 fn to_lower_hex_8(value: Int) -> String {
