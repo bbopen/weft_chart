@@ -121,6 +121,11 @@ bash scripts/check.sh
 This runs grep gates, formatting, dual-target builds with warnings-as-errors,
 tests, and doc generation.
 
+Pre-publish note: this branch intentionally uses a Hex semver dependency on
+`weft`. Until `weft` is published to Hex, dependency resolution in clean
+environments is expected to fail. This is temporary and enforced by the stack
+preflight gate so the failure mode is explicit.
+
 ## License
 
 Apache-2.0
