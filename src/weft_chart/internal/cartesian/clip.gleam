@@ -4,6 +4,7 @@
 //// for cartesian chart rendering.
 
 import gleam/dict
+import gleam/float
 import gleam/int
 import gleam/list
 import gleam/string
@@ -58,6 +59,12 @@ fn hash_clip_fallback(
   categories categories: List(String),
   values values: List(dict.Dict(String, Float)),
 ) -> Int {
+  // Canonical hash input:
+  // - fixed field order
+  // - length-prefixed text fields via encode_part
+  // - row keys sorted lexicographically
+  // - float values encoded as fixed-point 9dp integers
+  // This keeps hash construction deterministic across renders.
   [
     encode_part(chart_kind),
     "w=" <> int.to_string(width),
@@ -99,9 +106,15 @@ fn serialize_row(row: dict.Dict(String, Float)) -> String {
   })
   |> list.map(fn(item) {
     let #(key, value) = item
-    encode_part(key) <> "=" <> encode_part(math.fmt(value))
+    encode_part(key) <> "=" <> encode_part(encode_float_for_hash(value))
   })
   |> string.join(with: "|")
+}
+
+fn encode_float_for_hash(value: Float) -> String {
+  // Preserve high-fidelity value distinctions via fixed-point 9dp integers.
+  let scaled = float.round(value *. 1_000_000_000.0)
+  "fp9:" <> int.to_string(scaled)
 }
 
 fn fnv1a_32(value: String) -> Int {
