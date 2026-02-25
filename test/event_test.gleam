@@ -7,6 +7,8 @@
 import gleam/dict
 import gleam/option.{None, Some}
 import gleam/string
+import lustre/dev/query
+import lustre/dev/simulate
 import lustre/element
 import startest.{describe, it}
 import startest/expect
@@ -50,6 +52,37 @@ fn missing_series_data() -> List(chart.DataPoint) {
       values: dict.from_list([#("present_value", 10.0)]),
     ),
   ]
+}
+
+fn svg_query() -> query.Query {
+  query.element(matching: query.namespaced("http://www.w3.org/2000/svg", "svg"))
+}
+
+fn chart_event_simulation(
+  event_children event_children: List(chart.ChartChild(Msg)),
+) -> simulate.Simulation(List(Msg), Msg) {
+  let app =
+    simulate.simple(
+      init: fn(_args) { [] },
+      update: fn(model, msg) { [msg, ..model] },
+      view: fn(_model) {
+        chart.line_chart(
+          data: sample_data(),
+          width: chart.FixedWidth(pixels: 400),
+          theme: option.None,
+          height: 300,
+          children: [
+            chart.line(line.line_config(
+              data_key: "val",
+              meta: common.series_meta(),
+            )),
+            ..event_children
+          ],
+        )
+      },
+    )
+
+  simulate.start(app, Nil)
 }
 
 // ---------------------------------------------------------------------------
@@ -116,50 +149,44 @@ pub fn event_tests() {
         |> expect.to_be_true
       }),
     ]),
-    // ----- Chart with events renders SVG with event attributes -----
+    // ----- Chart-level events dispatch through Lustre wiring -----
     describe("chart event rendering", [
-      it("renders click handler on SVG", fn() {
-        let html =
-          chart.line_chart(
-            data: sample_data(),
-            width: chart.FixedWidth(pixels: 400),
-            theme: option.None,
-            height: 300,
-            children: [
-              chart.line(line.line_config(
-                data_key: "val",
-                meta: common.series_meta(),
-              )),
-              chart.event(handler: event.on_click(handler: fn() { Clicked })),
-            ],
-          )
-          |> element.to_string
-        // The SVG should contain event binding data
-        html |> string.contains("<svg") |> expect.to_be_true
+      it("dispatches click handler from SVG events", fn() {
+        let simulation =
+          chart_event_simulation(event_children: [
+            chart.event(handler: event.on_click(handler: fn() { Clicked })),
+          ])
+          |> simulate.click(on: svg_query())
+
+        simulate.model(simulation)
+        |> expect.to_equal(expected: [Clicked])
       }),
-      it("renders multiple event handlers", fn() {
-        let html =
-          chart.line_chart(
-            data: sample_data(),
-            width: chart.FixedWidth(pixels: 400),
-            theme: option.None,
-            height: 300,
-            children: [
-              chart.line(line.line_config(
-                data_key: "val",
-                meta: common.series_meta(),
-              )),
-              chart.event(handler: event.on_click(handler: fn() { Clicked })),
-              chart.event(
-                handler: event.on_mouse_enter(handler: fn() { MouseEntered }),
-              ),
-              chart.event(
-                handler: event.on_mouse_leave(handler: fn() { MouseLeft }),
-              ),
-            ],
-          )
-          |> element.to_string
-        html |> string.contains("<svg") |> expect.to_be_true
+      it("dispatches multiple chart-level SVG handlers", fn() {
+        let simulation =
+          chart_event_simulation(event_children: [
+            chart.event(handler: event.on_click(handler: fn() { Clicked })),
+            chart.event(
+              handler: event.on_mouse_enter(handler: fn() { MouseEntered }),
+            ),
+            chart.event(
+              handler: event.on_mouse_leave(handler: fn() { MouseLeft }),
+            ),
+            chart.event(
+              handler: event.on_mouse_move(handler: fn() { MouseMoved }),
+            ),
+          ])
+          |> simulate.event(on: svg_query(), name: "mouseenter", data: [])
+          |> simulate.event(on: svg_query(), name: "mousemove", data: [])
+          |> simulate.event(on: svg_query(), name: "mouseleave", data: [])
+          |> simulate.click(on: svg_query())
+
+        simulate.model(simulation)
+        |> expect.to_equal(expected: [
+          Clicked,
+          MouseLeft,
+          MouseMoved,
+          MouseEntered,
+        ])
       }),
     ]),
     // ----- Throttle -----
