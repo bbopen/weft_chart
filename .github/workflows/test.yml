@@ -12,16 +12,33 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: weft_chart
-      - uses: actions/checkout@v4
-        with:
-          repository: bbopen/weft
-          path: weft
       - uses: erlef/setup-beam@v1
         with:
           otp-version: "28"
           gleam-version: "1.14.0"
           rebar3-version: "3"
-      - run: gleam deps download
+      - id: hex_deps
+        name: Check Hex dependency availability
+        run: |
+          set -euo pipefail
+          status="$(curl -sS --max-time 15 --retry 2 -o /dev/null -w '%{http_code}' "https://hex.pm/api/packages/weft" || true)"
+          case "$status" in
+            200)
+              echo "deps_ready=true" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "deps_ready=false" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+      - if: steps.hex_deps.outputs.deps_ready != 'true'
+        run: |
+          echo "Hex deps are not published yet; running transitional checks only."
+          bash scripts/grep-gates.sh
+          gleam format --check src test
         working-directory: weft_chart
-      - run: bash scripts/check.sh
+      - if: steps.hex_deps.outputs.deps_ready == 'true'
+        run: gleam deps download
+        working-directory: weft_chart
+      - if: steps.hex_deps.outputs.deps_ready == 'true'
+        run: bash scripts/check.sh
         working-directory: weft_chart
